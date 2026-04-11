@@ -1,4 +1,5 @@
 import { Bell, Zap, ChevronRight, Check } from "lucide-react";
+import logo from "@/assets/logo.png";
 
 const days = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"];
 const dayStates = ["done", "today", "future", "future", "future", "future", "future"] as const;
@@ -9,10 +10,7 @@ const InicioTab = () => {
       {/* Header */}
       <div className="flex items-center justify-between mb-5">
         <div className="flex items-center gap-2">
-          <div className="w-9 h-9 rounded-lg bg-primary flex items-center justify-center">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-              <path d="M12 2L8 6H5L3 10L5 12L3 16L5 18H8L12 22L16 18H19L21 16L19 12L21 10L19 6H16L12 2Z" fill="white"/>
-            </svg>
+          <img src={logo} alt="Iron Lifting Club" className="w-9 h-9 rounded-lg object-contain" />
           </div>
           <span className="font-barlow font-bold text-foreground text-lg">IRON LIFTING</span>
         </div>
