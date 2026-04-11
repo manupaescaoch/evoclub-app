@@ -11,7 +11,6 @@ const InicioTab = () => {
       <div className="flex items-center justify-between mb-5">
         <div className="flex items-center gap-2">
           <img src={logo} alt="Iron Lifting Club" className="w-9 h-9 rounded-lg object-contain" />
-          </div>
           <span className="font-barlow font-bold text-foreground text-lg">IRON LIFTING</span>
         </div>
         <div className="flex items-center gap-3">
