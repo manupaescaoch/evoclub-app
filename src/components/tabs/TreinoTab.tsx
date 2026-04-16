@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
-import { ArrowLeft, Check, Play, Clock, X, Pause, RotateCcw, Dumbbell, PersonStanding, ChevronRight, Pencil } from "lucide-react";
-
+import { useState, useEffect, useCallback } from "react";
+import { ArrowLeft, Check, Play, Clock, X, Pause, RotateCcw, Dumbbell, PersonStanding, ChevronRight, Pencil, Zap, Trophy } from "lucide-react";
+import { toast } from "sonner";
 // ... types & data
 
 interface ExerciseSeries {
@@ -248,6 +248,70 @@ const TimerModal = ({
   );
 };
 
+const XP_LOAD = 5;
+const XP_START = 10;
+const XP_COMPLETE = 25;
+
+const XpCompletionModal = ({
+  xpBreakdown,
+  onClose,
+}: {
+  xpBreakdown: { loads: number; start: boolean; complete: boolean };
+  onClose: () => void;
+}) => {
+  const loadXp = xpBreakdown.loads * XP_LOAD;
+  const startXp = xpBreakdown.start ? XP_START : 0;
+  const completeXp = xpBreakdown.complete ? XP_COMPLETE : 0;
+  const total = loadXp + startXp + completeXp;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center px-6" onClick={onClose}>
+      <div className="absolute inset-0 bg-black/50" />
+      <div className="relative w-full max-w-[340px] bg-card rounded-3xl p-6 text-center" onClick={(e) => e.stopPropagation()}>
+        <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+          <Trophy size={32} className="text-primary" />
+        </div>
+        <h2 className="font-barlow font-bold text-xl text-foreground mb-1">TREINO CONCLUÍDO! 🎉</h2>
+        <p className="text-sm font-dm text-muted mb-5">Parabéns pela dedicação!</p>
+
+        <div className="space-y-2 mb-5">
+          {xpBreakdown.start && (
+            <div className="flex items-center justify-between bg-secondary rounded-xl px-4 py-2.5">
+              <span className="text-sm font-dm text-foreground">Início do treino</span>
+              <span className="font-barlow font-bold text-primary">+{XP_START} XP</span>
+            </div>
+          )}
+          {xpBreakdown.loads > 0 && (
+            <div className="flex items-center justify-between bg-secondary rounded-xl px-4 py-2.5">
+              <span className="text-sm font-dm text-foreground">Cargas anotadas ({xpBreakdown.loads}x)</span>
+              <span className="font-barlow font-bold text-primary">+{loadXp} XP</span>
+            </div>
+          )}
+          {xpBreakdown.complete && (
+            <div className="flex items-center justify-between bg-secondary rounded-xl px-4 py-2.5">
+              <span className="text-sm font-dm text-foreground">Treino completo</span>
+              <span className="font-barlow font-bold text-primary">+{XP_COMPLETE} XP</span>
+            </div>
+          )}
+        </div>
+
+        <div className="rounded-2xl p-4 mb-5" style={{ background: "linear-gradient(135deg, #1400FF 0%, #0A00B0 100%)" }}>
+          <p className="text-white/70 text-[10px] font-barlow tracking-[2px] uppercase">XP TOTAL GANHO</p>
+          <p className="font-barlow font-[800] text-4xl text-white">+{total}</p>
+        </div>
+
+        <button
+          onClick={onClose}
+          className="w-full py-3.5 rounded-2xl bg-primary text-primary-foreground font-barlow font-bold text-base active:scale-[0.98] transition-transform"
+          style={{ boxShadow: "0 3px 10px #1400FF44" }}
+        >
+          FECHAR
+        </button>
+      </div>
+    </div>
+  );
+};
+
 type Screen = "menu" | "days" | "exercises";
 
 const TreinoTab = () => {
@@ -258,6 +322,8 @@ const TreinoTab = () => {
   const [editTarget, setEditTarget] = useState<{ ex: number; s: number } | null>(null);
   const [timerTarget, setTimerTarget] = useState<number | null>(null);
   const [selectedDay, setSelectedDay] = useState<string>("");
+  const [loadAnnotations, setLoadAnnotations] = useState(0);
+  const [showXpModal, setShowXpModal] = useState(false);
 
   const openWorkout = (w: Workout) => {
     setSelectedWorkout(w);
@@ -268,6 +334,8 @@ const TreinoTab = () => {
     setSelectedDay(dayName);
     setExercises(w.exercises.map(e => ({ ...e, done: false })));
     setStarted(false);
+    setLoadAnnotations(0);
+    setShowXpModal(false);
     setScreen("exercises");
   };
 
@@ -281,6 +349,10 @@ const TreinoTab = () => {
       updated[exerciseIdx] = ex;
       return updated;
     });
+    if (value && value !== "0") {
+      setLoadAnnotations(prev => prev + 1);
+      toast(`+${XP_LOAD} XP — Carga anotada!`, { icon: <Zap size={16} className="text-primary" /> });
+    }
   };
 
   const toggleExerciseDone = (idx: number) => {
@@ -290,6 +362,15 @@ const TreinoTab = () => {
       return updated;
     });
   };
+
+  const handleStartWorkout = () => {
+    setStarted(true);
+    toast(`+${XP_START} XP — Treino iniciado!`, { icon: <Zap size={16} className="text-primary" /> });
+  };
+
+  const handleFinishWorkout = useCallback(() => {
+    setShowXpModal(true);
+  }, []);
 
   // Screen: Exercise detail
   if (screen === "exercises" && selectedWorkout) {
@@ -315,10 +396,18 @@ const TreinoTab = () => {
         <div className="flex-1 overflow-y-auto px-4 pb-24">
           {!started && (
             <div className="mb-4">
-              <button onClick={() => setStarted(true)} className="w-full py-3 rounded-2xl bg-primary text-primary-foreground font-barlow font-bold text-base tracking-wide active:scale-[0.98] transition-transform" style={{ boxShadow: "0 3px 10px #1400FF44" }}>
+              <button onClick={handleStartWorkout} className="w-full py-3 rounded-2xl bg-primary text-primary-foreground font-barlow font-bold text-base tracking-wide active:scale-[0.98] transition-transform" style={{ boxShadow: "0 3px 10px #1400FF44" }}>
                 INICIAR
               </button>
               <p className="text-center text-[11px] text-muted font-dm mt-2">Modo visualização. Aperte INICIAR para começar.</p>
+            </div>
+          )}
+
+          {started && doneCount === exercises.length && doneCount > 0 && !showXpModal && (
+            <div className="mb-4">
+              <button onClick={handleFinishWorkout} className="w-full py-3.5 rounded-2xl font-barlow font-bold text-base tracking-wide text-white active:scale-[0.98] transition-transform" style={{ background: "linear-gradient(135deg, #1400FF 0%, #0A00B0 100%)", boxShadow: "0 3px 14px #1400FF55" }}>
+                🏆 FINALIZAR TREINO
+              </button>
             </div>
           )}
 
@@ -380,6 +469,12 @@ const TreinoTab = () => {
         )}
         {timerTarget !== null && (
           <TimerModal seconds={timerTarget} onClose={() => setTimerTarget(null)} />
+        )}
+        {showXpModal && (
+          <XpCompletionModal
+            xpBreakdown={{ loads: loadAnnotations, start: started, complete: true }}
+            onClose={() => setShowXpModal(false)}
+          />
         )}
       </div>
     );
