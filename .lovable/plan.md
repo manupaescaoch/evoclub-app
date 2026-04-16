@@ -1,55 +1,58 @@
 
 
-# Fluxo Completo de Criação de Plano de Treino
+# Perfil do Aluno — Página Completa
 
-Baseado nas telas do MPFLOW, vamos criar um fluxo de 4 etapas para prescrição de treino.
+Criar uma nova tab/página de perfil do aluno acessível ao clicar na foto/avatar no header da tab Início, seguindo o layout do MPFLOW.
 
-## Fluxo
+## Estrutura da Página
 
 ```text
-[Criar Plano] → Modal com opções (Manualmente / Biblioteca)
-      ↓
-[Prescrever Treino] → Nome do Plano + Descrição + lista de sessões
-      ↓
-[+ Adicionar Sessão] → Modal: Nome da Sessão, Dia da Semana ou número, Duração, Obs
-      ↓
-[+ Adicionar Exercício] → Modal: busca/cria exercício, configura séries/reps/carga/intervalo
+[Avatar + Nome + Editar]
+[Trocar Foto]
+─────────────────────────
+[Stats: Dias Ativos | Sequência | Ranking | Conquistas]
+─────────────────────────
+[Conquistas] → card expandível com progresso
+[Evolução do Peso] → gráfico + botão Registrar Peso
+[Fotos de Progresso] → Antes/Depois (Frente, Lateral, Costas)
+[Consistência] → calendário mensal com check-ins
+[Resumo do Período] → dias ativos, treinos, pontos + dicas
+[Notificações] → link/chevron
+[Configurações] → link/chevron
+[Privacidade] → link/chevron
+[Sair da Conta] → botão vermelho
 ```
 
 ## Alterações
 
-### 1. Database Migration
-- Create `workout_sessions` table: `id`, `workout_id`, `name` (ex: "Treino A"), `day_label` (segunda/terça ou numérico), `duration_min`, `notes`, `sort_order`
-- Modify `workout_exercises` to reference `session_id` instead of directly `workout_id`, add `load` (text) column for weight/carga
+### 1. Novo componente: `src/components/tabs/PerfilTab.tsx`
+Página completa com todas as seções acima, usando dados mock por enquanto:
+- **Header**: Avatar grande com ícone de câmera para trocar foto, nome do aluno, ícone de edição
+- **Stats row**: 4 cards (Dias Ativos, Sequência, Ranking, Conquistas)
+- **Conquistas**: Card com barra de progresso "X/25 desbloqueadas", chevron para expandir
+- **Evolução do Peso**: Área de gráfico placeholder + botão "Registrar Peso"
+- **Fotos de Progresso**: Seção "ANTES" com 3 placeholders (Frente, Lateral, Costas) com ícone de câmera
+- **Consistência**: Calendário mensal com switcher Semana/Mês/Ano/Tudo, dias coloridos para check-ins
+- **Resumo do Período**: Stats (dias ativos, treinos, pontos) + seções "Pode melhorar" e "Atenção"
+- **Menu items**: Notificações, Configurações, Privacidade — cada um como card com chevron
+- **Sair da Conta**: Botão centralizado em vermelho
 
-### 2. Refactor TreinosClienteDetalhe.tsx
-- Replace inline new workout form with a modal "Criar Novo Plano de Treino" with two cards: "Criar Manualmente" and "Usar da Biblioteca" (disabled/coming soon)
-- On "Criar Manualmente" → navigate to a new prescription view
+### 2. Atualizar `AppShell.tsx`
+- Adicionar `"perfil"` ao array de tabs
+- Renderizar `PerfilTab` quando `activeTab === "perfil"`
 
-### 3. New Component: WorkoutPrescription.tsx
-- Header: back arrow, "Prescrever Treino", client name, Salvar button
-- Form: Nome do Plano + Descrição inputs
-- List of sessions (Treino A - Segunda, etc.) each expandable with exercises inside
-- "+ Adicionar Sessão de Treino" button at bottom
-- Each session card has: settings gear, copy, delete icons, and "+ Adicionar Exercício" button
+### 3. Atualizar `InicioTab.tsx`
+- Tornar o avatar no header clicável — ao clicar, muda para tab "perfil"
+- Passar `onTabChange` como prop para InicioTab
 
-### 4. New Dialog: NewSessionDialog.tsx
-- Modal with fields: Nome da Sessão (text), Dia da Semana (select dropdown with Seg-Dom + Numérico options), Duração em min (number), Observações (textarea)
-- Buttons: Cancelar / Criar
+### 4. Atualizar `BottomNav.tsx`
+- Não adicionar perfil no bottom nav (acessível apenas pelo avatar, como no MPFLOW)
+- Alternativa: adicionar callback para navegação ao perfil
 
-### 5. New Dialog: AddExerciseDialog.tsx
-- Modal "Adicionar Exercício" with search input + "Criar novo" button
-- List of exercises from `workout_exercises` library or typed manually
-- On select → opens config: Série × Rep, Carga, Intervalo(s)
-- Buttons: Adicionar série, Cancelar, Salvar
-
-### 6. Update workout expanded view
-- When viewing existing workout, show sessions grouped with exercises inside each
-- Each exercise row shows: name, sets × reps, load, rest
-
-## Technical Details
-- New table `workout_sessions` bridges `workouts` → sessions → exercises
-- Add `session_id` (uuid, nullable) and `load` (text) columns to `workout_exercises`
-- RLS: same pattern as existing tables (authenticated can manage)
-- All labels in PT-BR, following existing font/color conventions (Barlow headings, DM Sans body, #1400FF primary)
+## Detalhes Técnicos
+- Componente puramente visual com dados mock (sem DB por enquanto)
+- Seguir paleta existente: primary #1400FF, bg #F4F5FA
+- Fontes: Barlow Condensed para headings/números, DM Sans para corpo
+- Max width 390px, PT-BR
+- Ícones: lucide-react (Camera, ChevronRight, Scale, Calendar, Bell, Settings, Shield, LogOut)
 
