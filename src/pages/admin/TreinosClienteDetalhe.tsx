@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, Plus, Settings, Copy, Trash2, ChevronDown } from "lucide-react";
+import { ChevronLeft, Plus, Settings, Copy, Trash2, ChevronDown, Pencil, Check, X } from "lucide-react";
 import { toast } from "sonner";
 
 type Client = {
@@ -60,6 +60,10 @@ const TreinosClienteDetalhe = ({ clientId, onBack }: Props) => {
   // New anamnesis form
   const [showNewAnamnesis, setShowNewAnamnesis] = useState(false);
   const [newAnamnesisContent, setNewAnamnesisContent] = useState("");
+
+  // Editable observations
+  const [editingObs, setEditingObs] = useState(false);
+  const [obsText, setObsText] = useState("");
 
   useEffect(() => {
     fetchAll();
@@ -175,13 +179,52 @@ const TreinosClienteDetalhe = ({ clientId, onBack }: Props) => {
         </div>
       </div>
 
-      {/* Observações do Aluno - destaque */}
-      {client.observations && (
-        <div className="bg-yellow-50 border-l-4 border-l-yellow-400 border border-yellow-200 rounded-xl p-4 mb-6">
-          <h3 className="font-barlow font-bold text-sm text-yellow-800 mb-1">⚠️ OBSERVAÇÕES DO ALUNO</h3>
-          <p className="text-sm font-dm text-yellow-700 font-semibold whitespace-pre-wrap">{client.observations}</p>
+      {/* Observações do Aluno - destaque editável */}
+      <div className="bg-yellow-50 border-l-4 border-l-yellow-400 border border-yellow-200 rounded-xl p-4 mb-6">
+        <div className="flex items-center justify-between mb-1">
+          <h3 className="font-barlow font-bold text-sm text-yellow-800">⚠️ OBSERVAÇÕES DO ALUNO</h3>
+          {!editingObs ? (
+            <button
+              onClick={() => { setObsText(client.observations || ""); setEditingObs(true); }}
+              className="text-yellow-600 hover:text-yellow-800 transition-colors"
+            >
+              <Pencil size={14} />
+            </button>
+          ) : (
+            <div className="flex gap-1">
+              <button
+                onClick={async () => {
+                  const { error } = await supabase.from("clients").update({ observations: obsText.trim() || null }).eq("id", client.id);
+                  if (error) { toast.error("Erro ao salvar"); return; }
+                  setClient({ ...client, observations: obsText.trim() || null });
+                  setEditingObs(false);
+                  toast.success("Observação atualizada!");
+                }}
+                className="text-green-600 hover:text-green-800"
+              >
+                <Check size={16} />
+              </button>
+              <button onClick={() => setEditingObs(false)} className="text-red-500 hover:text-red-700">
+                <X size={16} />
+              </button>
+            </div>
+          )}
         </div>
-      )}
+        {editingObs ? (
+          <textarea
+            value={obsText}
+            onChange={e => setObsText(e.target.value)}
+            rows={3}
+            maxLength={1000}
+            className="w-full px-3 py-2 text-sm bg-white border border-yellow-300 rounded-lg font-dm focus:outline-none focus:ring-1 focus:ring-yellow-400"
+            placeholder="Ex: Aluna diabética e lesão no joelho direito..."
+          />
+        ) : (
+          <p className="text-sm font-dm text-yellow-700 font-semibold whitespace-pre-wrap">
+            {client.observations || "Nenhuma observação registrada. Clique no ícone para adicionar."}
+          </p>
+        )}
+      </div>
 
       {/* Tabs */}
       <div className="flex gap-4 border-b border-border mb-4">
