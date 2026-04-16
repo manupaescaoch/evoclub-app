@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, Plus, Settings, Copy, Trash2, ChevronDown, Pencil, Check, X, Dumbbell } from "lucide-react";
@@ -51,12 +52,11 @@ type Anamnesis = {
   created_at: string | null;
 };
 
-type Props = {
-  clientId: number;
-  onBack: () => void;
-};
-
-const TreinosClienteDetalhe = ({ clientId, onBack }: Props) => {
+const TreinosClienteDetalhe = () => {
+  const { clientId: clientIdParam } = useParams();
+  const navigate = useNavigate();
+  const clientId = Number(clientIdParam);
+  const onBack = () => navigate("/admin/treinos/alunos");
   const [client, setClient] = useState<Client | null>(null);
   const [workouts, setWorkouts] = useState<Workout[]>([]);
   const [anamnesis, setAnamnesis] = useState<Anamnesis[]>([]);

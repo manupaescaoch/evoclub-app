@@ -4,17 +4,33 @@ import { supabase } from "@/integrations/supabase/client";
 import {
   LayoutDashboard, Users, CalendarDays, Megaphone, DollarSign,
   BarChart3, Dumbbell, Settings, Sparkles, HelpCircle, LogOut,
-  Search, Bell,
+  Search, Bell, ChevronDown, ClipboardList, Library, Wrench,
 } from "lucide-react";
 
-const navItems = [
+type NavItem = {
+  label: string;
+  icon: React.ElementType;
+  path: string;
+  children?: { label: string; icon: React.ElementType; path: string }[];
+};
+
+const navItems: NavItem[] = [
   { label: "Dashboard", icon: LayoutDashboard, path: "/admin" },
   { label: "Clientes", icon: Users, path: "/admin/clientes" },
   { label: "Grade", icon: CalendarDays, path: "/admin/grade" },
   { label: "CRM", icon: Megaphone, path: "/admin/crm" },
   { label: "Financeiro", icon: DollarSign, path: "/admin/financeiro" },
   { label: "Gerencial", icon: BarChart3, path: "/admin/gerencial" },
-  { label: "Treinos", icon: Dumbbell, path: "/admin/treinos" },
+  {
+    label: "Treinos", icon: Dumbbell, path: "/admin/treinos",
+    children: [
+      { label: "Dashboard", icon: LayoutDashboard, path: "/admin/treinos" },
+      { label: "Alunos", icon: Users, path: "/admin/treinos/alunos" },
+      { label: "Fichas de Treino", icon: ClipboardList, path: "/admin/treinos/fichas" },
+      { label: "Biblioteca de Exercícios", icon: Library, path: "/admin/treinos/biblioteca" },
+      { label: "Métodos de Treino", icon: Wrench, path: "/admin/treinos/metodos" },
+    ],
+  },
   { label: "Configurações", icon: Settings, path: "/admin/configuracoes" },
   { label: "Novidades", icon: Sparkles, path: "/admin/novidades" },
   { label: "Central de Ajuda", icon: HelpCircle, path: "/admin/ajuda" },
@@ -70,9 +86,53 @@ const AdminLayout = () => {
         {/* Nav */}
         <nav className="flex-1 px-3 mt-2 space-y-0.5 overflow-y-auto">
           {navItems.map((item) => {
+            const hasChildren = !!item.children;
+            const isTreinosSection = location.pathname.startsWith("/admin/treinos");
             const active = location.pathname === item.path || (item.path !== "/admin" && location.pathname.startsWith(item.path));
             const isExact = item.path === "/admin" && location.pathname === "/admin";
             const isActive = isExact || (item.path !== "/admin" && active);
+
+            if (hasChildren) {
+              const expanded = isTreinosSection;
+              return (
+                <div key={item.path}>
+                  <Link
+                    to={item.path}
+                    className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-dm transition-colors w-full
+                      ${isActive
+                        ? "bg-[rgba(20,0,255,0.13)] text-white border-l-[3px] border-l-primary"
+                        : "text-gray-400 hover:text-white hover:bg-white/5 border-l-[3px] border-l-transparent"
+                      }`}
+                  >
+                    <item.icon size={18} className={isActive ? "text-primary" : ""} />
+                    <span className="flex-1 text-left">{item.label}</span>
+                    <ChevronDown size={14} className={`transition-transform ${expanded ? "rotate-0" : "-rotate-90"}`} />
+                  </Link>
+                  {expanded && (
+                    <div className="ml-4 mt-0.5 space-y-0.5 border-l border-white/10 pl-2">
+                      {item.children!.map((child) => {
+                        const childActive = location.pathname === child.path;
+                        return (
+                          <Link
+                            key={child.path}
+                            to={child.path}
+                            className={`flex items-center gap-2.5 px-2 py-2 rounded-md text-xs font-dm transition-colors
+                              ${childActive
+                                ? "text-white bg-white/5"
+                                : "text-gray-500 hover:text-white hover:bg-white/5"
+                              }`}
+                          >
+                            <child.icon size={14} className={childActive ? "text-primary" : ""} />
+                            <span>{child.label}</span>
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              );
+            }
+
             return (
               <Link
                 key={item.path}

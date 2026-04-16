@@ -15,6 +15,12 @@ import CRM from "./pages/admin/CRM.tsx";
 import Financeiro from "./pages/admin/Financeiro.tsx";
 import Placeholder from "./pages/admin/Placeholder.tsx";
 import Treinos from "./pages/admin/Treinos.tsx";
+import TreinosDashboard from "./pages/admin/TreinosDashboard.tsx";
+import TreinosAlunos from "./pages/admin/TreinosAlunos.tsx";
+import TreinosClienteDetalhe from "./pages/admin/TreinosClienteDetalhe.tsx";
+import TreinosFichas from "./pages/admin/TreinosFichas.tsx";
+import TreinosBiblioteca from "./pages/admin/TreinosBiblioteca.tsx";
+import TreinosMetodos from "./pages/admin/TreinosMetodos.tsx";
 
 const queryClient = new QueryClient();
 
@@ -40,7 +46,14 @@ const App = () => (
             <Route path="crm" element={<CRM />} />
             <Route path="financeiro" element={<Financeiro />} />
             <Route path="gerencial" element={<Placeholder />} />
-            <Route path="treinos" element={<Treinos />} />
+            <Route path="treinos" element={<Treinos />}>
+              <Route index element={<TreinosDashboard />} />
+              <Route path="alunos" element={<TreinosAlunos />} />
+              <Route path="alunos/:clientId" element={<TreinosClienteDetalhe />} />
+              <Route path="fichas" element={<TreinosFichas />} />
+              <Route path="biblioteca" element={<TreinosBiblioteca />} />
+              <Route path="metodos" element={<TreinosMetodos />} />
+            </Route>
             <Route path="configuracoes" element={<Placeholder />} />
             <Route path="novidades" element={<Placeholder />} />
             <Route path="ajuda" element={<Placeholder />} />
