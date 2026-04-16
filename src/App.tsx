@@ -14,6 +14,7 @@ import Grade from "./pages/admin/Grade.tsx";
 import CRM from "./pages/admin/CRM.tsx";
 import Financeiro from "./pages/admin/Financeiro.tsx";
 import Placeholder from "./pages/admin/Placeholder.tsx";
+import Treinos from "./pages/admin/Treinos.tsx";
 
 const queryClient = new QueryClient();
 
@@ -39,7 +40,7 @@ const App = () => (
             <Route path="crm" element={<CRM />} />
             <Route path="financeiro" element={<Financeiro />} />
             <Route path="gerencial" element={<Placeholder />} />
-            <Route path="treinos" element={<Placeholder />} />
+            <Route path="treinos" element={<Treinos />} />
             <Route path="configuracoes" element={<Placeholder />} />
             <Route path="novidades" element={<Placeholder />} />
             <Route path="ajuda" element={<Placeholder />} />
