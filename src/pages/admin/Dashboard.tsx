@@ -559,14 +559,152 @@ const Dashboard = () => {
           </div>
         </>
       ) : (
-        <div className="grid grid-cols-3 gap-4">
-          <StatCard label="Receita Bruta" value={`R$ ${salesStats.totalSales.toLocaleString("pt-BR")}`} accent />
-          <StatCard label="Inadimplência" value={`R$ ${(salesStats.totalSales * 0.08).toFixed(0)}`} trend="down" trendValue="-1.2%" />
-          <StatCard label="Churn R$" value={`R$ ${(salesStats.totalSales * 0.05).toFixed(0)}`} />
-          <StatCard label="MRR" value={`R$ ${(salesStats.totalSales * 0.85).toFixed(0)}`} trend="up" trendValue="+4%" />
-          <StatCard label="LTV Médio" value="R$ 2.400" />
-          <StatCard label="CAC Estimado" value="R$ 180" />
-        </div>
+        <>
+          {/* Row 1: 3 cards */}
+          <div className="grid grid-cols-3 gap-4 mb-4">
+            {/* Inadimplência */}
+            <div className="bg-card rounded-xl p-5 card-shadow">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-muted-foreground">📊</span>
+                <span className="text-sm font-dm font-semibold text-foreground">Inadimplência</span>
+                <HelpCircle size={14} className="text-muted-foreground" />
+              </div>
+              <div className="flex items-baseline gap-1">
+                <span className="text-lg text-muted-foreground font-dm">R$</span>
+                <span className="text-4xl font-barlow font-bold text-foreground">{(salesStats.totalSales * 0.08 / 1000).toFixed(1)}</span>
+                <span className="text-lg text-muted-foreground font-dm">mil+</span>
+              </div>
+              <div className="border-t border-border mt-3 pt-2 flex items-center gap-1">
+                <span className="text-green-600 text-xs">↑</span>
+                <span className="text-xs text-muted-foreground font-dm">R$ 12.934,55 A MAIS QUE O PERÍODO ANTERIOR</span>
+              </div>
+            </div>
+            {/* Contas a pagar vencidas */}
+            <div className="bg-card rounded-xl p-5 card-shadow">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-muted-foreground">📋</span>
+                <span className="text-sm font-dm font-semibold text-foreground">Contas a pagar vencidas</span>
+                <HelpCircle size={14} className="text-muted-foreground" />
+              </div>
+              <div className="flex items-baseline gap-1">
+                <span className="text-lg text-muted-foreground font-dm">R$</span>
+                <span className="text-4xl font-barlow font-bold text-red-500">12</span>
+                <span className="text-lg text-red-500 font-dm">mil+</span>
+              </div>
+              <div className="border-t border-border mt-3 pt-2 flex items-center gap-1">
+                <span className="text-red-500 text-xs">↓</span>
+                <span className="text-xs text-muted-foreground font-dm">R$ 11.364,00 A MAIS QUE O PERÍODO ANTERIOR</span>
+              </div>
+            </div>
+            {/* Custo por cliente */}
+            <div className="bg-card rounded-xl p-5 card-shadow">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-muted-foreground">📊</span>
+                <span className="text-sm font-dm font-semibold text-foreground">Custo por cliente</span>
+                <HelpCircle size={14} className="text-muted-foreground" />
+              </div>
+              <div className="flex items-baseline gap-1">
+                <span className="text-lg text-muted-foreground font-dm">R$</span>
+                <span className="text-4xl font-barlow font-bold text-green-600">606</span>
+              </div>
+              <p className="text-xs text-muted-foreground font-dm mt-1">Meta: R$ 0,00 (0%)</p>
+              <div className="border-t border-border mt-3 pt-2 flex items-center gap-1">
+                <span className="text-green-600 text-xs">↑</span>
+                <span className="text-xs text-muted-foreground font-dm">R$ 7,00 A MENOS DO QUE PERÍODO ANTERIOR</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Recebimentos e gastos + Ticket médio */}
+          <div className="grid grid-cols-5 gap-4">
+            {/* Recebimentos e gastos — 3 cols */}
+            <div className="col-span-3 bg-card rounded-xl p-5 card-shadow">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="text-lg">💰</span>
+                <span className="text-sm font-dm font-semibold text-foreground">Recebimentos e gastos</span>
+                <HelpCircle size={14} className="text-muted-foreground" />
+              </div>
+              <div className="flex gap-8 mb-4">
+                <div>
+                  <p className="text-xs text-muted-foreground font-dm mb-0.5">Total de recebimentos</p>
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-lg text-muted-foreground font-dm">R$</span>
+                    <span className="text-3xl font-barlow font-bold text-foreground">{(salesStats.totalSales / 1000).toFixed(1)}</span>
+                    <span className="text-sm text-green-600 font-dm font-semibold">mil+</span>
+                  </div>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground font-dm mb-0.5">Total Gastos</p>
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-lg text-muted-foreground font-dm">R$</span>
+                    <span className="text-3xl font-barlow font-bold text-red-500">{(salesStats.totalSales * 0.79 / 1000).toFixed(1)}</span>
+                    <span className="text-sm text-red-500 font-dm font-semibold">mil+</span>
+                  </div>
+                </div>
+              </div>
+              <div className="flex gap-4 mb-3">
+                <div className="flex items-center gap-1.5">
+                  <div className="w-3 h-3 rounded-sm bg-[#10B981]" />
+                  <span className="text-[10px] text-muted-foreground font-dm">Total de recebimentos</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <div className="w-3 h-3 rounded-sm bg-primary" />
+                  <span className="text-[10px] text-muted-foreground font-dm">Meta de gastos</span>
+                </div>
+              </div>
+              <ResponsiveContainer width="100%" height={180}>
+                <ComposedChart data={Array.from({ length: 16 }, (_, i) => {
+                  const day = i + 1;
+                  const isPeak = day >= 5 && day <= 9;
+                  return {
+                    day,
+                    recebimentos: isPeak ? 8000 + Math.random() * 20000 : 1000 + Math.random() * 5000,
+                    gastos: 2000 + Math.random() * 4000,
+                  };
+                })}>
+                  <XAxis dataKey="day" tick={{ fontSize: 10 }} />
+                  <YAxis tick={{ fontSize: 10 }} tickFormatter={(v) => v >= 1000 ? `${(v/1000).toFixed(0)},000` : v} />
+                  <Tooltip formatter={(v: number) => `R$ ${v.toLocaleString("pt-BR", { maximumFractionDigits: 0 })}`} />
+                  <Line dataKey="recebimentos" stroke="#10B981" strokeWidth={2} dot={false} type="monotone" name="Recebimentos" />
+                  <Line dataKey="gastos" stroke="#1400FF" strokeWidth={2} dot={false} type="monotone" name="Gastos" />
+                </ComposedChart>
+              </ResponsiveContainer>
+            </div>
+
+            {/* Ticket médio — 2 cols */}
+            <div className="col-span-2 bg-card rounded-xl p-5 card-shadow">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="text-muted-foreground">📊</span>
+                <span className="text-sm font-dm font-semibold text-foreground">Ticket médio</span>
+                <HelpCircle size={14} className="text-muted-foreground" />
+              </div>
+              <div className="flex items-baseline gap-2 mb-1">
+                <span className="text-lg text-muted-foreground font-dm">R$</span>
+                <span className="text-3xl font-barlow font-bold text-foreground">{salesStats.avgTicket.toFixed(2).replace(".", ",")}</span>
+                <div className="text-[10px] text-muted-foreground font-dm">Março<br/>Meta: R$ 0,00 (0%)</div>
+              </div>
+              <div className="flex gap-4 mb-3">
+                <div className="flex items-center gap-1.5">
+                  <div className="w-3 h-3 rounded-sm bg-[#F97316]" />
+                  <span className="text-[10px] text-muted-foreground font-dm">Ticket médio anual</span>
+                </div>
+              </div>
+              <ResponsiveContainer width="100%" height={180}>
+                <ComposedChart data={[
+                  { m: "12/2025", ticket: 420 },
+                  { m: "1/2026", ticket: 460 },
+                  { m: "2/2026", ticket: 480 },
+                  { m: "3/2026", ticket: 490 },
+                ]}>
+                  <XAxis dataKey="m" tick={{ fontSize: 9 }} />
+                  <YAxis tick={{ fontSize: 9 }} domain={[0, 600]} />
+                  <Tooltip formatter={(v: number) => `R$ ${v.toFixed(2)}`} />
+                  <Bar dataKey="ticket" fill="#F97316" radius={[3, 3, 0, 0]} name="Ticket" />
+                </ComposedChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        </>
       )}
     </div>
   );
