@@ -295,14 +295,269 @@ const Dashboard = () => {
           </div>
         </>
       ) : activeTab === "vendas" ? (
-        <div className="grid grid-cols-3 gap-4">
-          <StatCard label="Vendas do Mês" value={`R$ ${salesStats.totalSales.toLocaleString("pt-BR")}`} accent trend="up" trendValue="+12%" />
-          <StatCard label="Ticket Médio" value={`R$ ${salesStats.avgTicket.toFixed(0)}`} />
-          <StatCard label="Renovações" value="24" trend="up" trendValue="+8%" />
-          <StatCard label="Novas Matrículas" value="18" trend="up" trendValue="+15%" />
-          <StatCard label="Cancelamentos" value={cancelReasons.reduce((s, r) => s + r.value, 0)} trend="down" trendValue="-3%" />
-          <StatCard label="Conversão Leads" value="34%" trend="up" trendValue="+2%" />
-        </div>
+        <>
+          {/* Row 1: 3 stat cards */}
+          <div className="grid grid-cols-3 gap-4 mb-4">
+            {/* Contratos vendidos */}
+            <div className="bg-card rounded-xl p-5 card-shadow">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-muted-foreground">📊</span>
+                <span className="text-sm font-dm font-semibold text-foreground">Contratos vendidos</span>
+                <HelpCircle size={14} className="text-muted-foreground" />
+              </div>
+              <span className="text-4xl font-barlow font-bold text-foreground">26</span>
+              <p className="text-xs text-muted-foreground font-dm mt-1">Meta: 0 (0%)</p>
+              <div className="border-t border-border mt-3 pt-2 flex items-center gap-1">
+                <span className="text-green-600 text-xs">↑</span>
+                <span className="text-xs text-muted-foreground font-dm">7 A MAIS QUE O PERÍODO ANTERIOR</span>
+              </div>
+            </div>
+            {/* Mensal média contratos */}
+            <div className="bg-card rounded-xl p-5 card-shadow">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-muted-foreground">📊</span>
+                <span className="text-sm font-dm font-semibold text-foreground">Mensal. média dos contratos vendidos</span>
+                <HelpCircle size={14} className="text-muted-foreground" />
+              </div>
+              <div className="flex items-baseline gap-1">
+                <span className="text-lg text-muted-foreground font-dm">R$</span>
+                <span className="text-4xl font-barlow font-bold text-green-600">555,74</span>
+              </div>
+              <p className="text-xs text-muted-foreground font-dm mt-1">Meta: R$ 0,00 (0%)</p>
+              <div className="border-t border-border mt-3 pt-2 flex items-center gap-1">
+                <span className="text-green-600 text-xs">↑</span>
+                <span className="text-xs text-muted-foreground font-dm">R$ 53,42 A MAIS QUE O PERÍODO ANTERIOR</span>
+              </div>
+            </div>
+            {/* Tempo médio contrato */}
+            <div className="bg-card rounded-xl p-5 card-shadow">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-muted-foreground">📊</span>
+                <span className="text-sm font-dm font-semibold text-foreground">Tempo médio de contrato</span>
+                <HelpCircle size={14} className="text-muted-foreground" />
+              </div>
+              <div className="flex items-baseline gap-1">
+                <span className="text-4xl font-barlow font-bold text-green-600">5,3</span>
+                <span className="text-lg text-green-600 font-dm">meses</span>
+              </div>
+              <p className="text-xs text-muted-foreground font-dm mt-1">Meta: 0 (0%)</p>
+              <div className="border-t border-border mt-3 pt-2 flex items-center gap-1">
+                <span className="text-green-600 text-xs">↑</span>
+                <span className="text-xs text-muted-foreground font-dm">1 A MAIS QUE O PERÍODO ANTERIOR</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Row 2: 3 stat cards */}
+          <div className="grid grid-cols-3 gap-4 mb-6">
+            <div className="bg-card rounded-xl p-5 card-shadow">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-muted-foreground">🛒</span>
+                <span className="text-sm font-dm font-semibold text-foreground">Total de vendas manuais</span>
+                <HelpCircle size={14} className="text-muted-foreground" />
+              </div>
+              <div className="flex items-baseline gap-1">
+                <span className="text-lg text-muted-foreground font-dm">R$</span>
+                <span className="text-4xl font-barlow font-bold text-foreground">{(salesStats.totalSales / 1000).toFixed(1)}</span>
+                <span className="text-lg text-green-600 font-dm font-semibold">mil+</span>
+              </div>
+              <div className="border-t border-border mt-3 pt-2 flex items-center gap-1">
+                <span className="text-green-600 text-xs">↑</span>
+                <span className="text-xs text-muted-foreground font-dm">R$ 35.497,00 A MAIS QUE O PERÍODO ANTERIOR</span>
+              </div>
+            </div>
+            <div className="bg-card rounded-xl p-5 card-shadow">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-muted-foreground">🛒</span>
+                <span className="text-sm font-dm font-semibold text-foreground">Total de vendas recorrentes</span>
+                <HelpCircle size={14} className="text-muted-foreground" />
+              </div>
+              <div className="flex items-baseline gap-1">
+                <span className="text-lg text-muted-foreground font-dm">R$</span>
+                <span className="text-4xl font-barlow font-bold text-foreground">0</span>
+              </div>
+              <div className="border-t border-border mt-3 pt-2 flex items-center gap-1">
+                <span className="text-green-600 text-xs">↑</span>
+                <span className="text-xs text-muted-foreground font-dm">R$ 0,00 A MAIS QUE O PERÍODO ANTERIOR</span>
+              </div>
+            </div>
+            <div className="bg-card rounded-xl p-5 card-shadow">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-muted-foreground">🛒</span>
+                <span className="text-sm font-dm font-semibold text-foreground">Total de vendas online</span>
+                <HelpCircle size={14} className="text-muted-foreground" />
+              </div>
+              <div className="flex items-baseline gap-1">
+                <span className="text-lg text-muted-foreground font-dm">R$</span>
+                <span className="text-4xl font-barlow font-bold text-foreground">0</span>
+              </div>
+              <div className="border-t border-border mt-3 pt-2 flex items-center gap-1">
+                <span className="text-green-600 text-xs">↑</span>
+                <span className="text-xs text-muted-foreground font-dm">R$ 0,00 A MAIS QUE O PERÍODO ANTERIOR</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Total de vendas + Mensal média charts */}
+          <div className="grid grid-cols-2 gap-4 mb-4">
+            {/* Total de vendas */}
+            <div className="bg-card rounded-xl p-5 card-shadow">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-lg">💜</span>
+                  <span className="text-sm font-dm font-semibold text-foreground">Total de vendas</span>
+                  <HelpCircle size={14} className="text-muted-foreground" />
+                </div>
+                <div className="flex gap-2">
+                  <span className="text-xs text-muted-foreground font-dm">Dia</span>
+                  <span className="text-xs text-primary font-dm font-semibold">Mês</span>
+                </div>
+              </div>
+              <div className="flex gap-6 mb-3">
+                <div>
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-lg text-muted-foreground font-dm">R$</span>
+                    <span className="text-3xl font-barlow font-bold text-foreground">{(salesStats.totalSales / 1000).toFixed(1)}</span>
+                    <span className="text-sm text-green-600 font-dm font-semibold">mil+</span>
+                  </div>
+                  <p className="text-[10px] text-muted-foreground font-dm">Meta: R$ 0 (0%)<br/>Abril 2025: R$ 0</p>
+                </div>
+                <div>
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-lg text-muted-foreground font-dm">R$</span>
+                    <span className="text-3xl font-barlow font-bold text-foreground">0</span>
+                  </div>
+                  <p className="text-[10px] text-muted-foreground font-dm">Hoje<br/>{new Date().toLocaleDateString("pt-BR")}</p>
+                </div>
+              </div>
+              <div className="flex gap-4 mb-2">
+                <div className="flex items-center gap-1.5">
+                  <div className="w-3 h-3 rounded-sm bg-primary" />
+                  <span className="text-[10px] text-muted-foreground font-dm">Meta Mensal</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <div className="w-3 h-3 rounded-sm bg-[#F97316]" />
+                  <span className="text-[10px] text-muted-foreground font-dm">Total de Vendas</span>
+                </div>
+              </div>
+              <ResponsiveContainer width="100%" height={140}>
+                <BarChart data={[
+                  { m: "11/25", meta: 0, vendas: 8500 },
+                  { m: "12/25", meta: 0, vendas: 12300 },
+                  { m: "1/26", meta: 0, vendas: 9800 },
+                  { m: "2/26", meta: 0, vendas: 15600 },
+                  { m: "3/26", meta: 0, vendas: 18200 },
+                  { m: "4/26", meta: 0, vendas: salesStats.totalSales },
+                ]}>
+                  <XAxis dataKey="m" tick={{ fontSize: 9 }} />
+                  <YAxis tick={{ fontSize: 9 }} />
+                  <Tooltip formatter={(v: number) => `R$ ${v.toLocaleString("pt-BR")}`} />
+                  <Bar dataKey="meta" fill="#1400FF" radius={[2, 2, 0, 0]} name="Meta" />
+                  <Bar dataKey="vendas" fill="#F97316" radius={[2, 2, 0, 0]} name="Vendas" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+
+            {/* Mensal média contratos vendidos */}
+            <div className="bg-card rounded-xl p-5 card-shadow">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="text-muted-foreground">📊</span>
+                <span className="text-sm font-dm font-semibold text-foreground">Mensal. média dos contratos vendidos</span>
+                <HelpCircle size={14} className="text-muted-foreground" />
+              </div>
+              <div className="flex items-baseline gap-2 mb-1">
+                <span className="text-lg text-muted-foreground font-dm">R$</span>
+                <span className="text-3xl font-barlow font-bold text-foreground">555,74</span>
+                <div className="text-[10px] text-muted-foreground font-dm">Abril<br/>Meta: R$ 0 <span className="text-green-600">(0%)</span></div>
+              </div>
+              <div className="flex gap-4 mb-2">
+                <div className="flex items-center gap-1.5">
+                  <div className="w-3 h-3 rounded-sm bg-[#F97316]" />
+                  <span className="text-[10px] text-muted-foreground font-dm">Mensalidade média</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <div className="w-3 h-3 rounded-sm bg-primary" />
+                  <span className="text-[10px] text-muted-foreground font-dm">Meta mensal</span>
+                </div>
+              </div>
+              <ResponsiveContainer width="100%" height={140}>
+                <ComposedChart data={[
+                  { m: "12/25", media: 480, meta: 0 },
+                  { m: "1/26", media: 510, meta: 0 },
+                  { m: "2/26", media: 530, meta: 0 },
+                  { m: "3/26", media: 520, meta: 0 },
+                  { m: "4/26", media: 555, meta: 0 },
+                ]}>
+                  <XAxis dataKey="m" tick={{ fontSize: 9 }} />
+                  <YAxis tick={{ fontSize: 9 }} />
+                  <Tooltip formatter={(v: number) => `R$ ${v.toFixed(2)}`} />
+                  <Line dataKey="media" stroke="#F97316" strokeWidth={2} dot={{ r: 3 }} name="Média" />
+                  <Line dataKey="meta" stroke="#1400FF" strokeWidth={2} dot={{ r: 3 }} name="Meta" />
+                </ComposedChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          {/* Visitantes x Conversões */}
+          <div className="bg-card rounded-xl p-5 card-shadow">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <span className="text-lg">💜</span>
+                <span className="text-sm font-dm font-semibold text-foreground">Visitantes x conversões</span>
+                <HelpCircle size={14} className="text-muted-foreground" />
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="text-xs text-muted-foreground font-dm">Últimos 7 dias</span>
+                <span className="text-xs text-primary font-dm font-semibold">Mês</span>
+                <span className="text-xs text-primary font-dm font-semibold border border-primary rounded-full px-2 py-0.5">Tipo: Oportunidades</span>
+              </div>
+            </div>
+            <div className="flex gap-8 mb-4">
+              <div>
+                <div className="flex items-baseline gap-1">
+                  <span className="text-3xl font-barlow font-bold text-foreground">24</span>
+                  <span className="text-xl text-muted-foreground font-barlow">x</span>
+                  <span className="text-3xl font-barlow font-bold text-foreground">17</span>
+                </div>
+                <p className="text-[10px] text-muted-foreground font-dm">Abril<br/>Meta: 0% <span className="text-green-600">(70,83%)</span></p>
+              </div>
+              <div>
+                <div className="flex items-baseline gap-1">
+                  <span className="text-3xl font-barlow font-bold text-foreground">0</span>
+                  <span className="text-xl text-muted-foreground font-barlow">x</span>
+                  <span className="text-3xl font-barlow font-bold text-foreground">0</span>
+                </div>
+                <p className="text-[10px] text-muted-foreground font-dm">Hoje<br/>Convertidos: 0%</p>
+              </div>
+            </div>
+            <div className="flex gap-4 mb-3">
+              <div className="flex items-center gap-1.5">
+                <div className="w-3 h-3 rounded-sm bg-[#F97316]" />
+                <span className="text-[10px] text-muted-foreground font-dm">Conversões</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <div className="w-3 h-3 rounded-sm bg-[#2DD4BF]" />
+                <span className="text-[10px] text-muted-foreground font-dm">Visitantes</span>
+              </div>
+            </div>
+            <ResponsiveContainer width="100%" height={200}>
+              <BarChart data={[
+                { m: "11/2025", conversoes: 8, visitantes: 10 },
+                { m: "12/2025", conversoes: 3, visitantes: 22 },
+                { m: "1/2026", conversoes: 7, visitantes: 20 },
+                { m: "2/2026", conversoes: 10, visitantes: 28 },
+                { m: "3/2026", conversoes: 9, visitantes: 30 },
+                { m: "4/2026", conversoes: 17, visitantes: 24 },
+              ]}>
+                <XAxis dataKey="m" tick={{ fontSize: 10 }} />
+                <YAxis tick={{ fontSize: 10 }} />
+                <Tooltip />
+                <Bar dataKey="visitantes" fill="#2DD4BF" radius={[3, 3, 0, 0]} name="Visitantes" />
+                <Bar dataKey="conversoes" fill="#F97316" radius={[3, 3, 0, 0]} name="Conversões" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </>
       ) : (
         <div className="grid grid-cols-3 gap-4">
           <StatCard label="Receita Bruta" value={`R$ ${salesStats.totalSales.toLocaleString("pt-BR")}`} accent />
