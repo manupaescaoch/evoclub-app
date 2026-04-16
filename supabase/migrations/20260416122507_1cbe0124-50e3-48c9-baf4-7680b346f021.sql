@@ -1,0 +1,1 @@
+ALTER TABLE public.exercise_library ADD COLUMN instructions text;

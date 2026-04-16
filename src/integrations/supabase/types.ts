@@ -293,6 +293,7 @@ export type Database = {
           created_at: string
           equipment: string | null
           id: string
+          instructions: string | null
           is_global: boolean
           muscle_group: string | null
           name: string
@@ -303,6 +304,7 @@ export type Database = {
           created_at?: string
           equipment?: string | null
           id?: string
+          instructions?: string | null
           is_global?: boolean
           muscle_group?: string | null
           name: string
@@ -313,6 +315,7 @@ export type Database = {
           created_at?: string
           equipment?: string | null
           id?: string
+          instructions?: string | null
           is_global?: boolean
           muscle_group?: string | null
           name?: string
