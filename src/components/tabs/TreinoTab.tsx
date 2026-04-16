@@ -149,7 +149,7 @@ const LoadModal = ({
   onSave: (v: string) => void;
   onClose: () => void;
 }) => {
-  const [input, setInput] = useState(value);
+  const [input, setInput] = useState(value === "0" ? "" : value);
   const numVal = parseFloat(input) || 0;
 
   return (
