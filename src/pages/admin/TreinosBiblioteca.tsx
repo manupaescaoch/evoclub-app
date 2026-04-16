@@ -158,10 +158,10 @@ const TreinosBiblioteca = () => {
       </div>
 
       <Tabs defaultValue="all">
-        <TabsList className="w-full">
-          <TabsTrigger value="all" className="flex-1 text-xs font-dm">Todos</TabsTrigger>
-          <TabsTrigger value="global" className="flex-1 text-xs font-dm">Exercícios do app</TabsTrigger>
-          <TabsTrigger value="custom" className="flex-1 text-xs font-dm">Seus exercícios</TabsTrigger>
+        <TabsList className="w-full bg-white border border-border rounded-xl p-1 h-auto">
+          <TabsTrigger value="all" className="flex-1 text-xs font-dm font-medium rounded-lg py-2 data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-sm data-[state=inactive]:bg-transparent data-[state=inactive]:text-muted-foreground">Todos</TabsTrigger>
+          <TabsTrigger value="global" className="flex-1 text-xs font-dm font-medium rounded-lg py-2 data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-sm data-[state=inactive]:bg-transparent data-[state=inactive]:text-muted-foreground">Exercícios do app</TabsTrigger>
+          <TabsTrigger value="custom" className="flex-1 text-xs font-dm font-medium rounded-lg py-2 data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-sm data-[state=inactive]:bg-transparent data-[state=inactive]:text-muted-foreground">Seus exercícios</TabsTrigger>
         </TabsList>
 
         {["all", "global", "custom"].map(tab => (
