@@ -175,13 +175,16 @@ export type Database = {
           cpf: string | null
           created_at: string | null
           email: string | null
+          gender: string | null
           id: number
           name: string
+          observations: string | null
           phone: string | null
           plan: string | null
           plan_value: number | null
           status: string | null
           unit_id: string | null
+          visit_type: string | null
         }
         Insert: {
           contract_end?: string | null
@@ -189,13 +192,16 @@ export type Database = {
           cpf?: string | null
           created_at?: string | null
           email?: string | null
+          gender?: string | null
           id?: number
           name: string
+          observations?: string | null
           phone?: string | null
           plan?: string | null
           plan_value?: number | null
           status?: string | null
           unit_id?: string | null
+          visit_type?: string | null
         }
         Update: {
           contract_end?: string | null
@@ -203,13 +209,16 @@ export type Database = {
           cpf?: string | null
           created_at?: string | null
           email?: string | null
+          gender?: string | null
           id?: number
           name?: string
+          observations?: string | null
           phone?: string | null
           plan?: string | null
           plan_value?: number | null
           status?: string | null
           unit_id?: string | null
+          visit_type?: string | null
         }
         Relationships: [
           {
