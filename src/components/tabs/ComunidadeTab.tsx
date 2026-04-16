@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Heart, MessageCircle, Camera, Image } from "lucide-react";
+import { Heart, Camera, Image } from "lucide-react";
 
 interface Post {
   name: string;
@@ -8,7 +8,6 @@ interface Post {
   text: string;
   image?: string;
   likes: number;
-  comments: number;
 }
 
 const initialPosts: Post[] = [
@@ -16,30 +15,30 @@ const initialPosts: Post[] = [
     name: "Lucas Mendes", initials: "LM", time: "15 min",
     text: "Acabei de bater meu PR no supino! 120kg 💪",
     image: "https://images.unsplash.com/photo-1534368786749-b63e05c92717?w=600&h=600&fit=crop",
-    likes: 12, comments: 3,
+    likes: 12,
   },
   {
     name: "Ana Beatriz", initials: "AB", time: "1h",
     text: "Treino de perna destruidor hoje 🦵🔥",
     image: "https://images.unsplash.com/photo-1517963879433-6ad2b056d712?w=600&h=600&fit=crop",
-    likes: 31, comments: 8,
+    likes: 31,
   },
   {
     name: "Rafael Costa", initials: "RC", time: "2h",
     text: "Semana 4 de cutting e os resultados estão aparecendo! Bora! 🔥",
     image: "https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?w=600&h=600&fit=crop",
-    likes: 24, comments: 6,
+    likes: 24,
   },
   {
     name: "Juliana Alves", initials: "JA", time: "3h",
     text: "Dica: coloquem glutamina no shake pós-treino. Diferença absurda na recuperação.",
-    likes: 18, comments: 11,
+    likes: 18,
   },
   {
     name: "Pedro Henrique", initials: "PH", time: "4h",
     text: "Shape do dia 📸 3 meses de consistência!",
     image: "https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?w=600&h=600&fit=crop",
-    likes: 42, comments: 15,
+    likes: 42,
   },
 ];
 
@@ -148,9 +147,6 @@ const ComunidadeTab = () => {
                   className={likedPosts.has(i) ? "fill-red-500" : ""}
                 />
                 {p.likes}
-              </button>
-              <button className="flex items-center gap-1.5 text-muted text-xs font-dm">
-                <MessageCircle size={18} /> {p.comments}
               </button>
             </div>
           </div>
