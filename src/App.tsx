@@ -5,6 +5,14 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import Index from "./pages/Index.tsx";
 import NotFound from "./pages/NotFound.tsx";
+import Login from "./pages/admin/Login.tsx";
+import AdminLayout from "./components/admin/AdminLayout.tsx";
+import Dashboard from "./pages/admin/Dashboard.tsx";
+import Clientes from "./pages/admin/Clientes.tsx";
+import Grade from "./pages/admin/Grade.tsx";
+import CRM from "./pages/admin/CRM.tsx";
+import Financeiro from "./pages/admin/Financeiro.tsx";
+import Placeholder from "./pages/admin/Placeholder.tsx";
 
 const queryClient = new QueryClient();
 
@@ -15,8 +23,24 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
+          {/* Student app */}
           <Route path="/" element={<Index />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+
+          {/* Admin */}
+          <Route path="/admin/login" element={<Login />} />
+          <Route path="/admin" element={<AdminLayout />}>
+            <Route index element={<Dashboard />} />
+            <Route path="clientes" element={<Clientes />} />
+            <Route path="grade" element={<Grade />} />
+            <Route path="crm" element={<CRM />} />
+            <Route path="financeiro" element={<Financeiro />} />
+            <Route path="gerencial" element={<Placeholder />} />
+            <Route path="treinos" element={<Placeholder />} />
+            <Route path="configuracoes" element={<Placeholder />} />
+            <Route path="novidades" element={<Placeholder />} />
+            <Route path="ajuda" element={<Placeholder />} />
+          </Route>
+
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
