@@ -4,7 +4,11 @@ import logo from "@/assets/logo.png";
 const days = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"];
 const dayStates = ["done", "today", "future", "future", "future", "future", "future"] as const;
 
-const InicioTab = () => {
+interface InicioTabProps {
+  onTabChange?: (tab: any) => void;
+}
+
+const InicioTab = ({ onTabChange }: InicioTabProps) => {
   return (
     <div className="px-4 pt-4">
       {/* Header */}
