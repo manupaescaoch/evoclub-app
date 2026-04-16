@@ -60,10 +60,28 @@ const TreinosFichas = () => {
     t.category === selectedCategory && (!search || t.name.toLowerCase().includes(search.toLowerCase()))
   );
 
+  const openAddChooser = () => setAddChooserOpen(true);
+
   const openCreate = () => {
+    setAddChooserOpen(false);
     setEditing(null);
     setForm({ name: "", category: selectedCategory || "", description: "" });
     setDialogOpen(true);
+  };
+
+  const openFolderCreate = () => {
+    setAddChooserOpen(false);
+    setFolderName("");
+    setFolderDialogOpen(true);
+  };
+
+  const handleSaveFolder = async () => {
+    if (!folderName.trim()) { toast.error("Nome é obrigatório"); return; }
+    // Create a placeholder template to establish the category
+    await supabase.from("workout_templates").insert({ name: "— pasta —", category: folderName.trim(), description: null });
+    toast.success("Pasta criada");
+    setFolderDialogOpen(false);
+    fetchTemplates();
   };
 
   const openEdit = (t: Template) => {
