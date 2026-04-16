@@ -181,18 +181,35 @@ const TreinoTab = () => {
                     </h3>
                   </div>
 
-                  {/* Series summary (collapsed) */}
-                  {expandedExercise !== i && (
-                    <div className="mt-2 space-y-1">
-                      {ex.series.map((s, si) => (
-                        <div key={si} className="flex items-center gap-1">
-                          <p className="text-xs font-dm text-foreground">
-                            <span className="font-semibold">Séries:</span> {s.reps}
-                          </p>
+                  {/* Series with load inputs */}
+                  <div className="mt-2 space-y-2">
+                    {ex.series.map((s, si) => (
+                      <div key={si}>
+                        <p className="text-xs font-dm text-foreground">
+                          <span className="font-semibold">Séries:</span> {s.reps}
+                        </p>
+                        <div className="flex items-center gap-3 mt-0.5">
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-xs font-dm font-semibold text-foreground">Carga:</span>
+                            <div className="flex items-center gap-1">
+                              <input
+                                type="number"
+                                value={s.load}
+                                onClick={(e) => e.stopPropagation()}
+                                onChange={(e) => updateLoad(i, si, e.target.value)}
+                                className="w-14 h-7 rounded-lg bg-secondary text-center text-xs font-dm font-semibold text-foreground border-none outline-none focus:ring-2 focus:ring-primary/30"
+                              />
+                              <span className="text-xs font-dm text-muted">kg</span>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-1 text-primary">
+                            <Clock size={12} />
+                            <span className="text-xs font-dm font-medium">Intervalo: {s.rest}</span>
+                          </div>
                         </div>
-                      ))}
-                    </div>
-                  )}
+                      </div>
+                    ))}
+                  </div>
                 </div>
 
                 {/* Video thumbnail */}
@@ -204,40 +221,6 @@ const TreinoTab = () => {
                 </div>
               </div>
 
-              {/* Expanded series details */}
-              {expandedExercise === i && (
-                <div className="px-4 pb-4 space-y-3 border-t border-secondary">
-                  {ex.series.map((s, si) => (
-                    <div key={si} className="pt-3">
-                      <p className="text-xs font-dm font-semibold text-foreground mb-1">
-                        Séries: {s.reps}
-                      </p>
-                      <div className="flex items-center gap-3">
-                        <div className="flex items-center gap-1.5">
-                          <span className="text-xs font-dm font-semibold text-foreground">Carga:</span>
-                          {started ? (
-                            <div className="flex items-center gap-1">
-                              <input
-                                type="number"
-                                value={s.load}
-                                onChange={(e) => updateLoad(i, si, e.target.value)}
-                                className="w-14 h-7 rounded-lg bg-secondary text-center text-xs font-dm font-semibold text-foreground border-none outline-none focus:ring-2 focus:ring-primary/30"
-                              />
-                              <span className="text-xs font-dm text-muted">kg</span>
-                            </div>
-                          ) : (
-                            <span className="text-xs font-dm text-muted">{s.load}kg</span>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-1 text-primary">
-                          <Clock size={12} />
-                          <span className="text-xs font-dm font-medium">Intervalo: {s.rest}</span>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
             </div>
           ))}
         </div>
