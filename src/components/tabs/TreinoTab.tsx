@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { ArrowLeft, Check, Play, Clock, X, Pause, RotateCcw, Dumbbell, PersonStanding, ChevronRight } from "lucide-react";
+import { ArrowLeft, Check, Play, Clock, X, Pause, RotateCcw, Dumbbell, PersonStanding, ChevronRight, Pencil } from "lucide-react";
 
 // ... types & data
 
@@ -150,21 +150,40 @@ const LoadModal = ({
   onClose: () => void;
 }) => {
   const [input, setInput] = useState(value);
+  const numVal = parseFloat(input) || 0;
+
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center px-6" onClick={onClose}>
       <div className="absolute inset-0 bg-black/40" />
-      <div className="relative w-full max-w-[390px] bg-card rounded-t-3xl p-5 pb-8" onClick={(e) => e.stopPropagation()}>
-        <p className="font-dm font-semibold text-sm text-foreground mb-3">Atualize a carga utilizada:</p>
+      <div className="relative w-full max-w-[340px] bg-card rounded-3xl p-5" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between mb-4">
+          <p className="font-dm font-semibold text-sm text-foreground">Atualizar carga (kg)</p>
+          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full bg-secondary">
+            <X size={16} className="text-muted" />
+          </button>
+        </div>
         <input
           type="number"
+          inputMode="decimal"
           value={input}
           onChange={(e) => setInput(e.target.value)}
           autoFocus
-          className="w-full h-12 rounded-2xl bg-secondary text-center text-lg font-dm font-semibold text-foreground border border-muted/20 outline-none focus:ring-2 focus:ring-primary/30 mb-4"
+          className="w-full h-14 rounded-2xl bg-secondary text-center text-2xl font-barlow font-[800] text-foreground border border-muted/20 outline-none focus:ring-2 focus:ring-primary/30 mb-3"
         />
+        <div className="flex gap-2 mb-4">
+          {[2.5, 5, 10].map((inc) => (
+            <button
+              key={inc}
+              onClick={() => setInput(String(numVal + inc))}
+              className="flex-1 py-2.5 rounded-xl bg-secondary text-foreground font-dm font-semibold text-sm active:scale-95 transition-transform"
+            >
+              +{inc}kg
+            </button>
+          ))}
+        </div>
         <button
           onClick={() => { onSave(input); onClose(); }}
-          className="w-full py-3.5 rounded-2xl bg-primary text-primary-foreground font-barlow font-bold text-base"
+          className="w-full py-3.5 rounded-2xl bg-primary text-primary-foreground font-barlow font-bold text-base active:scale-[0.98] transition-transform"
           style={{ boxShadow: "0 3px 10px #1400FF44" }}
         >
           Atualizar
@@ -191,35 +210,37 @@ const TimerModal = ({
   }, [running, timeLeft]);
 
   const progress = 1 - timeLeft / initialSeconds;
-  const radius = 100;
+  const radius = 90;
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference * (1 - progress);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center px-6" onClick={onClose}>
       <div className="absolute inset-0 bg-black/40" />
-      <div className="relative w-[340px] bg-card rounded-3xl p-6" onClick={(e) => e.stopPropagation()}>
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="font-dm font-semibold text-base text-foreground">Cronômetro Regressivo</h3>
-          <button onClick={onClose} className="text-muted"><X size={20} /></button>
+      <div className="relative w-full max-w-[320px] bg-card rounded-3xl p-5" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="font-dm font-semibold text-sm text-foreground">Intervalo</h3>
+          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full bg-secondary">
+            <X size={16} className="text-muted" />
+          </button>
         </div>
-        <div className="flex items-center justify-center my-6">
-          <div className="relative w-52 h-52">
-            <svg className="w-full h-full -rotate-90" viewBox="0 0 220 220">
-              <circle cx="110" cy="110" r={radius} fill="none" stroke="hsl(var(--secondary))" strokeWidth="10" />
-              <circle cx="110" cy="110" r={radius} fill="none" stroke="hsl(var(--primary))" strokeWidth="10" strokeLinecap="round" strokeDasharray={circumference} strokeDashoffset={strokeDashoffset} className="transition-all duration-1000" />
+        <div className="flex items-center justify-center my-4">
+          <div className="relative w-44 h-44">
+            <svg className="w-full h-full -rotate-90" viewBox="0 0 200 200">
+              <circle cx="100" cy="100" r={radius} fill="none" stroke="hsl(var(--secondary))" strokeWidth="8" />
+              <circle cx="100" cy="100" r={radius} fill="none" stroke="hsl(var(--primary))" strokeWidth="8" strokeLinecap="round" strokeDasharray={circumference} strokeDashoffset={strokeDashoffset} className="transition-all duration-1000" />
             </svg>
             <div className="absolute inset-0 flex items-center justify-center">
-              <span className="font-barlow font-[800] text-4xl text-foreground">{formatTime(timeLeft)}</span>
+              <span className="font-barlow font-[800] text-3xl text-foreground">{formatTime(timeLeft)}</span>
             </div>
           </div>
         </div>
-        <div className="flex items-center justify-center gap-6">
-          <button onClick={() => setRunning(!running)} className="w-14 h-14 rounded-full bg-primary flex items-center justify-center" style={{ boxShadow: "0 3px 10px #1400FF44" }}>
-            {running ? <Pause size={22} className="text-primary-foreground" /> : <Play size={22} className="text-primary-foreground fill-primary-foreground" />}
+        <div className="flex items-center justify-center gap-4">
+          <button onClick={() => setRunning(!running)} className="w-12 h-12 rounded-full bg-primary flex items-center justify-center active:scale-95 transition-transform" style={{ boxShadow: "0 3px 10px #1400FF44" }}>
+            {running ? <Pause size={20} className="text-primary-foreground" /> : <Play size={20} className="text-primary-foreground fill-primary-foreground" />}
           </button>
-          <button onClick={() => { setTimeLeft(initialSeconds); setRunning(false); }} className="w-14 h-14 rounded-full bg-secondary flex items-center justify-center">
-            <RotateCcw size={20} className="text-muted" />
+          <button onClick={() => { setTimeLeft(initialSeconds); setRunning(false); }} className="w-12 h-12 rounded-full bg-secondary flex items-center justify-center active:scale-95 transition-transform">
+            <RotateCcw size={18} className="text-muted" />
           </button>
         </div>
       </div>
@@ -275,65 +296,83 @@ const TreinoTab = () => {
     const doneCount = exercises.filter(e => e.done).length;
 
     return (
-      <div className="px-4 pt-4 pb-4">
-        <button onClick={() => setScreen("days")} className="flex items-center gap-1 text-primary text-sm font-dm font-semibold mb-4">
-          <ArrowLeft size={18} /> Voltar
-        </button>
-
-        <h1 className="font-barlow font-bold text-xl text-foreground mb-1">{selectedDay.toUpperCase()}</h1>
-
-        <div className="flex items-center gap-2 mb-4">
-          <div className="flex-1 h-2 rounded-full bg-secondary overflow-hidden">
-            <div className="h-full rounded-full transition-all" style={{ width: `${(doneCount / exercises.length) * 100}%`, background: "linear-gradient(90deg, #1400FF, #0A00B0)" }} />
+      <div className="flex flex-col h-full">
+        {/* Fixed header */}
+        <div className="sticky top-0 z-10 bg-background px-4 pt-4 pb-3">
+          <button onClick={() => setScreen("days")} className="flex items-center gap-1 text-primary text-sm font-dm font-semibold mb-3 min-h-[44px]">
+            <ArrowLeft size={18} /> Voltar
+          </button>
+          <h1 className="font-barlow font-bold text-lg text-foreground mb-1 leading-tight">{selectedDay.toUpperCase()}</h1>
+          <div className="flex items-center gap-2">
+            <div className="flex-1 h-2 rounded-full bg-secondary overflow-hidden">
+              <div className="h-full rounded-full transition-all" style={{ width: `${(doneCount / exercises.length) * 100}%`, background: "linear-gradient(90deg, #1400FF, #0A00B0)" }} />
+            </div>
+            <span className="text-xs font-dm text-muted">{doneCount}/{exercises.length}</span>
           </div>
-          <span className="text-xs font-dm text-muted">{doneCount}/{exercises.length}</span>
         </div>
 
-        {!started && (
-          <div className="mb-4">
-            <button onClick={() => setStarted(true)} className="w-full py-3 rounded-2xl bg-primary text-primary-foreground font-barlow font-bold text-base tracking-wide" style={{ boxShadow: "0 3px 10px #1400FF44" }}>
-              INICIAR
-            </button>
-            <p className="text-center text-xs text-muted font-dm mt-2">Você está no "modo visualização". Aperte INICIAR para começar seu treino.</p>
-          </div>
-        )}
+        {/* Scrollable content */}
+        <div className="flex-1 overflow-y-auto px-4 pb-24">
+          {!started && (
+            <div className="mb-4">
+              <button onClick={() => setStarted(true)} className="w-full py-3 rounded-2xl bg-primary text-primary-foreground font-barlow font-bold text-base tracking-wide active:scale-[0.98] transition-transform" style={{ boxShadow: "0 3px 10px #1400FF44" }}>
+                INICIAR
+              </button>
+              <p className="text-center text-[11px] text-muted font-dm mt-2">Modo visualização. Aperte INICIAR para começar.</p>
+            </div>
+          )}
 
-        <div className="space-y-3">
-          {exercises.map((ex, i) => (
-            <div key={i} className={`rounded-2xl bg-card card-shadow overflow-hidden transition-all ${ex.done ? "opacity-60" : ""}`}>
-              <div className="flex items-start gap-3 p-4">
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <button onClick={() => toggleExerciseDone(i)} className={`w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${ex.done ? "bg-primary border-primary" : "border-muted/30"}`}>
+          <div className="space-y-2.5">
+            {exercises.map((ex, i) => (
+              <div key={i} className={`rounded-2xl bg-card card-shadow overflow-hidden transition-all ${ex.done ? "opacity-50" : ""}`}>
+                <div className="flex items-start gap-2.5 p-3">
+                  {/* Checkbox */}
+                  <button
+                    onClick={() => toggleExerciseDone(i)}
+                    className="w-11 h-11 rounded-full flex items-center justify-center shrink-0 mt-0.5"
+                  >
+                    <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${ex.done ? "bg-primary border-primary" : "border-muted/30"}`}>
                       {ex.done && <Check size={12} className="text-primary-foreground" />}
-                    </button>
-                    <h3 className={`font-dm font-semibold text-sm text-foreground ${ex.done ? "line-through" : ""}`}>{ex.name}</h3>
+                    </div>
+                  </button>
+
+                  {/* Content */}
+                  <div className="flex-1 min-w-0">
+                    <h3 className={`font-dm font-semibold text-[13px] text-foreground leading-tight ${ex.done ? "line-through" : ""}`}>{ex.name}</h3>
+                    <div className="mt-2 space-y-0">
+                      {ex.series.map((s, si) => (
+                        <div key={si} className={`flex items-center gap-1 py-1.5 ${si > 0 ? "border-t border-muted/10" : ""}`}>
+                          <span className="text-[11px] font-dm text-foreground font-semibold w-[60px] shrink-0">{s.reps}</span>
+                          <button
+                            onClick={() => setEditTarget({ ex: i, s: si })}
+                            className="flex items-center gap-1 text-primary min-h-[32px] px-1"
+                          >
+                            <span className="text-[11px] font-dm font-semibold">{s.load}kg</span>
+                            <Pencil size={10} />
+                          </button>
+                          <button
+                            onClick={() => setTimerTarget(parseRestSeconds(s.rest))}
+                            className="flex items-center gap-1 text-muted ml-auto min-h-[32px] px-1"
+                          >
+                            <Clock size={11} />
+                            <span className="text-[11px] font-dm">{s.rest}</span>
+                          </button>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                  <div className="mt-2 space-y-2.5 ml-8">
-                    {ex.series.map((s, si) => (
-                      <div key={si}>
-                        <p className="text-xs font-dm text-foreground"><span className="font-semibold">Séries:</span> {s.reps}</p>
-                        <p className="text-xs font-dm text-foreground mt-0.5">
-                          <span className="font-semibold">Carga:</span> {s.load}kg{" "}
-                          <button onClick={() => setEditTarget({ ex: i, s: si })} className="text-primary font-dm font-semibold italic">Editar</button>
-                        </p>
-                        <button onClick={() => setTimerTarget(parseRestSeconds(s.rest))} className="flex items-center gap-1 text-primary mt-0.5">
-                          <Clock size={12} />
-                          <span className="text-xs font-dm font-medium">Intervalo: {s.rest}</span>
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                <div className="relative w-20 h-24 rounded-xl overflow-hidden shrink-0 mt-1">
-                  <img src={ex.videoThumb} alt={ex.name} className="w-full h-full object-cover" />
-                  <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
-                    <Play size={20} className="text-white fill-white" />
+
+                  {/* Thumbnail */}
+                  <div className="relative w-16 h-20 rounded-xl overflow-hidden shrink-0">
+                    <img src={ex.videoThumb} alt={ex.name} className="w-full h-full object-cover" />
+                    <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
+                      <Play size={16} className="text-white fill-white" />
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
 
         {editTarget && (
@@ -346,16 +385,15 @@ const TreinoTab = () => {
     );
   }
 
-  // Screen: Days list for selected workout
+  // Screen: Days list
   if (screen === "days" && selectedWorkout) {
     return (
-      <div className="px-4 pt-4">
-        <button onClick={() => setScreen("menu")} className="flex items-center gap-1 text-primary text-sm font-dm font-semibold mb-4">
+      <div className="px-4 pt-4 pb-24">
+        <button onClick={() => setScreen("menu")} className="flex items-center gap-1 text-primary text-sm font-dm font-semibold mb-3 min-h-[44px]">
           <ArrowLeft size={18} /> Voltar
         </button>
         <h1 className="font-barlow font-bold text-xl text-foreground mb-4">{selectedWorkout.name.toUpperCase()}</h1>
 
-        {/* Stats */}
         <div className="grid grid-cols-3 gap-2 mb-4">
           {[
             { label: "Concluídos", value: `${selectedWorkout.days.filter(d => d.state === "done").length}/${selectedWorkout.days.length}` },
@@ -369,12 +407,12 @@ const TreinoTab = () => {
           ))}
         </div>
 
-        <div className="space-y-2 pb-4">
+        <div className="space-y-2">
           {selectedWorkout.days.map((w) => (
             <button
               key={w.day}
               onClick={() => openDay(w.name, selectedWorkout)}
-              className={`w-full rounded-2xl p-4 card-shadow flex items-center gap-3 text-left relative
+              className={`w-full rounded-2xl p-4 card-shadow flex items-center gap-3 text-left min-h-[56px]
                 ${w.state === "done" ? "bg-card opacity-60" : w.state === "today" ? "bg-primary/5 border border-primary/20" : "bg-card"}`}
             >
               <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-barlow font-bold text-xs ${w.state === "today" ? "bg-primary text-primary-foreground" : "bg-secondary text-muted"}`}>
@@ -394,17 +432,16 @@ const TreinoTab = () => {
     );
   }
 
-  // Screen: Menu (workout categories)
+  // Screen: Menu
   return (
-    <div className="px-4 pt-4">
+    <div className="px-4 pt-4 pb-24">
       <h1 className="font-barlow font-bold text-xl text-foreground mb-4">TREINOS</h1>
-
       <div className="space-y-3">
         {workoutsData.map((w) => (
           <button
             key={w.id}
             onClick={() => openWorkout(w)}
-            className="w-full rounded-2xl bg-card card-shadow p-4 flex items-center gap-4 text-left border border-muted/10"
+            className="w-full rounded-2xl bg-card card-shadow p-4 flex items-center gap-4 text-left border border-muted/10 min-h-[64px] active:scale-[0.98] transition-transform"
           >
             <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center shrink-0">
               {w.icon === "weights" ? (
