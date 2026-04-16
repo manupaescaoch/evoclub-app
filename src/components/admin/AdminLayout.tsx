@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Outlet, useNavigate, useLocation, Link } from "react-router-dom";
+import logoSpartan from "@/assets/logo-spartan.png";
 import { supabase } from "@/integrations/supabase/client";
 import {
   LayoutDashboard, Users, CalendarDays, Megaphone, DollarSign,
@@ -74,8 +75,8 @@ const AdminLayout = () => {
       <aside className="w-[220px] bg-[#0A0A1A] flex flex-col fixed left-0 top-0 bottom-0 z-50">
         {/* Logo */}
         <div className="p-5 flex items-center gap-3">
-          <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center shrink-0">
-            <span className="text-white font-barlow font-bold text-sm">IF</span>
+          <div className="w-10 h-10 rounded-lg overflow-hidden shrink-0">
+            <img src={logoSpartan} alt="Iron Club Fit" className="w-full h-full object-cover" />
           </div>
           <div>
             <p className="text-white font-barlow font-bold text-sm leading-tight">IRON FIT</p>
