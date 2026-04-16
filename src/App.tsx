@@ -14,6 +14,7 @@ import Grade from "./pages/admin/Grade.tsx";
 import CRM from "./pages/admin/CRM.tsx";
 import Financeiro from "./pages/admin/Financeiro.tsx";
 import Placeholder from "./pages/admin/Placeholder.tsx";
+import Treinos from "./pages/admin/Treinos.tsx";
 
 const queryClient = new QueryClient();
 
