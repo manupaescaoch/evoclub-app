@@ -34,6 +34,9 @@ const TreinosFichas = () => {
   const [cloneTarget, setCloneTarget] = useState<Template | null>(null);
   const [clients, setClients] = useState<{ id: number; name: string }[]>([]);
   const [selectedClientId, setSelectedClientId] = useState<string>("");
+  const [addChooserOpen, setAddChooserOpen] = useState(false);
+  const [folderDialogOpen, setFolderDialogOpen] = useState(false);
+  const [folderName, setFolderName] = useState("");
 
   const fetchTemplates = async () => {
     const { data } = await supabase.from("workout_templates").select("*").order("created_at", { ascending: false });
