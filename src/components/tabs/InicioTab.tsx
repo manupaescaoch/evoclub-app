@@ -4,7 +4,11 @@ import logo from "@/assets/logo.png";
 const days = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"];
 const dayStates = ["done", "today", "future", "future", "future", "future", "future"] as const;
 
-const InicioTab = () => {
+interface InicioTabProps {
+  onTabChange?: (tab: any) => void;
+}
+
+const InicioTab = ({ onTabChange }: InicioTabProps) => {
   return (
     <div className="px-4 pt-4">
       {/* Header */}
@@ -15,9 +19,9 @@ const InicioTab = () => {
         </div>
         <div className="flex items-center gap-3">
           <Bell size={20} className="text-muted" />
-          <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
+          <button onClick={() => onTabChange?.("perfil")} className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
             <span className="text-white text-xs font-semibold font-dm">RC</span>
-          </div>
+          </button>
         </div>
       </div>
 

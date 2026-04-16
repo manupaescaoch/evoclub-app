@@ -5,8 +5,9 @@ import GradeTab from "../tabs/GradeTab";
 import TreinoTab from "../tabs/TreinoTab";
 import ComunidadeTab from "../tabs/ComunidadeTab";
 import RankingTab from "../tabs/RankingTab";
+import PerfilTab from "../tabs/PerfilTab";
 
-const tabs = ["inicio", "grade", "treino", "comunidade", "ranking"] as const;
+const tabs = ["inicio", "grade", "treino", "comunidade", "ranking", "perfil"] as const;
 type Tab = (typeof tabs)[number];
 
 const AppShell = () => {
@@ -15,13 +16,14 @@ const AppShell = () => {
   return (
     <div className="mx-auto max-w-[390px] min-h-screen bg-background relative">
       <div className="pb-24 overflow-y-auto min-h-screen">
-        {activeTab === "inicio" && <InicioTab />}
+        {activeTab === "inicio" && <InicioTab onTabChange={setActiveTab} />}
         {activeTab === "grade" && <GradeTab />}
         {activeTab === "treino" && <TreinoTab />}
         {activeTab === "comunidade" && <ComunidadeTab />}
         {activeTab === "ranking" && <RankingTab />}
+        {activeTab === "perfil" && <PerfilTab onBack={() => setActiveTab("inicio")} />}
       </div>
-      <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
+      {activeTab !== "perfil" && <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />}
     </div>
   );
 };
