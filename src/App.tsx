@@ -3,6 +3,7 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import RoleSelect from "./pages/RoleSelect.tsx";
 import Index from "./pages/Index.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import Login from "./pages/admin/Login.tsx";
@@ -23,8 +24,11 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
+          {/* Role selection (landing) */}
+          <Route path="/" element={<RoleSelect />} />
+
           {/* Student app */}
-          <Route path="/" element={<Index />} />
+          <Route path="/aluno" element={<Index />} />
 
           {/* Admin */}
           <Route path="/admin/login" element={<Login />} />
