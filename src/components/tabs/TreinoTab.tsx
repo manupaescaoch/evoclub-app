@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { ArrowLeft, Check, Play, Clock, ChevronDown, ChevronUp } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import { ArrowLeft, Check, Play, Clock, X, Pause, RotateCcw } from "lucide-react";
 
 interface ExerciseSeries {
   reps: string;
@@ -83,11 +83,138 @@ const initialExercises: Exercise[] = [
   },
 ];
 
+const parseRestSeconds = (rest: string): number => {
+  const match = rest.match(/(\d+)/);
+  return match ? parseInt(match[1]) : 60;
+};
+
+const formatTime = (seconds: number): string => {
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
+};
+
+// Load edit modal
+const LoadModal = ({
+  value,
+  onSave,
+  onClose,
+}: {
+  value: string;
+  onSave: (v: string) => void;
+  onClose: () => void;
+}) => {
+  const [input, setInput] = useState(value);
+  return (
+    <div className="fixed inset-0 z-50 flex items-end justify-center" onClick={onClose}>
+      <div className="absolute inset-0 bg-black/40" />
+      <div
+        className="relative w-full max-w-[390px] bg-card rounded-t-3xl p-5 pb-8"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <p className="font-dm font-semibold text-sm text-foreground mb-3">Atualize a carga utilizada:</p>
+        <input
+          type="number"
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          autoFocus
+          className="w-full h-12 rounded-2xl bg-secondary text-center text-lg font-dm font-semibold text-foreground border border-muted/20 outline-none focus:ring-2 focus:ring-primary/30 mb-4"
+        />
+        <button
+          onClick={() => { onSave(input); onClose(); }}
+          className="w-full py-3.5 rounded-2xl bg-primary text-primary-foreground font-barlow font-bold text-base"
+          style={{ boxShadow: "0 3px 10px #1400FF44" }}
+        >
+          Atualizar
+        </button>
+      </div>
+    </div>
+  );
+};
+
+// Countdown timer modal
+const TimerModal = ({
+  seconds: initialSeconds,
+  onClose,
+}: {
+  seconds: number;
+  onClose: () => void;
+}) => {
+  const [timeLeft, setTimeLeft] = useState(initialSeconds);
+  const [running, setRunning] = useState(false);
+
+  useEffect(() => {
+    if (!running || timeLeft <= 0) return;
+    const id = setInterval(() => setTimeLeft((t) => t - 1), 1000);
+    return () => clearInterval(id);
+  }, [running, timeLeft]);
+
+  const progress = 1 - timeLeft / initialSeconds;
+  const radius = 100;
+  const circumference = 2 * Math.PI * radius;
+  const strokeDashoffset = circumference * (1 - progress);
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center" onClick={onClose}>
+      <div className="absolute inset-0 bg-black/40" />
+      <div
+        className="relative w-[340px] bg-card rounded-3xl p-6"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="font-dm font-semibold text-base text-foreground">Cronômetro Regressivo</h3>
+          <button onClick={onClose} className="text-muted">
+            <X size={20} />
+          </button>
+        </div>
+
+        {/* Circular timer */}
+        <div className="flex items-center justify-center my-6">
+          <div className="relative w-52 h-52">
+            <svg className="w-full h-full -rotate-90" viewBox="0 0 220 220">
+              <circle cx="110" cy="110" r={radius} fill="none" stroke="hsl(var(--secondary))" strokeWidth="10" />
+              <circle
+                cx="110" cy="110" r={radius} fill="none"
+                stroke="hsl(var(--primary))" strokeWidth="10"
+                strokeLinecap="round"
+                strokeDasharray={circumference}
+                strokeDashoffset={strokeDashoffset}
+                className="transition-all duration-1000"
+              />
+            </svg>
+            <div className="absolute inset-0 flex items-center justify-center">
+              <span className="font-barlow font-[800] text-4xl text-foreground">{formatTime(timeLeft)}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Controls */}
+        <div className="flex items-center justify-center gap-6">
+          <button
+            onClick={() => setRunning(!running)}
+            className="w-14 h-14 rounded-full bg-primary flex items-center justify-center"
+            style={{ boxShadow: "0 3px 10px #1400FF44" }}
+          >
+            {running ? <Pause size={22} className="text-primary-foreground" /> : <Play size={22} className="text-primary-foreground fill-primary-foreground" />}
+          </button>
+          <button
+            onClick={() => { setTimeLeft(initialSeconds); setRunning(false); }}
+            className="w-14 h-14 rounded-full bg-secondary flex items-center justify-center"
+          >
+            <RotateCcw size={20} className="text-muted" />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const TreinoTab = () => {
   const [drillDown, setDrillDown] = useState(false);
   const [started, setStarted] = useState(false);
   const [exercises, setExercises] = useState(initialExercises);
-  const [expandedExercise, setExpandedExercise] = useState<number | null>(null);
+  const [editTarget, setEditTarget] = useState<{ ex: number; s: number } | null>(null);
+  const [timerTarget, setTimerTarget] = useState<number | null>(null);
 
   const updateLoad = (exerciseIdx: number, seriesIdx: number, value: string) => {
     setExercises(prev => {
@@ -160,70 +287,74 @@ const TreinoTab = () => {
               key={i}
               className={`rounded-2xl bg-card card-shadow overflow-hidden transition-all ${ex.done ? "opacity-60" : ""}`}
             >
-              {/* Exercise header */}
-              <div
-                className="flex items-start gap-3 p-4 cursor-pointer"
-                onClick={() => setExpandedExercise(expandedExercise === i ? null : i)}
-              >
+              <div className="flex items-start gap-3 p-4">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    {started && (
-                      <button
-                        onClick={(e) => { e.stopPropagation(); toggleExerciseDone(i); }}
-                        className={`w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors
-                          ${ex.done ? "bg-primary border-primary" : "border-muted/30"}`}
-                      >
-                        {ex.done && <Check size={12} className="text-primary-foreground" />}
-                      </button>
-                    )}
+                    <button
+                      onClick={() => toggleExerciseDone(i)}
+                      className={`w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors
+                        ${ex.done ? "bg-primary border-primary" : "border-muted/30"}`}
+                    >
+                      {ex.done && <Check size={12} className="text-primary-foreground" />}
+                    </button>
                     <h3 className={`font-dm font-semibold text-sm text-foreground ${ex.done ? "line-through" : ""}`}>
                       {ex.name}
                     </h3>
                   </div>
 
-                  {/* Series with load inputs */}
-                  <div className="mt-2 space-y-2">
+                  {/* Series */}
+                  <div className="mt-2 space-y-2.5 ml-8">
                     {ex.series.map((s, si) => (
                       <div key={si}>
                         <p className="text-xs font-dm text-foreground">
                           <span className="font-semibold">Séries:</span> {s.reps}
                         </p>
-                        <div className="flex items-center gap-3 mt-0.5">
-                          <div className="flex items-center gap-1.5">
-                            <span className="text-xs font-dm font-semibold text-foreground">Carga:</span>
-                            <div className="flex items-center gap-1">
-                              <input
-                                type="number"
-                                value={s.load}
-                                onClick={(e) => e.stopPropagation()}
-                                onChange={(e) => updateLoad(i, si, e.target.value)}
-                                className="w-14 h-7 rounded-lg bg-secondary text-center text-xs font-dm font-semibold text-foreground border-none outline-none focus:ring-2 focus:ring-primary/30"
-                              />
-                              <span className="text-xs font-dm text-muted">kg</span>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-1 text-primary">
-                            <Clock size={12} />
-                            <span className="text-xs font-dm font-medium">Intervalo: {s.rest}</span>
-                          </div>
-                        </div>
+                        <p className="text-xs font-dm text-foreground mt-0.5">
+                          <span className="font-semibold">Carga:</span> {s.load}kg{" "}
+                          <button
+                            onClick={() => setEditTarget({ ex: i, s: si })}
+                            className="text-primary font-dm font-semibold italic"
+                          >
+                            Editar
+                          </button>
+                        </p>
+                        <button
+                          onClick={() => setTimerTarget(parseRestSeconds(s.rest))}
+                          className="flex items-center gap-1 text-primary mt-0.5"
+                        >
+                          <Clock size={12} />
+                          <span className="text-xs font-dm font-medium">Intervalo: {s.rest}</span>
+                        </button>
                       </div>
                     ))}
                   </div>
                 </div>
 
                 {/* Video thumbnail */}
-                <div className="relative w-20 h-20 rounded-xl overflow-hidden shrink-0">
+                <div className="relative w-20 h-24 rounded-xl overflow-hidden shrink-0 mt-1">
                   <img src={ex.videoThumb} alt={ex.name} className="w-full h-full object-cover" />
                   <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
                     <Play size={20} className="text-white fill-white" />
                   </div>
                 </div>
               </div>
-
             </div>
           ))}
         </div>
+
+        {/* Load edit modal */}
+        {editTarget && (
+          <LoadModal
+            value={exercises[editTarget.ex].series[editTarget.s].load}
+            onSave={(v) => updateLoad(editTarget.ex, editTarget.s, v)}
+            onClose={() => setEditTarget(null)}
+          />
+        )}
+
+        {/* Timer modal */}
+        {timerTarget !== null && (
+          <TimerModal seconds={timerTarget} onClose={() => setTimerTarget(null)} />
+        )}
       </div>
     );
   }
