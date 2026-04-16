@@ -270,11 +270,19 @@ const TreinosClienteDetalhe = ({ clientId, onBack }: Props) => {
           )}
 
           {workouts.length === 0 && !showNewWorkout ? (
-            <div className="bg-card border border-border rounded-xl p-8 text-center">
-              <Trash2 size={32} className="text-muted-foreground mx-auto mb-2" />
-              <p className="text-sm font-dm text-muted-foreground">Nenhuma ficha de treino cadastrada.</p>
-              <Button size="sm" className="mt-3 gap-2" onClick={() => setShowNewWorkout(true)}>
-                <Plus size={14} /> Criar primeiro treino
+            <div className="bg-card border border-dashed border-border rounded-xl p-12 text-center">
+              <div className="flex justify-center mb-4">
+                <svg width="64" height="64" viewBox="0 0 64 64" fill="none" className="text-muted-foreground opacity-40">
+                  <path d="M20 12h24a4 4 0 014 4v32a4 4 0 01-4 4H20a4 4 0 01-4-4V16a4 4 0 014-4z" stroke="currentColor" strokeWidth="2" />
+                  <path d="M24 28h16M24 36h10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                  <circle cx="44" cy="44" r="10" fill="currentColor" opacity="0.1" stroke="currentColor" strokeWidth="2" />
+                  <path d="M41 44h6M44 41v6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                </svg>
+              </div>
+              <p className="font-dm font-bold text-base text-foreground mb-1">Nenhum plano de treino</p>
+              <p className="text-sm font-dm text-muted-foreground mb-5">Crie um plano de treino para este aluno.</p>
+              <Button className="gap-2 font-dm bg-primary hover:bg-primary/90" onClick={() => setShowNewWorkout(true)}>
+                <Plus size={16} /> Criar Plano
               </Button>
             </div>
           ) : (
