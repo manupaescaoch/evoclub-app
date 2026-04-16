@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dumbbell, FolderPlus } from "lucide-react";
 import { Search, Plus, FolderOpen, MoreVertical, ArrowLeft, Pencil, Trash2, Copy } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
@@ -33,6 +34,9 @@ const TreinosFichas = () => {
   const [cloneTarget, setCloneTarget] = useState<Template | null>(null);
   const [clients, setClients] = useState<{ id: number; name: string }[]>([]);
   const [selectedClientId, setSelectedClientId] = useState<string>("");
+  const [addChooserOpen, setAddChooserOpen] = useState(false);
+  const [folderDialogOpen, setFolderDialogOpen] = useState(false);
+  const [folderName, setFolderName] = useState("");
 
   const fetchTemplates = async () => {
     const { data } = await supabase.from("workout_templates").select("*").order("created_at", { ascending: false });
@@ -56,10 +60,28 @@ const TreinosFichas = () => {
     t.category === selectedCategory && (!search || t.name.toLowerCase().includes(search.toLowerCase()))
   );
 
+  const openAddChooser = () => setAddChooserOpen(true);
+
   const openCreate = () => {
+    setAddChooserOpen(false);
     setEditing(null);
     setForm({ name: "", category: selectedCategory || "", description: "" });
     setDialogOpen(true);
+  };
+
+  const openFolderCreate = () => {
+    setAddChooserOpen(false);
+    setFolderName("");
+    setFolderDialogOpen(true);
+  };
+
+  const handleSaveFolder = async () => {
+    if (!folderName.trim()) { toast.error("Nome é obrigatório"); return; }
+    // Create a placeholder template to establish the category
+    await supabase.from("workout_templates").insert({ name: "— pasta —", category: folderName.trim(), description: null });
+    toast.success("Pasta criada");
+    setFolderDialogOpen(false);
+    fetchTemplates();
   };
 
   const openEdit = (t: Template) => {
@@ -145,7 +167,7 @@ const TreinosFichas = () => {
             <h1 className="text-xl font-barlow font-bold text-foreground">Fichas de Treino</h1>
             <p className="text-sm font-dm text-muted-foreground">Gerencie fichas de treino modelo para reutilizar com seus alunos.</p>
           </div>
-          <Button onClick={openCreate} size="sm" className="bg-primary text-primary-foreground">
+          <Button onClick={openAddChooser} size="sm" className="bg-primary text-primary-foreground">
             <Plus className="w-4 h-4 mr-1" /> Adicionar
           </Button>
         </div>
@@ -239,7 +261,7 @@ const TreinosFichas = () => {
             <p className="text-sm font-dm text-muted-foreground">{filteredTemplates.length} ficha{filteredTemplates.length !== 1 ? "s" : ""}</p>
           </div>
         </div>
-        <Button onClick={openCreate} size="sm" className="bg-primary text-primary-foreground">
+        <Button onClick={openAddChooser} size="sm" className="bg-primary text-primary-foreground">
           <Plus className="w-4 h-4 mr-1" /> Adicionar
         </Button>
       </div>
@@ -317,6 +339,47 @@ const TreinosFichas = () => {
           <DialogFooter>
             <Button variant="outline" onClick={() => setCloneDialogOpen(false)} className="font-dm">Cancelar</Button>
             <Button onClick={handleClone} className="bg-primary text-primary-foreground font-dm">Clonar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add Chooser Dialog */}
+      <Dialog open={addChooserOpen} onOpenChange={setAddChooserOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="font-barlow font-bold text-lg">O que deseja adicionar?</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 py-2">
+            <button
+              onClick={openCreate}
+              className="w-full border-2 border-primary/20 hover:border-primary rounded-xl p-6 flex flex-col items-center gap-2 transition-colors"
+            >
+              <Dumbbell className="w-8 h-8 text-primary" />
+              <span className="font-barlow font-bold text-sm text-foreground">Novo Treino</span>
+            </button>
+            <button
+              onClick={openFolderCreate}
+              className="w-full border-2 border-border hover:border-primary/40 rounded-xl p-6 flex flex-col items-center gap-2 transition-colors"
+            >
+              <FolderPlus className="w-8 h-8 text-muted-foreground" />
+              <span className="font-barlow font-bold text-sm text-foreground">Nova Pasta</span>
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* New Folder Dialog */}
+      <Dialog open={folderDialogOpen} onOpenChange={setFolderDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="font-barlow font-bold">Nova Pasta</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div><Label className="font-dm text-sm">Nome da Pasta *</Label><Input value={folderName} onChange={e => setFolderName(e.target.value)} className="font-dm" placeholder="Ex: Masculino, Feminino..." /></div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setFolderDialogOpen(false)} className="font-dm">Cancelar</Button>
+            <Button onClick={handleSaveFolder} className="bg-primary text-primary-foreground font-dm">Criar</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
