@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
+import logo from "@/assets/logo-iron.png";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -27,9 +28,7 @@ const Login = () => {
     <div className="min-h-screen bg-background flex items-center justify-center">
       <div className="w-full max-w-sm p-8 bg-card rounded-xl card-shadow">
         <div className="flex flex-col items-center mb-8">
-          <div className="w-14 h-14 bg-primary rounded-lg flex items-center justify-center mb-3">
-            <span className="text-white font-barlow font-bold text-xl">IF</span>
-          </div>
+          <img src={logo} alt="Iron Fit" className="w-14 h-14 rounded-lg mb-3" />
           <h1 className="font-barlow font-bold text-2xl text-foreground">IRON FIT</h1>
           <p className="text-sm text-muted-foreground font-dm">Painel Administrativo</p>
         </div>

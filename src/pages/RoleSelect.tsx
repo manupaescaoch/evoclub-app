@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { Dumbbell } from "lucide-react";
+import logo from "@/assets/logo-iron.png";
 
 const RoleSelect = () => {
   const navigate = useNavigate();
@@ -22,9 +22,7 @@ const RoleSelect = () => {
 
       {/* Logo + branding */}
       <div className="flex flex-col items-center mb-10 z-10">
-        <div className="w-20 h-20 bg-primary rounded-2xl flex items-center justify-center mb-5 hero-shadow">
-          <Dumbbell size={40} className="text-primary-foreground" />
-        </div>
+        <img src={logo} alt="Iron Fit" className="w-24 h-24 rounded-2xl mb-5 hero-shadow" />
         <div className="flex items-baseline gap-1.5">
           <span className="font-barlow font-black text-3xl tracking-tight text-foreground">IRON</span>
           <span className="font-barlow font-bold text-3xl tracking-tight text-muted-foreground">FIT</span>
