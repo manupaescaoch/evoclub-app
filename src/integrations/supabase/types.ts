@@ -288,6 +288,39 @@ export type Database = {
           },
         ]
       }
+      exercise_library: {
+        Row: {
+          created_at: string
+          equipment: string | null
+          id: string
+          is_global: boolean
+          muscle_group: string | null
+          name: string
+          secondary_muscle: string | null
+          video_url: string | null
+        }
+        Insert: {
+          created_at?: string
+          equipment?: string | null
+          id?: string
+          is_global?: boolean
+          muscle_group?: string | null
+          name: string
+          secondary_muscle?: string | null
+          video_url?: string | null
+        }
+        Update: {
+          created_at?: string
+          equipment?: string | null
+          id?: string
+          is_global?: boolean
+          muscle_group?: string | null
+          name?: string
+          secondary_muscle?: string | null
+          video_url?: string | null
+        }
+        Relationships: []
+      }
       sales: {
         Row: {
           client_id: number | null
@@ -335,6 +368,112 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      template_exercises: {
+        Row: {
+          id: string
+          load: string | null
+          name: string
+          notes: string | null
+          reps: string | null
+          rest_seconds: number | null
+          sets: number | null
+          sort_order: number | null
+          template_session_id: string
+        }
+        Insert: {
+          id?: string
+          load?: string | null
+          name: string
+          notes?: string | null
+          reps?: string | null
+          rest_seconds?: number | null
+          sets?: number | null
+          sort_order?: number | null
+          template_session_id: string
+        }
+        Update: {
+          id?: string
+          load?: string | null
+          name?: string
+          notes?: string | null
+          reps?: string | null
+          rest_seconds?: number | null
+          sets?: number | null
+          sort_order?: number | null
+          template_session_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "template_exercises_template_session_id_fkey"
+            columns: ["template_session_id"]
+            isOneToOne: false
+            referencedRelation: "template_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      template_sessions: {
+        Row: {
+          day_label: string | null
+          duration_min: number | null
+          id: string
+          name: string | null
+          notes: string | null
+          sort_order: number | null
+          template_id: string
+        }
+        Insert: {
+          day_label?: string | null
+          duration_min?: number | null
+          id?: string
+          name?: string | null
+          notes?: string | null
+          sort_order?: number | null
+          template_id: string
+        }
+        Update: {
+          day_label?: string | null
+          duration_min?: number | null
+          id?: string
+          name?: string | null
+          notes?: string | null
+          sort_order?: number | null
+          template_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "template_sessions_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "workout_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      training_methods: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          is_global: boolean
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_global?: boolean
+          name: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_global?: boolean
+          name?: string
+        }
+        Relationships: []
       }
       units: {
         Row: {
@@ -454,6 +593,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      workout_templates: {
+        Row: {
+          category: string | null
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: []
       }
       workouts: {
         Row: {
