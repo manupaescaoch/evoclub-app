@@ -167,7 +167,7 @@ const TreinosFichas = () => {
             <h1 className="text-xl font-barlow font-bold text-foreground">Fichas de Treino</h1>
             <p className="text-sm font-dm text-muted-foreground">Gerencie fichas de treino modelo para reutilizar com seus alunos.</p>
           </div>
-          <Button onClick={openCreate} size="sm" className="bg-primary text-primary-foreground">
+          <Button onClick={openAddChooser} size="sm" className="bg-primary text-primary-foreground">
             <Plus className="w-4 h-4 mr-1" /> Adicionar
           </Button>
         </div>
@@ -261,7 +261,7 @@ const TreinosFichas = () => {
             <p className="text-sm font-dm text-muted-foreground">{filteredTemplates.length} ficha{filteredTemplates.length !== 1 ? "s" : ""}</p>
           </div>
         </div>
-        <Button onClick={openCreate} size="sm" className="bg-primary text-primary-foreground">
+        <Button onClick={openAddChooser} size="sm" className="bg-primary text-primary-foreground">
           <Plus className="w-4 h-4 mr-1" /> Adicionar
         </Button>
       </div>
