@@ -1,36 +1,55 @@
 
 
-# Otimizar Layout do Treino — UX Mobile
+# Fluxo Completo de Criação de Plano de Treino
 
-## Problema
-1. O popup de "Atualizar carga" abre na parte inferior (bottom-sheet) em vez de centralizado na tela
-2. O layout dos exercícios precisa ser mais compacto e otimizado para a experiência mobile em 390px
+Baseado nas telas do MPFLOW, vamos criar um fluxo de 4 etapas para prescrição de treino.
+
+## Fluxo
+
+```text
+[Criar Plano] → Modal com opções (Manualmente / Biblioteca)
+      ↓
+[Prescrever Treino] → Nome do Plano + Descrição + lista de sessões
+      ↓
+[+ Adicionar Sessão] → Modal: Nome da Sessão, Dia da Semana ou número, Duração, Obs
+      ↓
+[+ Adicionar Exercício] → Modal: busca/cria exercício, configura séries/reps/carga/intervalo
+```
 
 ## Alterações
 
-### 1. Centralizar LoadModal
-- Mudar de `items-end` para `items-center` no container fixo
-- Trocar `rounded-t-3xl` por `rounded-3xl` com margem lateral
-- Adicionar botão de fechar (X) no canto superior
-- Input maior com melhor área de toque (min h-14)
-- Botões de incremento rápido (+5kg, +10kg) para facilitar edição
+### 1. Database Migration
+- Create `workout_sessions` table: `id`, `workout_id`, `name` (ex: "Treino A"), `day_label` (segunda/terça ou numérico), `duration_min`, `notes`, `sort_order`
+- Modify `workout_exercises` to reference `session_id` instead of directly `workout_id`, add `load` (text) column for weight/carga
 
-### 2. Otimizar cards de exercício
-- Reduzir padding dos cards (p-4 → p-3)
-- Thumbnail menor (w-16 h-20) para dar mais espaço ao conteúdo
-- Séries em layout mais compacto: uma linha por série com reps, carga e intervalo lado a lado
-- Separadores visuais sutis entre séries
-- Botão "Editar" mais visível com ícone de lápis
+### 2. Refactor TreinosClienteDetalhe.tsx
+- Replace inline new workout form with a modal "Criar Novo Plano de Treino" with two cards: "Criar Manualmente" and "Usar da Biblioteca" (disabled/coming soon)
+- On "Criar Manualmente" → navigate to a new prescription view
 
-### 3. Melhorar área de toque
-- Aumentar área clicável do checkbox de conclusão (min 44x44px)
-- Botões de intervalo com padding maior
-- Espaçamento adequado entre elementos interativos (min 8px gap)
+### 3. New Component: WorkoutPrescription.tsx
+- Header: back arrow, "Prescrever Treino", client name, Salvar button
+- Form: Nome do Plano + Descrição inputs
+- List of sessions (Treino A - Segunda, etc.) each expandable with exercises inside
+- "+ Adicionar Sessão de Treino" button at bottom
+- Each session card has: settings gear, copy, delete icons, and "+ Adicionar Exercício" button
 
-### 4. Progress bar e header fixo
-- Fixar header (título + barra de progresso) no topo durante scroll
-- Adicionar `pb-24` ao container para garantir que o último exercício não fique atrás da bottom nav
+### 4. New Dialog: NewSessionDialog.tsx
+- Modal with fields: Nome da Sessão (text), Dia da Semana (select dropdown with Seg-Dom + Numérico options), Duração em min (number), Observações (textarea)
+- Buttons: Cancelar / Criar
 
-### Arquivos modificados
-- `src/components/tabs/TreinoTab.tsx` — LoadModal centralizado, cards otimizados, melhor UX mobile
+### 5. New Dialog: AddExerciseDialog.tsx
+- Modal "Adicionar Exercício" with search input + "Criar novo" button
+- List of exercises from `workout_exercises` library or typed manually
+- On select → opens config: Série × Rep, Carga, Intervalo(s)
+- Buttons: Adicionar série, Cancelar, Salvar
+
+### 6. Update workout expanded view
+- When viewing existing workout, show sessions grouped with exercises inside each
+- Each exercise row shows: name, sets × reps, load, rest
+
+## Technical Details
+- New table `workout_sessions` bridges `workouts` → sessions → exercises
+- Add `session_id` (uuid, nullable) and `load` (text) columns to `workout_exercises`
+- RLS: same pattern as existing tables (authenticated can manage)
+- All labels in PT-BR, following existing font/color conventions (Barlow headings, DM Sans body, #1400FF primary)
 
