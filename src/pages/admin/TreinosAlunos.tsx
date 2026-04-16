@@ -47,7 +47,7 @@ const TreinosAlunos = () => {
     }
   };
 
-  const avatarColors = ["bg-red-100 text-red-600", "bg-blue-100 text-blue-600", "bg-green-100 text-green-600", "bg-purple-100 text-purple-600", "bg-orange-100 text-orange-600"];
+  const avatarColor = "bg-primary/10 text-primary";
 
   return (
     <div>
