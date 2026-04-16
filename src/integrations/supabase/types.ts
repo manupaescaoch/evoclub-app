@@ -14,7 +14,282 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      automations: {
+        Row: {
+          active: boolean | null
+          id: string
+          name: string
+          segment: string | null
+          trigger_rule: string | null
+          unit_id: string | null
+        }
+        Insert: {
+          active?: boolean | null
+          id?: string
+          name: string
+          segment?: string | null
+          trigger_rule?: string | null
+          unit_id?: string | null
+        }
+        Update: {
+          active?: boolean | null
+          id?: string
+          name?: string
+          segment?: string | null
+          trigger_rule?: string | null
+          unit_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "automations_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "units"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cancellations: {
+        Row: {
+          cancelled_at: string | null
+          client_id: number | null
+          id: string
+          reason: string | null
+          unit_id: string | null
+        }
+        Insert: {
+          cancelled_at?: string | null
+          client_id?: number | null
+          id?: string
+          reason?: string | null
+          unit_id?: string | null
+        }
+        Update: {
+          cancelled_at?: string | null
+          client_id?: number | null
+          id?: string
+          reason?: string | null
+          unit_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cancellations_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cancellations_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "units"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      class_bookings: {
+        Row: {
+          booked_at: string | null
+          class_id: string | null
+          client_id: number | null
+          id: string
+          status: string | null
+        }
+        Insert: {
+          booked_at?: string | null
+          class_id?: string | null
+          client_id?: number | null
+          id?: string
+          status?: string | null
+        }
+        Update: {
+          booked_at?: string | null
+          class_id?: string | null
+          client_id?: number | null
+          id?: string
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "class_bookings_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "class_bookings_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      classes: {
+        Row: {
+          day_of_week: number | null
+          end_time: string
+          id: string
+          max_slots: number | null
+          name: string | null
+          start_time: string
+          trainer: string | null
+          unit_id: string | null
+        }
+        Insert: {
+          day_of_week?: number | null
+          end_time: string
+          id?: string
+          max_slots?: number | null
+          name?: string | null
+          start_time: string
+          trainer?: string | null
+          unit_id?: string | null
+        }
+        Update: {
+          day_of_week?: number | null
+          end_time?: string
+          id?: string
+          max_slots?: number | null
+          name?: string | null
+          start_time?: string
+          trainer?: string | null
+          unit_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "classes_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "units"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      clients: {
+        Row: {
+          contract_end: string | null
+          contract_start: string | null
+          cpf: string | null
+          created_at: string | null
+          email: string | null
+          id: number
+          name: string
+          phone: string | null
+          plan: string | null
+          plan_value: number | null
+          status: string | null
+          unit_id: string | null
+        }
+        Insert: {
+          contract_end?: string | null
+          contract_start?: string | null
+          cpf?: string | null
+          created_at?: string | null
+          email?: string | null
+          id?: number
+          name: string
+          phone?: string | null
+          plan?: string | null
+          plan_value?: number | null
+          status?: string | null
+          unit_id?: string | null
+        }
+        Update: {
+          contract_end?: string | null
+          contract_start?: string | null
+          cpf?: string | null
+          created_at?: string | null
+          email?: string | null
+          id?: number
+          name?: string
+          phone?: string | null
+          plan?: string | null
+          plan_value?: number | null
+          status?: string | null
+          unit_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clients_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "units"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sales: {
+        Row: {
+          client_id: number | null
+          created_at: string | null
+          id: string
+          installments: number | null
+          payment_method: string | null
+          type: string | null
+          unit_id: string | null
+          value: number
+        }
+        Insert: {
+          client_id?: number | null
+          created_at?: string | null
+          id?: string
+          installments?: number | null
+          payment_method?: string | null
+          type?: string | null
+          unit_id?: string | null
+          value: number
+        }
+        Update: {
+          client_id?: number | null
+          created_at?: string | null
+          id?: string
+          installments?: number | null
+          payment_method?: string | null
+          type?: string | null
+          unit_id?: string | null
+          value?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sales_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sales_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "units"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      units: {
+        Row: {
+          address: string | null
+          created_at: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          address?: string | null
+          created_at?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
