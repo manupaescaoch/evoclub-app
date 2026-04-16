@@ -52,12 +52,11 @@ type Anamnesis = {
   created_at: string | null;
 };
 
-type Props = {
-  clientId: number;
-  onBack: () => void;
-};
-
-const TreinosClienteDetalhe = ({ clientId, onBack }: Props) => {
+const TreinosClienteDetalhe = () => {
+  const { clientId: clientIdParam } = useParams();
+  const navigate = useNavigate();
+  const clientId = Number(clientIdParam);
+  const onBack = () => navigate("/admin/treinos/alunos");
   const [client, setClient] = useState<Client | null>(null);
   const [workouts, setWorkouts] = useState<Workout[]>([]);
   const [anamnesis, setAnamnesis] = useState<Anamnesis[]>([]);
