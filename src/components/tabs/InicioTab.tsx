@@ -19,9 +19,9 @@ const InicioTab = ({ onTabChange }: InicioTabProps) => {
         </div>
         <div className="flex items-center gap-3">
           <Bell size={20} className="text-muted" />
-          <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
+          <button onClick={() => onTabChange?.("perfil")} className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
             <span className="text-white text-xs font-semibold font-dm">RC</span>
-          </div>
+          </button>
         </div>
       </div>
 
