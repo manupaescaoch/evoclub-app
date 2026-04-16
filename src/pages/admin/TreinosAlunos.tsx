@@ -47,7 +47,7 @@ const TreinosAlunos = () => {
     }
   };
 
-  const avatarColors = ["bg-red-100 text-red-600", "bg-blue-100 text-blue-600", "bg-green-100 text-green-600", "bg-purple-100 text-purple-600", "bg-orange-100 text-orange-600"];
+  const avatarColor = "bg-primary/10 text-primary";
 
   return (
     <div>
@@ -95,7 +95,7 @@ const TreinosAlunos = () => {
                 className="bg-card border border-border rounded-xl px-4 py-3 flex items-center justify-between cursor-pointer hover:border-primary/30 hover:shadow-sm transition-all"
               >
                 <div className="flex items-center gap-3">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center text-xs font-bold font-barlow ${avatarColors[i % avatarColors.length]}`}>
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center text-xs font-bold font-barlow ${avatarColor}`}>
                     {initials(c.name)}
                   </div>
                   <div>
