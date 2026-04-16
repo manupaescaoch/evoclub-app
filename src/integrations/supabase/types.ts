@@ -14,6 +14,38 @@ export type Database = {
   }
   public: {
     Tables: {
+      anamnesis: {
+        Row: {
+          client_id: number
+          content: string | null
+          created_at: string | null
+          id: string
+          type: string | null
+        }
+        Insert: {
+          client_id: number
+          content?: string | null
+          created_at?: string | null
+          id?: string
+          type?: string | null
+        }
+        Update: {
+          client_id?: number
+          content?: string | null
+          created_at?: string | null
+          id?: string
+          type?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "anamnesis_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       automations: {
         Row: {
           active: boolean | null
@@ -84,6 +116,32 @@ export type Database = {
             columns: ["unit_id"]
             isOneToOne: false
             referencedRelation: "units"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      check_ins: {
+        Row: {
+          checked_at: string | null
+          client_id: number
+          id: string
+        }
+        Insert: {
+          checked_at?: string | null
+          client_id: number
+          id?: string
+        }
+        Update: {
+          checked_at?: string | null
+          client_id?: number
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "check_ins_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
             referencedColumns: ["id"]
           },
         ]
@@ -298,6 +356,97 @@ export type Database = {
           name?: string
         }
         Relationships: []
+      }
+      workout_exercises: {
+        Row: {
+          day_label: string | null
+          id: string
+          name: string
+          notes: string | null
+          reps: string | null
+          rest_seconds: number | null
+          sets: number | null
+          sort_order: number | null
+          workout_id: string
+        }
+        Insert: {
+          day_label?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          reps?: string | null
+          rest_seconds?: number | null
+          sets?: number | null
+          sort_order?: number | null
+          workout_id: string
+        }
+        Update: {
+          day_label?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          reps?: string | null
+          rest_seconds?: number | null
+          sets?: number | null
+          sort_order?: number | null
+          workout_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workout_exercises_workout_id_fkey"
+            columns: ["workout_id"]
+            isOneToOne: false
+            referencedRelation: "workouts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workouts: {
+        Row: {
+          client_id: number | null
+          created_at: string | null
+          description: string | null
+          expires_at: string | null
+          id: string
+          name: string
+          starts_at: string | null
+          status: string | null
+          updated_at: string | null
+          week: number | null
+        }
+        Insert: {
+          client_id?: number | null
+          created_at?: string | null
+          description?: string | null
+          expires_at?: string | null
+          id?: string
+          name?: string
+          starts_at?: string | null
+          status?: string | null
+          updated_at?: string | null
+          week?: number | null
+        }
+        Update: {
+          client_id?: number | null
+          created_at?: string | null
+          description?: string | null
+          expires_at?: string | null
+          id?: string
+          name?: string
+          starts_at?: string | null
+          status?: string | null
+          updated_at?: string | null
+          week?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workouts_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
