@@ -361,10 +361,12 @@ export type Database = {
         Row: {
           day_label: string | null
           id: string
+          load: string | null
           name: string
           notes: string | null
           reps: string | null
           rest_seconds: number | null
+          session_id: string | null
           sets: number | null
           sort_order: number | null
           workout_id: string
@@ -372,10 +374,12 @@ export type Database = {
         Insert: {
           day_label?: string | null
           id?: string
+          load?: string | null
           name: string
           notes?: string | null
           reps?: string | null
           rest_seconds?: number | null
+          session_id?: string | null
           sets?: number | null
           sort_order?: number | null
           workout_id: string
@@ -383,17 +387,67 @@ export type Database = {
         Update: {
           day_label?: string | null
           id?: string
+          load?: string | null
           name?: string
           notes?: string | null
           reps?: string | null
           rest_seconds?: number | null
+          session_id?: string | null
           sets?: number | null
           sort_order?: number | null
           workout_id?: string
         }
         Relationships: [
           {
+            foreignKeyName: "workout_exercises_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "workout_sessions"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "workout_exercises_workout_id_fkey"
+            columns: ["workout_id"]
+            isOneToOne: false
+            referencedRelation: "workouts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workout_sessions: {
+        Row: {
+          created_at: string
+          day_label: string | null
+          duration_min: number | null
+          id: string
+          name: string
+          notes: string | null
+          sort_order: number | null
+          workout_id: string
+        }
+        Insert: {
+          created_at?: string
+          day_label?: string | null
+          duration_min?: number | null
+          id?: string
+          name?: string
+          notes?: string | null
+          sort_order?: number | null
+          workout_id: string
+        }
+        Update: {
+          created_at?: string
+          day_label?: string | null
+          duration_min?: number | null
+          id?: string
+          name?: string
+          notes?: string | null
+          sort_order?: number | null
+          workout_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workout_sessions_workout_id_fkey"
             columns: ["workout_id"]
             isOneToOne: false
             referencedRelation: "workouts"
