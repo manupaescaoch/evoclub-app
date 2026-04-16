@@ -27,7 +27,7 @@ interface Workout {
 const workoutsData: Workout[] = [
   {
     id: "rotinas",
-    name: "Rotinas de Treinos",
+    name: "Costas & Bíceps",
     icon: "weights",
     days: [
       { day: "SEG", name: "Peito & Tríceps", state: "done" },
