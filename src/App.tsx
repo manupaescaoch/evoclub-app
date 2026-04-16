@@ -40,7 +40,7 @@ const App = () => (
             <Route path="crm" element={<CRM />} />
             <Route path="financeiro" element={<Financeiro />} />
             <Route path="gerencial" element={<Placeholder />} />
-            <Route path="treinos" element={<Placeholder />} />
+            <Route path="treinos" element={<Treinos />} />
             <Route path="configuracoes" element={<Placeholder />} />
             <Route path="novidades" element={<Placeholder />} />
             <Route path="ajuda" element={<Placeholder />} />
