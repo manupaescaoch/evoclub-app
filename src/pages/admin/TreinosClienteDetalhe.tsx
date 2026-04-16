@@ -175,11 +175,11 @@ const TreinosClienteDetalhe = ({ clientId, onBack }: Props) => {
         </div>
       </div>
 
-      {/* Anamnese Summary */}
-      {anamnesis.length > 0 && (
-        <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mb-6">
-          <h3 className="font-barlow font-bold text-sm text-yellow-800 mb-1">📋 Resumo do Aluno (Anamnese)</h3>
-          <p className="text-xs font-dm text-yellow-700 whitespace-pre-wrap">{anamnesis[0].content}</p>
+      {/* Observações do Aluno - destaque */}
+      {client.observations && (
+        <div className="bg-yellow-50 border-l-4 border-l-yellow-400 border border-yellow-200 rounded-xl p-4 mb-6">
+          <h3 className="font-barlow font-bold text-sm text-yellow-800 mb-1">⚠️ OBSERVAÇÕES DO ALUNO</h3>
+          <p className="text-sm font-dm text-yellow-700 font-semibold whitespace-pre-wrap">{client.observations}</p>
         </div>
       )}
 
