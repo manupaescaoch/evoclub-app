@@ -1,58 +1,91 @@
 
 
-# Perfil do Aluno — Página Completa
+# Fichas de Treino, Biblioteca de Exercícios e Banco de Métodos
 
-Criar uma nova tab/página de perfil do aluno acessível ao clicar na foto/avatar no header da tab Início, seguindo o layout do MPFLOW.
+Implementar as 3 páginas do módulo Treinos baseadas no layout MPFLOW.
 
-## Estrutura da Página
+## Database Migration
 
-```text
-[Avatar + Nome + Editar]
-[Trocar Foto]
-─────────────────────────
-[Stats: Dias Ativos | Sequência | Ranking | Conquistas]
-─────────────────────────
-[Conquistas] → card expandível com progresso
-[Evolução do Peso] → gráfico + botão Registrar Peso
-[Fotos de Progresso] → Antes/Depois (Frente, Lateral, Costas)
-[Consistência] → calendário mensal com check-ins
-[Resumo do Período] → dias ativos, treinos, pontos + dicas
-[Notificações] → link/chevron
-[Configurações] → link/chevron
-[Privacidade] → link/chevron
-[Sair da Conta] → botão vermelho
-```
+### Nova tabela: `exercise_library`
+- `id` uuid PK
+- `name` text NOT NULL
+- `muscle_group` text (grupo muscular principal)
+- `secondary_muscle` text (grupo muscular secundário)
+- `equipment` text
+- `video_url` text
+- `is_global` boolean default true
+- `created_at` timestamptz
 
-## Alterações
+### Nova tabela: `training_methods`
+- `id` uuid PK
+- `name` text NOT NULL
+- `description` text
+- `is_global` boolean default true
+- `created_at` timestamptz
 
-### 1. Novo componente: `src/components/tabs/PerfilTab.tsx`
-Página completa com todas as seções acima, usando dados mock por enquanto:
-- **Header**: Avatar grande com ícone de câmera para trocar foto, nome do aluno, ícone de edição
-- **Stats row**: 4 cards (Dias Ativos, Sequência, Ranking, Conquistas)
-- **Conquistas**: Card com barra de progresso "X/25 desbloqueadas", chevron para expandir
-- **Evolução do Peso**: Área de gráfico placeholder + botão "Registrar Peso"
-- **Fotos de Progresso**: Seção "ANTES" com 3 placeholders (Frente, Lateral, Costas) com ícone de câmera
-- **Consistência**: Calendário mensal com switcher Semana/Mês/Ano/Tudo, dias coloridos para check-ins
-- **Resumo do Período**: Stats (dias ativos, treinos, pontos) + seções "Pode melhorar" e "Atenção"
-- **Menu items**: Notificações, Configurações, Privacidade — cada um como card com chevron
-- **Sair da Conta**: Botão centralizado em vermelho
+### Nova tabela: `workout_templates` (fichas de treino modelo)
+- `id` uuid PK
+- `name` text NOT NULL
+- `category` text (ex: "Masculino", "Feminino", "Iniciante")
+- `description` text
+- `created_at` timestamptz
 
-### 2. Atualizar `AppShell.tsx`
-- Adicionar `"perfil"` ao array de tabs
-- Renderizar `PerfilTab` quando `activeTab === "perfil"`
+### Nova tabela: `template_sessions`
+- `id` uuid PK
+- `template_id` uuid FK → workout_templates
+- `name` text
+- `day_label` text
+- `duration_min` int
+- `notes` text
+- `sort_order` int
 
-### 3. Atualizar `InicioTab.tsx`
-- Tornar o avatar no header clicável — ao clicar, muda para tab "perfil"
-- Passar `onTabChange` como prop para InicioTab
+### Nova tabela: `template_exercises`
+- `id` uuid PK
+- `template_session_id` uuid FK → template_sessions
+- `name` text
+- `sets` int
+- `reps` text
+- `load` text
+- `rest_seconds` int
+- `notes` text
+- `sort_order` int
 
-### 4. Atualizar `BottomNav.tsx`
-- Não adicionar perfil no bottom nav (acessível apenas pelo avatar, como no MPFLOW)
-- Alternativa: adicionar callback para navegação ao perfil
+RLS: authenticated users can CRUD all tables.
 
-## Detalhes Técnicos
-- Componente puramente visual com dados mock (sem DB por enquanto)
-- Seguir paleta existente: primary #1400FF, bg #F4F5FA
-- Fontes: Barlow Condensed para headings/números, DM Sans para corpo
-- Max width 390px, PT-BR
-- Ícones: lucide-react (Camera, ChevronRight, Scale, Calendar, Bell, Settings, Shield, LogOut)
+## 1. Fichas de Treino (`TreinosFichas.tsx`)
+
+Layout baseado na imagem MPFLOW "Biblioteca de Treinos":
+- Header: "Fichas de Treino" + subtítulo + botão "+ Adicionar"
+- Barra de busca + filtro "Todas as categorias"
+- Grid de cards com categorias (ex: "Masculino") com ícone de pasta e menu de ações (⋮)
+- Ao clicar numa categoria → lista de fichas dentro dela
+- Ao criar ficha → reutiliza o mesmo fluxo do `WorkoutPrescription` mas salva em `workout_templates` em vez de `workouts`
+- Funcionalidade de clonar ficha para um aluno específico
+
+## 2. Biblioteca de Exercícios (`TreinosBiblioteca.tsx`)
+
+Layout baseado na imagem MPFLOW "Biblioteca de Exercícios":
+- Header: "Biblioteca de Exercícios" + "Banco de exercícios com vídeos" + botão "+ Criar exercício"
+- Tabs: Favoritos | Exercícios do app | Seus exercícios
+- Barra de busca + filtros: "Grupos musculares" e "Equipamento" (dropdowns)
+- Tabela com colunas: ícone vídeo, Exercício (sortable), Ativação (badges coloridas por grupo muscular), Equipamento, Ações
+- Dialog para criar/editar exercício: nome, grupo muscular, músculo secundário, equipamento, URL do vídeo
+
+## 3. Banco de Métodos (`TreinosMetodos.tsx`)
+
+Layout baseado na imagem MPFLOW "Banco de Métodos":
+- Header: "Banco de Métodos" + "Métodos de treino para prescrição" + botão "+ Novo Método"
+- Barra de busca
+- Lista de cards com: nome do método (bold, uppercase), badge "Global", descrição
+- Pré-popular com métodos comuns: 100/10, BACK OFF SET, BI-SET, BÚLGARO + PARCIAIS, CLUSTER SET, DROP-SET, REST-PAUSE, SUPER-SET, etc.
+- Dialog para criar novo método: nome + descrição
+
+## Arquivos Alterados
+
+| Arquivo | Ação |
+|---------|------|
+| Migration SQL | Criar 5 tabelas + RLS + seed de métodos |
+| `src/pages/admin/TreinosFichas.tsx` | Reescrever com CRUD completo |
+| `src/pages/admin/TreinosBiblioteca.tsx` | Reescrever com tabela + CRUD |
+| `src/pages/admin/TreinosMetodos.tsx` | Reescrever com lista + CRUD |
 
