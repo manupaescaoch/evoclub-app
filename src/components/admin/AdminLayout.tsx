@@ -6,6 +6,7 @@ import {
   LayoutDashboard, Users, CalendarDays, Megaphone, DollarSign,
   BarChart3, Dumbbell, Settings, Sparkles, HelpCircle, LogOut,
   Search, Bell, ChevronDown, ClipboardList, Library, Wrench, Menu, X, ClipboardEdit,
+  FileSignature, CalendarRange, UserCog, Truck, ShieldCheck, Tag, Ticket, TrendingUp,
 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -22,7 +23,19 @@ const navItems: NavItem[] = [
   { label: "Grade", icon: CalendarDays, path: "/admin/grade" },
   { label: "CRM", icon: Megaphone, path: "/admin/crm" },
   { label: "Financeiro", icon: DollarSign, path: "/admin/financeiro" },
-  { label: "Gerencial", icon: BarChart3, path: "/admin/gerencial" },
+  {
+    label: "Gerencial", icon: BarChart3, path: "/admin/gerencial",
+    children: [
+      { label: "Contratos", icon: FileSignature, path: "/admin/gerencial/contratos" },
+      { label: "Atividades na Grade", icon: CalendarRange, path: "/admin/gerencial/atividades" },
+      { label: "Colaboradores", icon: UserCog, path: "/admin/gerencial/colaboradores" },
+      { label: "Fornecedores", icon: Truck, path: "/admin/gerencial/fornecedores" },
+      { label: "Permissões", icon: ShieldCheck, path: "/admin/gerencial/permissoes" },
+      { label: "Serviços", icon: Tag, path: "/admin/gerencial/servicos" },
+      { label: "Cupons de Desconto", icon: Ticket, path: "/admin/gerencial/cupons" },
+      { label: "Crescimento", icon: TrendingUp, path: "/admin/gerencial/crescimento" },
+    ],
+  },
   {
     label: "Treinos", icon: Dumbbell, path: "/admin/treinos",
     children: [
@@ -105,7 +118,10 @@ const AdminLayout = () => {
           const isActive = isExact || (item.path !== "/admin" && active);
 
           if (hasChildren) {
-            const expanded = isTreinosSection;
+            const isGerencialSection = location.pathname.startsWith("/admin/gerencial");
+            const expanded =
+              (item.path === "/admin/treinos" && isTreinosSection) ||
+              (item.path === "/admin/gerencial" && isGerencialSection);
             return (
               <div key={item.path}>
                 <Link
