@@ -139,6 +139,7 @@ const AdminLayout = () => {
               <div key={item.path}>
                 <Link
                   to={item.path}
+                  onClick={() => isMobile && setSidebarOpen(false)}
                   className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-dm transition-colors w-full
                     ${isActive
                       ? "bg-[rgba(20,0,255,0.13)] text-white border-l-[3px] border-l-primary"
@@ -157,6 +158,7 @@ const AdminLayout = () => {
                         <Link
                           key={child.path}
                           to={child.path}
+                          onClick={() => isMobile && setSidebarOpen(false)}
                           className={`flex items-center gap-2.5 px-2 py-2 rounded-md text-xs font-dm transition-colors
                             ${childActive
                               ? "text-white bg-white/5"
@@ -178,6 +180,7 @@ const AdminLayout = () => {
             <Link
               key={item.path}
               to={item.path}
+              onClick={() => isMobile && setSidebarOpen(false)}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-dm transition-colors
                 ${isActive
                   ? "bg-[rgba(20,0,255,0.13)] text-white border-l-[3px] border-l-primary"
