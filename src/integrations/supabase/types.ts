@@ -454,6 +454,72 @@ export type Database = {
           },
         ]
       }
+      training_exercise_sets: {
+        Row: {
+          cadence: string | null
+          created_at: string
+          id: string
+          incline: string | null
+          load: string | null
+          method_id: string | null
+          notes: string | null
+          order_index: number
+          reps: string | null
+          rest_seconds: number | null
+          session_exercise_id: string
+          set_type: string
+          sets: number
+          time_seconds: number | null
+        }
+        Insert: {
+          cadence?: string | null
+          created_at?: string
+          id?: string
+          incline?: string | null
+          load?: string | null
+          method_id?: string | null
+          notes?: string | null
+          order_index?: number
+          reps?: string | null
+          rest_seconds?: number | null
+          session_exercise_id: string
+          set_type?: string
+          sets?: number
+          time_seconds?: number | null
+        }
+        Update: {
+          cadence?: string | null
+          created_at?: string
+          id?: string
+          incline?: string | null
+          load?: string | null
+          method_id?: string | null
+          notes?: string | null
+          order_index?: number
+          reps?: string | null
+          rest_seconds?: number | null
+          session_exercise_id?: string
+          set_type?: string
+          sets?: number
+          time_seconds?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "training_exercise_sets_method_id_fkey"
+            columns: ["method_id"]
+            isOneToOne: false
+            referencedRelation: "training_methods"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "training_exercise_sets_session_exercise_id_fkey"
+            columns: ["session_exercise_id"]
+            isOneToOne: false
+            referencedRelation: "training_session_exercises"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       training_methods: {
         Row: {
           created_at: string
@@ -478,6 +544,172 @@ export type Database = {
         }
         Relationships: []
       }
+      training_plans: {
+        Row: {
+          coach_id: string | null
+          created_at: string
+          description: string | null
+          frequency: string | null
+          goal: string | null
+          id: string
+          is_active: boolean
+          level: string | null
+          name: string
+          organization_type: string
+          status: string
+          student_id: number
+          updated_at: string
+        }
+        Insert: {
+          coach_id?: string | null
+          created_at?: string
+          description?: string | null
+          frequency?: string | null
+          goal?: string | null
+          id?: string
+          is_active?: boolean
+          level?: string | null
+          name: string
+          organization_type?: string
+          status?: string
+          student_id: number
+          updated_at?: string
+        }
+        Update: {
+          coach_id?: string | null
+          created_at?: string
+          description?: string | null
+          frequency?: string | null
+          goal?: string | null
+          id?: string
+          is_active?: boolean
+          level?: string | null
+          name?: string
+          organization_type?: string
+          status?: string
+          student_id?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      training_session_exercises: {
+        Row: {
+          created_at: string
+          exercise_id: string | null
+          exercise_name: string
+          id: string
+          notes: string | null
+          order_index: number
+          training_session_id: string
+        }
+        Insert: {
+          created_at?: string
+          exercise_id?: string | null
+          exercise_name: string
+          id?: string
+          notes?: string | null
+          order_index?: number
+          training_session_id: string
+        }
+        Update: {
+          created_at?: string
+          exercise_id?: string | null
+          exercise_name?: string
+          id?: string
+          notes?: string | null
+          order_index?: number
+          training_session_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "training_session_exercises_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "exercise_library"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "training_session_exercises_training_session_id_fkey"
+            columns: ["training_session_id"]
+            isOneToOne: false
+            referencedRelation: "training_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      training_sessions: {
+        Row: {
+          created_at: string
+          day_of_week: string | null
+          id: string
+          name: string
+          notes: string | null
+          order_index: number
+          session_number: number | null
+          training_week_id: string
+        }
+        Insert: {
+          created_at?: string
+          day_of_week?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          order_index?: number
+          session_number?: number | null
+          training_week_id: string
+        }
+        Update: {
+          created_at?: string
+          day_of_week?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          order_index?: number
+          session_number?: number | null
+          training_week_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "training_sessions_training_week_id_fkey"
+            columns: ["training_week_id"]
+            isOneToOne: false
+            referencedRelation: "training_weeks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      training_weeks: {
+        Row: {
+          created_at: string
+          id: string
+          name: string | null
+          training_plan_id: string
+          week_number: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name?: string | null
+          training_plan_id: string
+          week_number: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string | null
+          training_plan_id?: string
+          week_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "training_weeks_training_plan_id_fkey"
+            columns: ["training_plan_id"]
+            isOneToOne: false
+            referencedRelation: "training_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       units: {
         Row: {
           address: string | null
@@ -496,6 +728,27 @@ export type Database = {
           created_at?: string | null
           id?: string
           name?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
         }
         Relationships: []
       }
@@ -673,10 +926,17 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      can_manage_training: { Args: { _user_id: string }; Returns: boolean }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "coach" | "coordinator" | "student" | "viewer"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -803,6 +1063,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "coach", "coordinator", "student", "viewer"],
+    },
   },
 } as const
