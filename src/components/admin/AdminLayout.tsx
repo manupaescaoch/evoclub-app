@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import {
   LayoutDashboard, Users, CalendarDays, Megaphone, DollarSign,
   BarChart3, Dumbbell, Settings, Sparkles, HelpCircle, LogOut,
-  Search, Bell, ChevronDown, ClipboardList, Library, Wrench, Menu, X,
+  Search, Bell, ChevronDown, ClipboardList, Library, Wrench, Menu, X, ClipboardEdit,
 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -28,6 +28,7 @@ const navItems: NavItem[] = [
     children: [
       { label: "Dashboard", icon: LayoutDashboard, path: "/admin/treinos" },
       { label: "Alunos", icon: Users, path: "/admin/treinos/alunos" },
+      { label: "Prescrever Treino", icon: ClipboardEdit, path: "/admin/treinos/prescrever" },
       { label: "Fichas de Treino", icon: ClipboardList, path: "/admin/treinos/fichas" },
       { label: "Biblioteca de Exercícios", icon: Library, path: "/admin/treinos/biblioteca" },
       { label: "Métodos de Treino", icon: Wrench, path: "/admin/treinos/metodos" },

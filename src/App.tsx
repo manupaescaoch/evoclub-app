@@ -21,6 +21,8 @@ import TreinosClienteDetalhe from "./pages/admin/TreinosClienteDetalhe.tsx";
 import TreinosFichas from "./pages/admin/TreinosFichas.tsx";
 import TreinosBiblioteca from "./pages/admin/TreinosBiblioteca.tsx";
 import TreinosMetodos from "./pages/admin/TreinosMetodos.tsx";
+import PrescreverTreino from "./pages/admin/PrescreverTreino.tsx";
+import PrescreverEditor from "./pages/admin/PrescreverEditor.tsx";
 
 const queryClient = new QueryClient();
 
@@ -50,6 +52,9 @@ const App = () => (
               <Route index element={<TreinosDashboard />} />
               <Route path="alunos" element={<TreinosAlunos />} />
               <Route path="alunos/:clientId" element={<TreinosClienteDetalhe />} />
+              <Route path="prescrever" element={<PrescreverTreino />} />
+              <Route path="prescrever/:clientId" element={<PrescreverEditor />} />
+              <Route path="prescrever/:clientId/:planId" element={<PrescreverEditor />} />
               <Route path="fichas" element={<TreinosFichas />} />
               <Route path="biblioteca" element={<TreinosBiblioteca />} />
               <Route path="metodos" element={<TreinosMetodos />} />
