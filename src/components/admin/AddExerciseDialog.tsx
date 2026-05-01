@@ -126,6 +126,8 @@ const AddExerciseDialog = ({ open, onClose, onSave }: Props) => {
 
     switch (row.type) {
       case "reps_load":
+      case "warmup":
+      case "prep":
         return (
           <>
             <div className="flex-1">
