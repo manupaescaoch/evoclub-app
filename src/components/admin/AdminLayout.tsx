@@ -7,6 +7,7 @@ import {
   BarChart3, Dumbbell, Settings, Sparkles, HelpCircle, LogOut,
   Search, Bell, ChevronDown, ClipboardList, Library, Wrench, Menu, X, ClipboardEdit,
   FileSignature, CalendarRange, UserCog, Truck, ShieldCheck, Tag, Ticket, TrendingUp,
+  Gift, ListTodo, ClipboardCheck, CalendarClock,
 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -21,7 +22,17 @@ const navItems: NavItem[] = [
   { label: "Dashboard", icon: LayoutDashboard, path: "/admin" },
   { label: "Clientes", icon: Users, path: "/admin/clientes" },
   { label: "Grade", icon: CalendarDays, path: "/admin/grade" },
-  { label: "CRM", icon: Megaphone, path: "/admin/crm" },
+  {
+    label: "CRM", icon: Megaphone, path: "/admin/crm",
+    children: [
+      { label: "Dashboard", icon: LayoutDashboard, path: "/admin/crm" },
+      { label: "Comissões", icon: DollarSign, path: "/admin/crm/comissoes" },
+      { label: "Indicações", icon: Gift, path: "/admin/crm/indicacoes" },
+      { label: "Tarefas", icon: ListTodo, path: "/admin/crm/tarefas" },
+      { label: "Operacional", icon: ClipboardCheck, path: "/admin/crm/operacional" },
+      { label: "Escala", icon: CalendarClock, path: "/admin/crm/escala" },
+    ],
+  },
   { label: "Financeiro", icon: DollarSign, path: "/admin/financeiro" },
   {
     label: "Gerencial", icon: BarChart3, path: "/admin/gerencial",
@@ -119,9 +130,11 @@ const AdminLayout = () => {
 
           if (hasChildren) {
             const isGerencialSection = location.pathname.startsWith("/admin/gerencial");
+            const isCrmSection = location.pathname.startsWith("/admin/crm");
             const expanded =
               (item.path === "/admin/treinos" && isTreinosSection) ||
-              (item.path === "/admin/gerencial" && isGerencialSection);
+              (item.path === "/admin/gerencial" && isGerencialSection) ||
+              (item.path === "/admin/crm" && isCrmSection);
             return (
               <div key={item.path}>
                 <Link

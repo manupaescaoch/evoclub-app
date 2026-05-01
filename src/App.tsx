@@ -30,6 +30,11 @@ import Permissoes from "./pages/admin/gerencial/Permissoes.tsx";
 import Servicos from "./pages/admin/gerencial/Servicos.tsx";
 import Cupons from "./pages/admin/gerencial/Cupons.tsx";
 import Crescimento from "./pages/admin/gerencial/Crescimento.tsx";
+import Comissoes from "./pages/admin/crm/Comissoes.tsx";
+import Indicacoes from "./pages/admin/crm/Indicacoes.tsx";
+import Tarefas from "./pages/admin/crm/Tarefas.tsx";
+import Operacional from "./pages/admin/crm/Operacional.tsx";
+import Escala from "./pages/admin/crm/Escala.tsx";
 
 const queryClient = new QueryClient();
 
@@ -53,6 +58,11 @@ const App = () => (
             <Route path="clientes" element={<Clientes />} />
             <Route path="grade" element={<Grade />} />
             <Route path="crm" element={<CRM />} />
+            <Route path="crm/comissoes" element={<Comissoes />} />
+            <Route path="crm/indicacoes" element={<Indicacoes />} />
+            <Route path="crm/tarefas" element={<Tarefas />} />
+            <Route path="crm/operacional" element={<Operacional />} />
+            <Route path="crm/escala" element={<Escala />} />
             <Route path="financeiro" element={<Financeiro />} />
             <Route path="gerencial" element={<GerencialIndex />} />
             <Route path="gerencial/contratos" element={<Contratos />} />
