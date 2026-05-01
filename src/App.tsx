@@ -16,8 +16,6 @@ import Financeiro from "./pages/admin/Financeiro.tsx";
 import Placeholder from "./pages/admin/Placeholder.tsx";
 import Treinos from "./pages/admin/Treinos.tsx";
 import TreinosDashboard from "./pages/admin/TreinosDashboard.tsx";
-import TreinosAlunos from "./pages/admin/TreinosAlunos.tsx";
-import TreinosClienteDetalhe from "./pages/admin/TreinosClienteDetalhe.tsx";
 import TreinosFichas from "./pages/admin/TreinosFichas.tsx";
 import TreinosBiblioteca from "./pages/admin/TreinosBiblioteca.tsx";
 import TreinosMetodos from "./pages/admin/TreinosMetodos.tsx";
@@ -50,8 +48,6 @@ const App = () => (
             <Route path="gerencial" element={<Placeholder />} />
             <Route path="treinos" element={<Treinos />}>
               <Route index element={<TreinosDashboard />} />
-              <Route path="alunos" element={<TreinosAlunos />} />
-              <Route path="alunos/:clientId" element={<TreinosClienteDetalhe />} />
               <Route path="prescrever" element={<PrescreverTreino />} />
               <Route path="prescrever/:clientId" element={<PrescreverEditor />} />
               <Route path="prescrever/:clientId/:planId" element={<PrescreverEditor />} />
