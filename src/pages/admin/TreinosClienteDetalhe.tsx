@@ -215,8 +215,8 @@ const TreinosClienteDetalhe = () => {
           {client.plan && <p className="text-xs font-dm text-muted-foreground">{client.plan}</p>}
         </div>
         <div className="ml-auto">
-          <Button className="gap-2 font-dm text-sm" onClick={() => setShowCreateModal(true)}>
-            <Plus size={16} /> Adicionar
+          <Button className="gap-2 font-dm text-sm" onClick={() => navigate(`/admin/treinos/prescrever/${client.id}`)}>
+            <Plus size={16} /> Prescrever Treino
           </Button>
         </div>
       </div>
