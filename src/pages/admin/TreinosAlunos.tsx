@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Search, Filter, Plus, ChevronLeft, ChevronRight, MoreVertical } from "lucide-react";
+import { Search, Filter, MoreVertical, ClipboardEdit, Eye, Dumbbell, History } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 type Client = {
   id: number;
@@ -91,10 +92,12 @@ const TreinosAlunos = () => {
             filtered.map((c, i) => (
               <div
                 key={c.id}
-                onClick={() => navigate(`/admin/treinos/alunos/${c.id}`)}
-                className="bg-card border border-border rounded-xl px-4 py-3 flex items-center justify-between cursor-pointer hover:border-primary/30 hover:shadow-sm transition-all"
+                className="bg-card border border-border rounded-xl px-4 py-3 flex items-center justify-between hover:border-primary/30 hover:shadow-sm transition-all"
               >
-                <div className="flex items-center gap-3">
+                <div
+                  onClick={() => navigate(`/admin/treinos/alunos/${c.id}`)}
+                  className="flex items-center gap-3 flex-1 min-w-0 cursor-pointer"
+                >
                   <div className={`w-10 h-10 rounded-full flex items-center justify-center text-xs font-bold font-barlow ${avatarColor}`}>
                     {initials(c.name)}
                   </div>
@@ -108,7 +111,33 @@ const TreinosAlunos = () => {
                     )}
                   </div>
                 </div>
-                <MoreVertical size={16} className="text-muted-foreground" />
+                <div className="flex items-center gap-1">
+                  <Button size="sm" variant="outline" className="font-dm text-xs gap-1 hidden sm:inline-flex"
+                    onClick={() => navigate(`/admin/treinos/prescrever/${c.id}`)}>
+                    <ClipboardEdit size={13} /> Prescrever
+                  </Button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <button className="p-1.5 hover:bg-muted rounded">
+                        <MoreVertical size={16} className="text-muted-foreground" />
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="font-dm">
+                      <DropdownMenuItem onClick={() => navigate(`/admin/treinos/alunos/${c.id}`)}>
+                        <Eye className="w-4 h-4 mr-2" /> Ver perfil
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => navigate(`/admin/treinos/prescrever/${c.id}`)}>
+                        <ClipboardEdit className="w-4 h-4 mr-2" /> Prescrever treino
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => navigate(`/admin/treinos/alunos/${c.id}`)}>
+                        <Dumbbell className="w-4 h-4 mr-2" /> Ver treino ativo
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => navigate(`/admin/treinos/alunos/${c.id}`)}>
+                        <History className="w-4 h-4 mr-2" /> Histórico
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
               </div>
             ))
           )}
