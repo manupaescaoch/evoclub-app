@@ -21,6 +21,15 @@ import TreinosBiblioteca from "./pages/admin/TreinosBiblioteca.tsx";
 import TreinosMetodos from "./pages/admin/TreinosMetodos.tsx";
 import PrescreverTreino from "./pages/admin/PrescreverTreino.tsx";
 import PrescreverEditor from "./pages/admin/PrescreverEditor.tsx";
+import GerencialIndex from "./pages/admin/gerencial/GerencialIndex.tsx";
+import Contratos from "./pages/admin/gerencial/Contratos.tsx";
+import Atividades from "./pages/admin/gerencial/Atividades.tsx";
+import Colaboradores from "./pages/admin/gerencial/Colaboradores.tsx";
+import Fornecedores from "./pages/admin/gerencial/Fornecedores.tsx";
+import Permissoes from "./pages/admin/gerencial/Permissoes.tsx";
+import Servicos from "./pages/admin/gerencial/Servicos.tsx";
+import Cupons from "./pages/admin/gerencial/Cupons.tsx";
+import Crescimento from "./pages/admin/gerencial/Crescimento.tsx";
 
 const queryClient = new QueryClient();
 
@@ -45,7 +54,15 @@ const App = () => (
             <Route path="grade" element={<Grade />} />
             <Route path="crm" element={<CRM />} />
             <Route path="financeiro" element={<Financeiro />} />
-            <Route path="gerencial" element={<Placeholder />} />
+            <Route path="gerencial" element={<GerencialIndex />} />
+            <Route path="gerencial/contratos" element={<Contratos />} />
+            <Route path="gerencial/atividades" element={<Atividades />} />
+            <Route path="gerencial/colaboradores" element={<Colaboradores />} />
+            <Route path="gerencial/fornecedores" element={<Fornecedores />} />
+            <Route path="gerencial/permissoes" element={<Permissoes />} />
+            <Route path="gerencial/servicos" element={<Servicos />} />
+            <Route path="gerencial/cupons" element={<Cupons />} />
+            <Route path="gerencial/crescimento" element={<Crescimento />} />
             <Route path="treinos" element={<Treinos />}>
               <Route index element={<TreinosDashboard />} />
               <Route path="prescrever" element={<PrescreverTreino />} />
