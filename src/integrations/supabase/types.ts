@@ -395,6 +395,190 @@ export type Database = {
         }
         Relationships: []
       }
+      crm_indications: {
+        Row: {
+          affected_monthly_value: number | null
+          created_at: string
+          discount_applied: boolean
+          discount_percent: number
+          enrollment_date: string | null
+          id: string
+          indicated_lead_id: string | null
+          indicated_name: string
+          indicated_phone: string | null
+          indicated_student_id: number | null
+          indicator_name: string
+          indicator_student_id: number | null
+          notes: string | null
+          origin: string | null
+          plan_contracted: string | null
+          status: string
+          unit_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          affected_monthly_value?: number | null
+          created_at?: string
+          discount_applied?: boolean
+          discount_percent?: number
+          enrollment_date?: string | null
+          id?: string
+          indicated_lead_id?: string | null
+          indicated_name: string
+          indicated_phone?: string | null
+          indicated_student_id?: number | null
+          indicator_name: string
+          indicator_student_id?: number | null
+          notes?: string | null
+          origin?: string | null
+          plan_contracted?: string | null
+          status?: string
+          unit_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          affected_monthly_value?: number | null
+          created_at?: string
+          discount_applied?: boolean
+          discount_percent?: number
+          enrollment_date?: string | null
+          id?: string
+          indicated_lead_id?: string | null
+          indicated_name?: string
+          indicated_phone?: string | null
+          indicated_student_id?: number | null
+          indicator_name?: string
+          indicator_student_id?: number | null
+          notes?: string | null
+          origin?: string | null
+          plan_contracted?: string | null
+          status?: string
+          unit_id?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      crm_task_checklist_items: {
+        Row: {
+          completed: boolean
+          created_at: string
+          id: string
+          task_id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          completed?: boolean
+          created_at?: string
+          id?: string
+          task_id: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          completed?: boolean
+          created_at?: string
+          id?: string
+          task_id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crm_task_checklist_items_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "crm_tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      crm_task_comments: {
+        Row: {
+          comment: string
+          created_at: string
+          id: string
+          task_id: string
+          user_name: string | null
+        }
+        Insert: {
+          comment: string
+          created_at?: string
+          id?: string
+          task_id: string
+          user_name?: string | null
+        }
+        Update: {
+          comment?: string
+          created_at?: string
+          id?: string
+          task_id?: string
+          user_name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crm_task_comments_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "crm_tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      crm_tasks: {
+        Row: {
+          archived: boolean
+          category: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          due_date: string | null
+          due_time: string | null
+          id: string
+          priority: string
+          responsible_name: string | null
+          responsible_phone: string | null
+          status: string
+          title: string
+          unit_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          archived?: boolean
+          category?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          due_date?: string | null
+          due_time?: string | null
+          id?: string
+          priority?: string
+          responsible_name?: string | null
+          responsible_phone?: string | null
+          status?: string
+          title: string
+          unit_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          archived?: boolean
+          category?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          due_date?: string | null
+          due_time?: string | null
+          id?: string
+          priority?: string
+          responsible_name?: string | null
+          responsible_phone?: string | null
+          status?: string
+          title?: string
+          unit_id?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       discount_coupons: {
         Row: {
           code: string
@@ -550,6 +734,143 @@ export type Database = {
         }
         Relationships: []
       }
+      operational_form_submissions: {
+        Row: {
+          answers: Json
+          attachments: Json | null
+          created_at: string
+          form_id: string
+          id: string
+          notes: string | null
+          responsible_name: string | null
+          status: string
+          submitted_at: string
+          unit_id: string | null
+        }
+        Insert: {
+          answers?: Json
+          attachments?: Json | null
+          created_at?: string
+          form_id: string
+          id?: string
+          notes?: string | null
+          responsible_name?: string | null
+          status?: string
+          submitted_at?: string
+          unit_id?: string | null
+        }
+        Update: {
+          answers?: Json
+          attachments?: Json | null
+          created_at?: string
+          form_id?: string
+          id?: string
+          notes?: string | null
+          responsible_name?: string | null
+          status?: string
+          submitted_at?: string
+          unit_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "operational_form_submissions_form_id_fkey"
+            columns: ["form_id"]
+            isOneToOne: false
+            referencedRelation: "operational_forms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      operational_forms: {
+        Row: {
+          active: boolean
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          type: string | null
+          unit_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          type?: string | null
+          unit_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          type?: string | null
+          unit_id?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      operational_routines: {
+        Row: {
+          checklist_form_id: string | null
+          created_at: string
+          created_by: string | null
+          date: string | null
+          description: string | null
+          id: string
+          notes: string | null
+          recurrence: string | null
+          responsible_name: string | null
+          responsible_phone: string | null
+          routine_type: string | null
+          status: string
+          time: string | null
+          title: string
+          unit_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          checklist_form_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          date?: string | null
+          description?: string | null
+          id?: string
+          notes?: string | null
+          recurrence?: string | null
+          responsible_name?: string | null
+          responsible_phone?: string | null
+          routine_type?: string | null
+          status?: string
+          time?: string | null
+          title: string
+          unit_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          checklist_form_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          date?: string | null
+          description?: string | null
+          id?: string
+          notes?: string | null
+          recurrence?: string | null
+          responsible_name?: string | null
+          responsible_phone?: string | null
+          routine_type?: string | null
+          status?: string
+          time?: string | null
+          title?: string
+          unit_id?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       permission_profiles: {
         Row: {
           created_at: string
@@ -676,6 +997,72 @@ export type Database = {
           status?: string
           tax_type?: string | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      staff_schedules: {
+        Row: {
+          cleaning_hours: string | null
+          cleaning_name: string | null
+          created_at: string
+          date_label: string | null
+          id: string
+          is_holiday: boolean
+          month: number
+          notes: string | null
+          reception_hours: string | null
+          reception_name: string | null
+          schedule_date: string | null
+          security_hours: string | null
+          security_name: string | null
+          trainer_hours: string | null
+          trainer_name: string | null
+          unit_id: string | null
+          updated_at: string
+          weekend_number: number | null
+          year: number
+        }
+        Insert: {
+          cleaning_hours?: string | null
+          cleaning_name?: string | null
+          created_at?: string
+          date_label?: string | null
+          id?: string
+          is_holiday?: boolean
+          month: number
+          notes?: string | null
+          reception_hours?: string | null
+          reception_name?: string | null
+          schedule_date?: string | null
+          security_hours?: string | null
+          security_name?: string | null
+          trainer_hours?: string | null
+          trainer_name?: string | null
+          unit_id?: string | null
+          updated_at?: string
+          weekend_number?: number | null
+          year: number
+        }
+        Update: {
+          cleaning_hours?: string | null
+          cleaning_name?: string | null
+          created_at?: string
+          date_label?: string | null
+          id?: string
+          is_holiday?: boolean
+          month?: number
+          notes?: string | null
+          reception_hours?: string | null
+          reception_name?: string | null
+          schedule_date?: string | null
+          security_hours?: string | null
+          security_name?: string | null
+          trainer_hours?: string | null
+          trainer_name?: string | null
+          unit_id?: string | null
+          updated_at?: string
+          weekend_number?: number | null
+          year?: number
         }
         Relationships: []
       }
