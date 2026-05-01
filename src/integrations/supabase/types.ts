@@ -288,6 +288,181 @@ export type Database = {
           },
         ]
       }
+      collaborators: {
+        Row: {
+          cpf: string | null
+          created_at: string
+          email: string | null
+          full_name: string
+          hired_at: string | null
+          id: string
+          internal_notes: string | null
+          permission_profile_id: string | null
+          phone: string | null
+          photo_url: string | null
+          role_title: string | null
+          status: string
+          unit_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          cpf?: string | null
+          created_at?: string
+          email?: string | null
+          full_name: string
+          hired_at?: string | null
+          id?: string
+          internal_notes?: string | null
+          permission_profile_id?: string | null
+          phone?: string | null
+          photo_url?: string | null
+          role_title?: string | null
+          status?: string
+          unit_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          cpf?: string | null
+          created_at?: string
+          email?: string | null
+          full_name?: string
+          hired_at?: string | null
+          id?: string
+          internal_notes?: string | null
+          permission_profile_id?: string | null
+          phone?: string | null
+          photo_url?: string | null
+          role_title?: string | null
+          status?: string
+          unit_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "collaborators_permission_profile_id_fkey"
+            columns: ["permission_profile_id"]
+            isOneToOne: false
+            referencedRelation: "permission_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contracts: {
+        Row: {
+          body: string | null
+          cancellation_rules: string | null
+          contract_type: string | null
+          created_at: string
+          id: string
+          linked_plan: string | null
+          name: string
+          penalty_value: number | null
+          renewal_rules: string | null
+          status: string
+          unit_id: string | null
+          updated_at: string
+          validity_months: number | null
+        }
+        Insert: {
+          body?: string | null
+          cancellation_rules?: string | null
+          contract_type?: string | null
+          created_at?: string
+          id?: string
+          linked_plan?: string | null
+          name: string
+          penalty_value?: number | null
+          renewal_rules?: string | null
+          status?: string
+          unit_id?: string | null
+          updated_at?: string
+          validity_months?: number | null
+        }
+        Update: {
+          body?: string | null
+          cancellation_rules?: string | null
+          contract_type?: string | null
+          created_at?: string
+          id?: string
+          linked_plan?: string | null
+          name?: string
+          penalty_value?: number | null
+          renewal_rules?: string | null
+          status?: string
+          unit_id?: string | null
+          updated_at?: string
+          validity_months?: number | null
+        }
+        Relationships: []
+      }
+      discount_coupons: {
+        Row: {
+          code: string
+          coupon_type: string | null
+          created_at: string
+          discount_type: string
+          discount_value: number
+          id: string
+          linked_plan: string | null
+          linked_service_id: string | null
+          name: string
+          notes: string | null
+          quantity_available: number | null
+          quantity_used: number
+          status: string
+          unit_id: string | null
+          updated_at: string
+          valid_from: string | null
+          valid_to: string | null
+        }
+        Insert: {
+          code: string
+          coupon_type?: string | null
+          created_at?: string
+          discount_type?: string
+          discount_value?: number
+          id?: string
+          linked_plan?: string | null
+          linked_service_id?: string | null
+          name: string
+          notes?: string | null
+          quantity_available?: number | null
+          quantity_used?: number
+          status?: string
+          unit_id?: string | null
+          updated_at?: string
+          valid_from?: string | null
+          valid_to?: string | null
+        }
+        Update: {
+          code?: string
+          coupon_type?: string | null
+          created_at?: string
+          discount_type?: string
+          discount_value?: number
+          id?: string
+          linked_plan?: string | null
+          linked_service_id?: string | null
+          name?: string
+          notes?: string | null
+          quantity_available?: number | null
+          quantity_used?: number
+          status?: string
+          unit_id?: string | null
+          updated_at?: string
+          valid_from?: string | null
+          valid_to?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "discount_coupons_linked_service_id_fkey"
+            columns: ["linked_service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       exercise_library: {
         Row: {
           created_at: string
@@ -321,6 +496,87 @@ export type Database = {
           name?: string
           secondary_muscle?: string | null
           video_url?: string | null
+        }
+        Relationships: []
+      }
+      grade_activities: {
+        Row: {
+          activity_group: string | null
+          allow_booking: boolean
+          color: string | null
+          created_at: string
+          description: string | null
+          duration_min: number | null
+          id: string
+          internal_notes: string | null
+          max_capacity: number | null
+          name: string
+          status: string
+          unit_id: string | null
+          updated_at: string
+          visible_to_student: boolean
+        }
+        Insert: {
+          activity_group?: string | null
+          allow_booking?: boolean
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          duration_min?: number | null
+          id?: string
+          internal_notes?: string | null
+          max_capacity?: number | null
+          name: string
+          status?: string
+          unit_id?: string | null
+          updated_at?: string
+          visible_to_student?: boolean
+        }
+        Update: {
+          activity_group?: string | null
+          allow_booking?: boolean
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          duration_min?: number | null
+          id?: string
+          internal_notes?: string | null
+          max_capacity?: number | null
+          name?: string
+          status?: string
+          unit_id?: string | null
+          updated_at?: string
+          visible_to_student?: boolean
+        }
+        Relationships: []
+      }
+      permission_profiles: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          modules: Json
+          name: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          modules?: Json
+          name: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          modules?: Json
+          name?: string
+          status?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -371,6 +627,141 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      services: {
+        Row: {
+          accounting_code: string | null
+          category: string | null
+          created_at: string
+          default_value: number | null
+          description: string
+          financial_nature: string | null
+          id: string
+          notes: string | null
+          receipt_only: boolean
+          revenue_center: string | null
+          show_on_receipt: boolean
+          status: string
+          tax_type: string | null
+          updated_at: string
+        }
+        Insert: {
+          accounting_code?: string | null
+          category?: string | null
+          created_at?: string
+          default_value?: number | null
+          description: string
+          financial_nature?: string | null
+          id?: string
+          notes?: string | null
+          receipt_only?: boolean
+          revenue_center?: string | null
+          show_on_receipt?: boolean
+          status?: string
+          tax_type?: string | null
+          updated_at?: string
+        }
+        Update: {
+          accounting_code?: string | null
+          category?: string | null
+          created_at?: string
+          default_value?: number | null
+          description?: string
+          financial_nature?: string | null
+          id?: string
+          notes?: string | null
+          receipt_only?: boolean
+          revenue_center?: string | null
+          show_on_receipt?: boolean
+          status?: string
+          tax_type?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      suppliers: {
+        Row: {
+          address: string | null
+          bank: string | null
+          bank_account: string | null
+          bank_agency: string | null
+          category: string | null
+          city: string | null
+          cnpj: string | null
+          commission: number | null
+          complement: string | null
+          created_at: string
+          email: string | null
+          id: string
+          min_delivery_days: number | null
+          name: string
+          neighborhood: string | null
+          notes: string | null
+          number: string | null
+          phone: string | null
+          pix_key: string | null
+          responsible: string | null
+          state: string | null
+          status: string
+          updated_at: string
+          website: string | null
+          zip_code: string | null
+        }
+        Insert: {
+          address?: string | null
+          bank?: string | null
+          bank_account?: string | null
+          bank_agency?: string | null
+          category?: string | null
+          city?: string | null
+          cnpj?: string | null
+          commission?: number | null
+          complement?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          min_delivery_days?: number | null
+          name: string
+          neighborhood?: string | null
+          notes?: string | null
+          number?: string | null
+          phone?: string | null
+          pix_key?: string | null
+          responsible?: string | null
+          state?: string | null
+          status?: string
+          updated_at?: string
+          website?: string | null
+          zip_code?: string | null
+        }
+        Update: {
+          address?: string | null
+          bank?: string | null
+          bank_account?: string | null
+          bank_agency?: string | null
+          category?: string | null
+          city?: string | null
+          cnpj?: string | null
+          commission?: number | null
+          complement?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          min_delivery_days?: number | null
+          name?: string
+          neighborhood?: string | null
+          notes?: string | null
+          number?: string | null
+          phone?: string | null
+          pix_key?: string | null
+          responsible?: string | null
+          state?: string | null
+          status?: string
+          updated_at?: string
+          website?: string | null
+          zip_code?: string | null
+        }
+        Relationships: []
       }
       template_exercises: {
         Row: {
