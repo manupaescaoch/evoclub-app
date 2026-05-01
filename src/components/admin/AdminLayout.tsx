@@ -27,7 +27,6 @@ const navItems: NavItem[] = [
     label: "Treinos", icon: Dumbbell, path: "/admin/treinos",
     children: [
       { label: "Dashboard", icon: LayoutDashboard, path: "/admin/treinos" },
-      { label: "Alunos", icon: Users, path: "/admin/treinos/alunos" },
       { label: "Prescrever Treino", icon: ClipboardEdit, path: "/admin/treinos/prescrever" },
       { label: "Fichas de Treino", icon: ClipboardList, path: "/admin/treinos/fichas" },
       { label: "Biblioteca de Exercícios", icon: Library, path: "/admin/treinos/biblioteca" },
