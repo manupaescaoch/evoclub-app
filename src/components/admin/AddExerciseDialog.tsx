@@ -4,13 +4,14 @@ import { Button } from "@/components/ui/button";
 import { Plus, Trash2, GripVertical, Sparkles, MessageSquare, Copy } from "lucide-react";
 
 const SERIES_TYPES = [
-  { value: "reps_load", label: "Repetições e carga" },
-  { value: "reps_load_time", label: "Repetições, carga e tempo" },
-  { value: "reps_time", label: "Repetições e tempo" },
-  { value: "time_incline", label: "Tempo e inclinação" },
-  { value: "run", label: "Corrida" },
-  { value: "notes_only", label: "Observações" },
+  { value: "warmup", label: "Aquecimento" },
+  { value: "prep", label: "Preparatória" },
+  { value: "reps_load", label: "Válida (reps + carga)" },
+  { value: "reps_load_time", label: "Válida (reps + carga + tempo)" },
+  { value: "reps_time", label: "Válida (reps + tempo)" },
+  { value: "time_incline", label: "Cardio (tempo + inclinação)" },
   { value: "cadence", label: "Cadência" },
+  { value: "notes_only", label: "Observações" },
 ];
 
 type SerieRow = {
@@ -125,6 +126,8 @@ const AddExerciseDialog = ({ open, onClose, onSave }: Props) => {
 
     switch (row.type) {
       case "reps_load":
+      case "warmup":
+      case "prep":
         return (
           <>
             <div className="flex-1">
