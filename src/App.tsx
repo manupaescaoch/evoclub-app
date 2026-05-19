@@ -12,7 +12,17 @@ import Dashboard from "./pages/admin/Dashboard.tsx";
 import Clientes from "./pages/admin/Clientes.tsx";
 import Grade from "./pages/admin/Grade.tsx";
 import CRM from "./pages/admin/CRM.tsx";
-import Financeiro from "./pages/admin/Financeiro.tsx";
+import FinanceiroLayout from "./components/admin/financeiro/FinanceiroLayout.tsx";
+import FinDashboard from "./pages/admin/financeiro/Dashboard.tsx";
+import FluxoCaixa from "./pages/admin/financeiro/FluxoCaixa.tsx";
+import Recebimentos from "./pages/admin/financeiro/Recebimentos.tsx";
+import ContasAPagar from "./pages/admin/financeiro/ContasAPagar.tsx";
+import Transacoes from "./pages/admin/financeiro/Transacoes.tsx";
+import Folha from "./pages/admin/financeiro/Folha.tsx";
+import DRE from "./pages/admin/financeiro/DRE.tsx";
+import Relatorios from "./pages/admin/financeiro/Relatorios.tsx";
+import FinConfiguracoes from "./pages/admin/financeiro/Configuracoes.tsx";
+import { UnitProvider } from "./contexts/UnitContext.tsx";
 import Placeholder from "./pages/admin/Placeholder.tsx";
 import Treinos from "./pages/admin/Treinos.tsx";
 import TreinosDashboard from "./pages/admin/TreinosDashboard.tsx";
@@ -44,6 +54,7 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
+       <UnitProvider>
         <Routes>
           {/* Role selection (landing) */}
           <Route path="/" element={<RoleSelect />} />
@@ -63,7 +74,17 @@ const App = () => (
             <Route path="crm/tarefas" element={<Tarefas />} />
             <Route path="crm/operacional" element={<Operacional />} />
             <Route path="crm/escala" element={<Escala />} />
-            <Route path="financeiro" element={<Financeiro />} />
+            <Route path="financeiro" element={<FinanceiroLayout />}>
+              <Route index element={<FinDashboard />} />
+              <Route path="fluxo" element={<FluxoCaixa />} />
+              <Route path="recebimentos" element={<Recebimentos />} />
+              <Route path="contas-a-pagar" element={<ContasAPagar />} />
+              <Route path="transacoes" element={<Transacoes />} />
+              <Route path="folha" element={<Folha />} />
+              <Route path="dre" element={<DRE />} />
+              <Route path="relatorios" element={<Relatorios />} />
+              <Route path="configuracoes" element={<FinConfiguracoes />} />
+            </Route>
             <Route path="gerencial" element={<GerencialIndex />} />
             <Route path="gerencial/contratos" element={<Contratos />} />
             <Route path="gerencial/atividades" element={<Atividades />} />
@@ -89,6 +110,7 @@ const App = () => (
 
           <Route path="*" element={<NotFound />} />
         </Routes>
+       </UnitProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
