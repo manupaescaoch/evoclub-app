@@ -38,6 +38,8 @@ type Props = {
 const WorkoutPrescription = ({ clientId, clientName, workoutId, onBack, onSaved }: Props) => {
   const [planName, setPlanName] = useState("");
   const [planDesc, setPlanDesc] = useState("");
+  const [startsAt, setStartsAt] = useState<string>(new Date().toISOString().split("T")[0]);
+  const [expiresAt, setExpiresAt] = useState<string>("");
   const [sessions, setSessions] = useState<Session[]>([]);
   const [expandedSession, setExpandedSession] = useState<number | null>(null);
   const [showNewSession, setShowNewSession] = useState(false);
@@ -54,6 +56,8 @@ const WorkoutPrescription = ({ clientId, clientName, workoutId, onBack, onSaved 
     if (workout) {
       setPlanName(workout.name);
       setPlanDesc(workout.description || "");
+      if (workout.starts_at) setStartsAt(workout.starts_at);
+      if (workout.expires_at) setExpiresAt(workout.expires_at);
     }
     const { data: sessionsData } = await supabase
       .from("workout_sessions")
@@ -130,12 +134,19 @@ const WorkoutPrescription = ({ clientId, clientName, workoutId, onBack, onSaved 
       if (!wId) {
         const { data, error } = await supabase.from("workouts").insert({
           client_id: clientId, name: planName, description: planDesc || null,
-          status: "active", starts_at: new Date().toISOString().split("T")[0],
+          status: "active",
+          starts_at: startsAt || new Date().toISOString().split("T")[0],
+          expires_at: expiresAt || null,
         }).select("id").single();
         if (error) throw error;
         wId = data.id;
       } else {
-        await supabase.from("workouts").update({ name: planName, description: planDesc || null }).eq("id", wId);
+        await supabase.from("workouts").update({
+          name: planName,
+          description: planDesc || null,
+          starts_at: startsAt || null,
+          expires_at: expiresAt || null,
+        }).eq("id", wId);
         // Delete old sessions (cascade deletes exercises)
         await supabase.from("workout_sessions").delete().eq("workout_id", wId);
       }
@@ -214,6 +225,23 @@ const WorkoutPrescription = ({ clientId, clientName, workoutId, onBack, onSaved 
             className="w-full px-3 py-2.5 text-sm bg-background border border-border rounded-lg font-dm focus:outline-none focus:ring-1 focus:ring-primary"
             placeholder="Ex: Foco em adaptação neural e mobilidade"
           />
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="text-xs font-dm font-semibold text-muted-foreground mb-1 block">Início</label>
+            <input
+              type="date" value={startsAt} onChange={e => setStartsAt(e.target.value)}
+              className="w-full px-3 py-2.5 text-sm bg-background border border-border rounded-lg font-dm focus:outline-none focus:ring-1 focus:ring-primary"
+            />
+          </div>
+          <div>
+            <label className="text-xs font-dm font-semibold text-muted-foreground mb-1 block">Validade *</label>
+            <input
+              type="date" value={expiresAt} onChange={e => setExpiresAt(e.target.value)}
+              min={startsAt || undefined}
+              className="w-full px-3 py-2.5 text-sm bg-background border border-border rounded-lg font-dm focus:outline-none focus:ring-1 focus:ring-primary"
+            />
+          </div>
         </div>
       </div>
 
