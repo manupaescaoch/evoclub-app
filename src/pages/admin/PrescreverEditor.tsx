@@ -97,6 +97,8 @@ const PrescreverEditor = () => {
   const [orgType, setOrgType] = useState<"weekday" | "numeric">("weekday");
   const [status, setStatus] = useState<"draft" | "active" | "archived">("draft");
   const [isActive, setIsActive] = useState(false);
+  const [startsAt, setStartsAt] = useState<string>(new Date().toISOString().split("T")[0]);
+  const [expiresAt, setExpiresAt] = useState<string>("");
 
   const [weeks, setWeeks] = useState<Week[]>([]);
   const [activeWeek, setActiveWeek] = useState(0);
@@ -143,6 +145,8 @@ const PrescreverEditor = () => {
     setFrequency(plan.frequency || "3x");
     setOrgType((plan.organization_type as any) || "weekday");
     setStatus(plan.status as any); setIsActive(plan.is_active);
+    if ((plan as any).starts_at) setStartsAt((plan as any).starts_at);
+    if ((plan as any).expires_at) setExpiresAt((plan as any).expires_at);
 
     const { data: weeksData } = await supabase.from("training_weeks")
       .select("*").eq("training_plan_id", pid).order("week_number");
@@ -300,6 +304,8 @@ const PrescreverEditor = () => {
         organization_type: orgType,
         status: activate ? "active" : status,
         is_active: activate,
+        starts_at: startsAt || null,
+        expires_at: expiresAt || null,
       };
 
       if (!pid) {
@@ -468,6 +474,17 @@ const PrescreverEditor = () => {
               Treino numerado
             </button>
           </div>
+        </div>
+        <div>
+          <label className="text-[11px] font-dm font-semibold text-muted-foreground mb-1 block">Início</label>
+          <input type="date" value={startsAt} onChange={e => setStartsAt(e.target.value)}
+            className="w-full px-3 py-2 text-sm bg-background border border-border rounded-lg font-dm focus:outline-none focus:ring-1 focus:ring-primary" />
+        </div>
+        <div>
+          <label className="text-[11px] font-dm font-semibold text-muted-foreground mb-1 block">Validade *</label>
+          <input type="date" value={expiresAt} min={startsAt || undefined}
+            onChange={e => setExpiresAt(e.target.value)}
+            className="w-full px-3 py-2 text-sm bg-background border border-border rounded-lg font-dm focus:outline-none focus:ring-1 focus:ring-primary" />
         </div>
       </div>
 
