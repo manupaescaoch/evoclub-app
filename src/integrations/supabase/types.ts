@@ -14,6 +14,84 @@ export type Database = {
   }
   public: {
     Tables: {
+      accounts_payable: {
+        Row: {
+          amount: number
+          attachment_url: string | null
+          category_id: string | null
+          category_name: string | null
+          created_at: string
+          description: string | null
+          due_date: string
+          id: string
+          notes: string | null
+          paid_at: string | null
+          payment_method: string | null
+          priority: string | null
+          recurrence: string | null
+          status: string
+          supplier_id: string | null
+          supplier_name: string | null
+          unit_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          amount?: number
+          attachment_url?: string | null
+          category_id?: string | null
+          category_name?: string | null
+          created_at?: string
+          description?: string | null
+          due_date: string
+          id?: string
+          notes?: string | null
+          paid_at?: string | null
+          payment_method?: string | null
+          priority?: string | null
+          recurrence?: string | null
+          status?: string
+          supplier_id?: string | null
+          supplier_name?: string | null
+          unit_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          attachment_url?: string | null
+          category_id?: string | null
+          category_name?: string | null
+          created_at?: string
+          description?: string | null
+          due_date?: string
+          id?: string
+          notes?: string | null
+          paid_at?: string | null
+          payment_method?: string | null
+          priority?: string | null
+          recurrence?: string | null
+          status?: string
+          supplier_id?: string | null
+          supplier_name?: string | null
+          unit_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "accounts_payable_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "financial_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounts_payable_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       anamnesis: {
         Row: {
           client_id: number
@@ -683,6 +761,77 @@ export type Database = {
         }
         Relationships: []
       }
+      financial_categories: {
+        Row: {
+          color: string | null
+          created_at: string
+          group_id: string | null
+          id: string
+          kind: string
+          name: string
+          unit_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string
+          group_id?: string | null
+          id?: string
+          kind?: string
+          name: string
+          unit_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string
+          group_id?: string | null
+          id?: string
+          kind?: string
+          name?: string
+          unit_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "financial_categories_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "financial_groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      financial_groups: {
+        Row: {
+          color: string | null
+          created_at: string
+          id: string
+          kind: string
+          name: string
+          unit_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string
+          id?: string
+          kind?: string
+          name: string
+          unit_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string
+          id?: string
+          kind?: string
+          name?: string
+          unit_id?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       grade_activities: {
         Row: {
           activity_group: string | null
@@ -868,6 +1017,123 @@ export type Database = {
           title?: string
           unit_id?: string | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      payroll_items: {
+        Row: {
+          advances: number | null
+          bank_info: string | null
+          bonus: number | null
+          collaborator_id: string | null
+          commission: number | null
+          contract_type: string | null
+          cpf: string | null
+          created_at: string
+          discounts: number | null
+          id: string
+          name: string
+          net_value: number | null
+          payment_method: string | null
+          pix_key: string | null
+          run_id: string
+          salary: number | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          advances?: number | null
+          bank_info?: string | null
+          bonus?: number | null
+          collaborator_id?: string | null
+          commission?: number | null
+          contract_type?: string | null
+          cpf?: string | null
+          created_at?: string
+          discounts?: number | null
+          id?: string
+          name: string
+          net_value?: number | null
+          payment_method?: string | null
+          pix_key?: string | null
+          run_id: string
+          salary?: number | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          advances?: number | null
+          bank_info?: string | null
+          bonus?: number | null
+          collaborator_id?: string | null
+          commission?: number | null
+          contract_type?: string | null
+          cpf?: string | null
+          created_at?: string
+          discounts?: number | null
+          id?: string
+          name?: string
+          net_value?: number | null
+          payment_method?: string | null
+          pix_key?: string | null
+          run_id?: string
+          salary?: number | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payroll_items_collaborator_id_fkey"
+            columns: ["collaborator_id"]
+            isOneToOne: false
+            referencedRelation: "collaborators"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payroll_items_run_id_fkey"
+            columns: ["run_id"]
+            isOneToOne: false
+            referencedRelation: "payroll_runs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payroll_runs: {
+        Row: {
+          created_at: string
+          id: string
+          month: number
+          notes: string | null
+          status: string
+          total_gross: number | null
+          total_net: number | null
+          unit_id: string | null
+          updated_at: string
+          year: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          month: number
+          notes?: string | null
+          status?: string
+          total_gross?: number | null
+          total_net?: number | null
+          unit_id?: string | null
+          updated_at?: string
+          year: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          month?: number
+          notes?: string | null
+          status?: string
+          total_gross?: number | null
+          total_net?: number | null
+          unit_id?: string | null
+          updated_at?: string
+          year?: number
         }
         Relationships: []
       }
@@ -1490,6 +1756,75 @@ export type Database = {
             columns: ["training_plan_id"]
             isOneToOne: false
             referencedRelation: "training_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      transactions: {
+        Row: {
+          amount: number
+          category_id: string | null
+          category_name: string | null
+          created_at: string
+          date: string
+          description: string
+          group_id: string | null
+          id: string
+          kind: string
+          notes: string | null
+          payment_method: string | null
+          reference: string | null
+          status: string
+          unit_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          amount?: number
+          category_id?: string | null
+          category_name?: string | null
+          created_at?: string
+          date?: string
+          description: string
+          group_id?: string | null
+          id?: string
+          kind?: string
+          notes?: string | null
+          payment_method?: string | null
+          reference?: string | null
+          status?: string
+          unit_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          category_id?: string | null
+          category_name?: string | null
+          created_at?: string
+          date?: string
+          description?: string
+          group_id?: string | null
+          id?: string
+          kind?: string
+          notes?: string | null
+          payment_method?: string | null
+          reference?: string | null
+          status?: string
+          unit_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transactions_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "financial_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "financial_groups"
             referencedColumns: ["id"]
           },
         ]
