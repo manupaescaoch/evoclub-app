@@ -935,6 +935,7 @@ export type Database = {
           active: boolean
           created_at: string
           description: string | null
+          fields: Json
           id: string
           name: string
           type: string | null
@@ -945,6 +946,7 @@ export type Database = {
           active?: boolean
           created_at?: string
           description?: string | null
+          fields?: Json
           id?: string
           name: string
           type?: string | null
@@ -955,6 +957,7 @@ export type Database = {
           active?: boolean
           created_at?: string
           description?: string | null
+          fields?: Json
           id?: string
           name?: string
           type?: string | null
@@ -969,8 +972,11 @@ export type Database = {
           created_at: string
           created_by: string | null
           date: string | null
+          day_of_week: number | null
           description: string | null
           id: string
+          kind: string
+          message_template: string | null
           notes: string | null
           recurrence: string | null
           responsible_name: string | null
@@ -981,14 +987,18 @@ export type Database = {
           title: string
           unit_id: string | null
           updated_at: string
+          whatsapp_group_link: string | null
         }
         Insert: {
           checklist_form_id?: string | null
           created_at?: string
           created_by?: string | null
           date?: string | null
+          day_of_week?: number | null
           description?: string | null
           id?: string
+          kind?: string
+          message_template?: string | null
           notes?: string | null
           recurrence?: string | null
           responsible_name?: string | null
@@ -999,14 +1009,18 @@ export type Database = {
           title: string
           unit_id?: string | null
           updated_at?: string
+          whatsapp_group_link?: string | null
         }
         Update: {
           checklist_form_id?: string | null
           created_at?: string
           created_by?: string | null
           date?: string | null
+          day_of_week?: number | null
           description?: string | null
           id?: string
+          kind?: string
+          message_template?: string | null
           notes?: string | null
           recurrence?: string | null
           responsible_name?: string | null
@@ -1017,6 +1031,7 @@ export type Database = {
           title?: string
           unit_id?: string | null
           updated_at?: string
+          whatsapp_group_link?: string | null
         }
         Relationships: []
       }
