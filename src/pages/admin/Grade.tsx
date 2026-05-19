@@ -1,7 +1,11 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, Lock, Eye } from "lucide-react";
+import { ChevronLeft, ChevronRight, Lock, Eye, Plus, Trash2, CheckSquare, Square } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
 
 const dayLabels = ["DOM", "SEG", "TER", "QUA", "QUI", "SEX", "SÁB"];
 const hours = Array.from({ length: 18 }, (_, i) => i + 5);
@@ -35,6 +39,18 @@ const Grade = () => {
   const [filter, setFilter] = useState<"todos" | "manha" | "tarde" | "noite">("todos");
   const [weekOffset, setWeekOffset] = useState(0);
   const [viewMode, setViewMode] = useState<"dia" | "semana">("semana");
+  const [selectMode, setSelectMode] = useState(false);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [bulkOpen, setBulkOpen] = useState(false);
+  const [bulk, setBulk] = useState({
+    name: "Musculação",
+    trainer: "",
+    startHour: 6,
+    endHour: 21,
+    durationMin: 60,
+    maxSlots: 14,
+    days: [1, 2, 3, 4, 5] as number[],
+  });
 
   const weekDates = getWeekDates(weekOffset);
   const today = new Date();
@@ -50,6 +66,12 @@ const Grade = () => {
 
   useEffect(() => {
     const fetchData = async () => {
+      await loadData();
+    };
+    fetchData();
+  }, []);
+
+  const loadData = async () => {
       setLoading(true);
       const { data } = await supabase.from("classes").select("*");
       const classesData = (data || []) as ClassData[];
@@ -60,9 +82,62 @@ const Grade = () => {
       });
       setClasses(classesData.map(c => ({ ...c, bookings_count: bookingCount[c.id] || 0 })));
       setLoading(false);
-    };
-    fetchData();
-  }, []);
+  };
+
+  const toggleSelect = (id: string) => {
+    setSelected(prev => {
+      const n = new Set(prev);
+      if (n.has(id)) n.delete(id); else n.add(id);
+      return n;
+    });
+  };
+
+  const clearSelection = () => { setSelected(new Set()); setSelectMode(false); };
+
+  const deleteSelected = async () => {
+    if (selected.size === 0) return;
+    if (!confirm(`Excluir ${selected.size} aula(s) selecionada(s)?`)) return;
+    const ids = Array.from(selected);
+    const { error } = await supabase.from("classes").delete().in("id", ids);
+    if (error) { toast.error(error.message); return; }
+    toast.success(`${ids.length} aula(s) excluída(s)`);
+    clearSelection();
+    loadData();
+  };
+
+  const toggleBulkDay = (d: number) => {
+    setBulk(b => ({ ...b, days: b.days.includes(d) ? b.days.filter(x => x !== d) : [...b.days, d].sort() }));
+  };
+
+  const runBulkCreate = async () => {
+    if (bulk.days.length === 0) { toast.error("Selecione ao menos um dia"); return; }
+    if (bulk.endHour <= bulk.startHour) { toast.error("Hora final deve ser maior que inicial"); return; }
+    if (!bulk.name.trim()) { toast.error("Informe o nome da atividade"); return; }
+    const rows: any[] = [];
+    for (const d of bulk.days) {
+      for (let h = bulk.startHour; h < bulk.endHour; h++) {
+        const startMin = h * 60;
+        const endMin = startMin + bulk.durationMin;
+        const sh = String(Math.floor(startMin / 60)).padStart(2, "0");
+        const sm = String(startMin % 60).padStart(2, "0");
+        const eh = String(Math.floor(endMin / 60)).padStart(2, "0");
+        const em = String(endMin % 60).padStart(2, "0");
+        rows.push({
+          name: bulk.name,
+          trainer: bulk.trainer || null,
+          day_of_week: d,
+          start_time: `${sh}:${sm}:00`,
+          end_time: `${eh}:${em}:00`,
+          max_slots: bulk.maxSlots,
+        });
+      }
+    }
+    const { error } = await supabase.from("classes").insert(rows);
+    if (error) { toast.error(error.message); return; }
+    toast.success(`${rows.length} aula(s) criada(s)`);
+    setBulkOpen(false);
+    loadData();
+  };
 
   const getHourFromTime = (t: string) => parseInt(t.split(":")[0], 10);
 
@@ -95,6 +170,27 @@ const Grade = () => {
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <h1 className="font-barlow font-bold text-2xl text-foreground">GRADE DE AULAS</h1>
+        <div className="flex items-center gap-2">
+          {selectMode && (
+            <>
+              <span className="text-xs font-dm text-muted-foreground">{selected.size} selecionada(s)</span>
+              <Button size="sm" variant="destructive" className="gap-2" disabled={selected.size === 0} onClick={deleteSelected}>
+                <Trash2 size={14} /> Excluir
+              </Button>
+              <Button size="sm" variant="ghost" onClick={clearSelection}>Sair</Button>
+            </>
+          )}
+          {!selectMode && (
+            <>
+              <Button size="sm" variant="outline" className="gap-2" onClick={() => setSelectMode(true)}>
+                <CheckSquare size={14} /> Selecionar
+              </Button>
+              <Button size="sm" className="gap-2" onClick={() => setBulkOpen(true)}>
+                <Plus size={14} /> Criar em massa
+              </Button>
+            </>
+          )}
+        </div>
       </div>
 
       {/* Filters row */}
@@ -208,8 +304,14 @@ const Grade = () => {
                                 return (
                                   <div
                                     key={cls.id}
-                                    className={`rounded p-2 text-[10px] cursor-pointer hover:shadow-md transition-shadow ${getSlotStyle(filled, max, isToday)}`}
+                                    onClick={() => selectMode && toggleSelect(cls.id)}
+                                    className={`relative rounded p-2 text-[10px] cursor-pointer hover:shadow-md transition-shadow ${getSlotStyle(filled, max, isToday)} ${selectMode && selected.has(cls.id) ? "ring-2 ring-primary" : ""}`}
                                   >
+                                    {selectMode && (
+                                      <div className="absolute top-1 right-1 text-primary">
+                                        {selected.has(cls.id) ? <CheckSquare size={12} /> : <Square size={12} />}
+                                      </div>
+                                    )}
                                     <div className="flex items-center justify-between">
                                       <span className={`font-bold ${isToday ? "text-yellow-800" : ""}`}>
                                         {cls.start_time?.slice(0, 5)} - {cls.end_time?.slice(0, 5)}
@@ -237,6 +339,40 @@ const Grade = () => {
           </table>
         )}
       </div>
+
+      <Dialog open={bulkOpen} onOpenChange={setBulkOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader><DialogTitle>Criar aulas em massa</DialogTitle></DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <Label className="text-xs">Dias da semana</Label>
+              <div className="flex gap-1 mt-1">
+                {dayLabels.map((d, i) => (
+                  <button key={i} type="button" onClick={() => toggleBulkDay(i)}
+                    className={`flex-1 py-1.5 rounded text-[11px] font-dm font-bold border ${bulk.days.includes(i) ? "bg-primary text-white border-primary" : "bg-card text-muted-foreground border-border"}`}>
+                    {d}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div><Label className="text-xs">Hora início</Label><Input type="number" min={0} max={23} value={bulk.startHour} onChange={e => setBulk({ ...bulk, startHour: Number(e.target.value) })} /></div>
+              <div><Label className="text-xs">Hora fim</Label><Input type="number" min={1} max={24} value={bulk.endHour} onChange={e => setBulk({ ...bulk, endHour: Number(e.target.value) })} /></div>
+              <div><Label className="text-xs">Duração (min)</Label><Input type="number" value={bulk.durationMin} onChange={e => setBulk({ ...bulk, durationMin: Number(e.target.value) })} /></div>
+              <div><Label className="text-xs">Capacidade</Label><Input type="number" value={bulk.maxSlots} onChange={e => setBulk({ ...bulk, maxSlots: Number(e.target.value) })} /></div>
+              <div className="col-span-2"><Label className="text-xs">Atividade</Label><Input value={bulk.name} onChange={e => setBulk({ ...bulk, name: e.target.value })} /></div>
+              <div className="col-span-2"><Label className="text-xs">Professor</Label><Input value={bulk.trainer} onChange={e => setBulk({ ...bulk, trainer: e.target.value })} placeholder="Opcional" /></div>
+            </div>
+            <p className="text-[11px] text-muted-foreground">
+              Serão criadas {bulk.days.length * Math.max(0, bulk.endHour - bulk.startHour)} aula(s).
+            </p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setBulkOpen(false)}>Cancelar</Button>
+            <Button onClick={runBulkCreate}>Criar aulas</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
