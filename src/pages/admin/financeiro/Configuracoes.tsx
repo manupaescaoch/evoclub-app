@@ -35,22 +35,30 @@ const Configuracoes = () => {
   };
 
   const save = async () => {
-    const table = type === "group" ? "financial_groups" : type === "category" ? "financial_categories" : "units";
-    const payload = { ...form };
+    const payload: any = { ...form };
     if (type === "category" && !payload.group_id) payload.group_id = null;
-    if (form.id) {
-      const { error } = await supabase.from(table).update(payload).eq("id", form.id);
-      if (error) toast.error(error.message); else toast.success("Atualizado");
+    let error: any = null;
+    if (type === "group") {
+      error = form.id
+        ? (await supabase.from("financial_groups").update(payload).eq("id", form.id)).error
+        : (await supabase.from("financial_groups").insert(payload)).error;
+    } else if (type === "category") {
+      error = form.id
+        ? (await supabase.from("financial_categories").update(payload).eq("id", form.id)).error
+        : (await supabase.from("financial_categories").insert(payload)).error;
     } else {
-      const { error } = await supabase.from(table).insert(payload);
-      if (error) toast.error(error.message); else toast.success("Criado");
+      error = form.id
+        ? (await supabase.from("units").update(payload).eq("id", form.id)).error
+        : (await supabase.from("units").insert(payload)).error;
     }
+    if (error) toast.error(error.message); else toast.success(form.id ? "Atualizado" : "Criado");
     setOpen(false); load();
   };
 
-  const remove = async (t: string, id: string) => {
+  const remove = async (t: "financial_groups" | "financial_categories", id: string) => {
     if (!confirm("Excluir?")) return;
-    await supabase.from(t).delete().eq("id", id);
+    if (t === "financial_groups") await supabase.from("financial_groups").delete().eq("id", id);
+    else await supabase.from("financial_categories").delete().eq("id", id);
     load(); toast.success("Excluído");
   };
 
