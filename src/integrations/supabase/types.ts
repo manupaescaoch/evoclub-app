@@ -1327,6 +1327,7 @@ export type Database = {
           coach_id: string | null
           created_at: string
           description: string | null
+          expires_at: string | null
           frequency: string | null
           goal: string | null
           id: string
@@ -1334,6 +1335,7 @@ export type Database = {
           level: string | null
           name: string
           organization_type: string
+          starts_at: string | null
           status: string
           student_id: number
           updated_at: string
@@ -1342,6 +1344,7 @@ export type Database = {
           coach_id?: string | null
           created_at?: string
           description?: string | null
+          expires_at?: string | null
           frequency?: string | null
           goal?: string | null
           id?: string
@@ -1349,6 +1352,7 @@ export type Database = {
           level?: string | null
           name: string
           organization_type?: string
+          starts_at?: string | null
           status?: string
           student_id: number
           updated_at?: string
@@ -1357,6 +1361,7 @@ export type Database = {
           coach_id?: string | null
           created_at?: string
           description?: string | null
+          expires_at?: string | null
           frequency?: string | null
           goal?: string | null
           id?: string
@@ -1364,6 +1369,7 @@ export type Database = {
           level?: string | null
           name?: string
           organization_type?: string
+          starts_at?: string | null
           status?: string
           student_id?: number
           updated_at?: string
