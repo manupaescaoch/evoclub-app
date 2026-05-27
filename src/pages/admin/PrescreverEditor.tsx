@@ -784,6 +784,15 @@ const PrescreverEditor = () => {
         onSave={async (form) => { await saveAsTemplate(form); setShowSaveTpl(false); }} />
 
       <HistoryDialog open={showHistory} onClose={() => setShowHistory(false)} clientId={clientId} />
+
+      <SetPresetDialog
+        open={presetTarget !== null}
+        onClose={() => setPresetTarget(null)}
+        initialMode={presetTarget?.mode || "picker"}
+        prefillSetType={currentPresetCtx?.setType}
+        prefillSets={presetTarget?.mode === "create" ? currentPresetCtx?.sets : undefined}
+        onApply={(preset) => { if (presetTarget) applyPreset(presetTarget.sid, presetTarget.eid, preset); }}
+      />
     </div>
   );
 
