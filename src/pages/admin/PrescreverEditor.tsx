@@ -675,6 +675,8 @@ const PrescreverEditor = () => {
                               )}
                               <button onClick={() => removeSetRow(s.id, e.id, st.id)} className="p-1.5 text-red-400 hover:bg-red-50 rounded"><Trash2 size={12} /></button>
                             </div>
+                              );
+                            })()
                           ))}
                           <button onClick={() => addSetRow(s.id, e.id)}
                             className="text-[11px] font-dm text-primary hover:underline flex items-center gap-1">
