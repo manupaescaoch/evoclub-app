@@ -13,6 +13,7 @@ import {
 import { useUserRole } from "@/hooks/useUserRole";
 import ExerciseLibraryPicker from "@/components/admin/prescrever/ExerciseLibraryPicker";
 import NewPlanDialog from "@/components/admin/prescrever/NewPlanDialog";
+import SetPresetDialog, { type PresetRecord, type PresetSetRow } from "@/components/admin/prescrever/SetPresetDialog";
 
 // ===== types =====
 type SetRow = {
@@ -130,6 +131,9 @@ const PrescreverEditor = () => {
   const [showHistory, setShowHistory] = useState(false);
   const [pickerSessionId, setPickerSessionId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+
+  // preset dialog
+  const [presetTarget, setPresetTarget] = useState<{ sid: string; eid: string; mode: "picker" | "create" } | null>(null);
 
   // ===== load =====
   useEffect(() => {
@@ -298,6 +302,44 @@ const PrescreverEditor = () => {
     updateExercise(sid, eid, e => ({ ...e, sets: e.sets.map(s => s.id === setId ? { ...s, ...patch } : s) }));
   const removeSetRow = (sid: string, eid: string, setId: string) =>
     updateExercise(sid, eid, e => ({ ...e, sets: e.sets.length > 1 ? e.sets.filter(s => s.id !== setId) : e.sets }));
+  const replicateSets = (sid: string, eid: string) =>
+    updateExercise(sid, eid, e => e.sets.length
+      ? ({ ...e, sets: [...e.sets, { ...e.sets[e.sets.length - 1], id: newId() }] })
+      : e);
+
+  const applyPreset = (sid: string, eid: string, preset: PresetRecord) => {
+    updateExercise(sid, eid, e => ({
+      ...e,
+      sets: [
+        ...e.sets,
+        ...preset.sets.map((r: PresetSetRow) => ({
+          id: newId(),
+          set_type: preset.set_type,
+          sets: r.sets, reps: r.reps || "", load: r.load || "",
+          rest_seconds: r.rest_seconds || 0, time_seconds: r.time_seconds ?? null,
+          incline: r.incline || "", cadence: r.cadence || "",
+          distance_km: r.distance_km || "", pace: r.pace || "",
+          method_id: null, notes: r.notes || "",
+        })),
+      ],
+    }));
+    toast.success(`Preset "${preset.name}" aplicado`);
+  };
+
+  const currentPresetCtx = (() => {
+    if (!presetTarget) return null;
+    const sess = weeks[activeWeek]?.sessions.find(s => s.id === presetTarget.sid);
+    const ex = sess?.exercises.find(e => e.id === presetTarget.eid);
+    if (!ex) return null;
+    return {
+      setType: ex.sets[0]?.set_type || "reps_load",
+      sets: ex.sets.map(s => ({
+        sets: s.sets, reps: s.reps, load: s.load, rest_seconds: s.rest_seconds,
+        time_seconds: s.time_seconds, incline: s.incline, cadence: s.cadence,
+        distance_km: s.distance_km, pace: s.pace, notes: s.notes,
+      })),
+    };
+  })();
 
   // ===== save =====
   const persist = async (activate = false): Promise<string | null> => {
