@@ -13,6 +13,7 @@ import {
 import { useUserRole } from "@/hooks/useUserRole";
 import ExerciseLibraryPicker from "@/components/admin/prescrever/ExerciseLibraryPicker";
 import NewPlanDialog from "@/components/admin/prescrever/NewPlanDialog";
+import SetPresetDialog, { type PresetRecord, type PresetSetRow } from "@/components/admin/prescrever/SetPresetDialog";
 
 // ===== types =====
 type SetRow = {
@@ -130,6 +131,9 @@ const PrescreverEditor = () => {
   const [showHistory, setShowHistory] = useState(false);
   const [pickerSessionId, setPickerSessionId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+
+  // preset dialog
+  const [presetTarget, setPresetTarget] = useState<{ sid: string; eid: string; mode: "picker" | "create" } | null>(null);
 
   // ===== load =====
   useEffect(() => {
@@ -298,6 +302,44 @@ const PrescreverEditor = () => {
     updateExercise(sid, eid, e => ({ ...e, sets: e.sets.map(s => s.id === setId ? { ...s, ...patch } : s) }));
   const removeSetRow = (sid: string, eid: string, setId: string) =>
     updateExercise(sid, eid, e => ({ ...e, sets: e.sets.length > 1 ? e.sets.filter(s => s.id !== setId) : e.sets }));
+  const replicateSets = (sid: string, eid: string) =>
+    updateExercise(sid, eid, e => e.sets.length
+      ? ({ ...e, sets: [...e.sets, { ...e.sets[e.sets.length - 1], id: newId() }] })
+      : e);
+
+  const applyPreset = (sid: string, eid: string, preset: PresetRecord) => {
+    updateExercise(sid, eid, e => ({
+      ...e,
+      sets: [
+        ...e.sets,
+        ...preset.sets.map((r: PresetSetRow) => ({
+          id: newId(),
+          set_type: preset.set_type,
+          sets: r.sets, reps: r.reps || "", load: r.load || "",
+          rest_seconds: r.rest_seconds || 0, time_seconds: r.time_seconds ?? null,
+          incline: r.incline || "", cadence: r.cadence || "",
+          distance_km: r.distance_km || "", pace: r.pace || "",
+          method_id: null, notes: r.notes || "",
+        })),
+      ],
+    }));
+    toast.success(`Preset "${preset.name}" aplicado`);
+  };
+
+  const currentPresetCtx = (() => {
+    if (!presetTarget) return null;
+    const sess = weeks[activeWeek]?.sessions.find(s => s.id === presetTarget.sid);
+    const ex = sess?.exercises.find(e => e.id === presetTarget.eid);
+    if (!ex) return null;
+    return {
+      setType: ex.sets[0]?.set_type || "reps_load",
+      sets: ex.sets.map(s => ({
+        sets: s.sets, reps: s.reps, load: s.load, rest_seconds: s.rest_seconds,
+        time_seconds: s.time_seconds, incline: s.incline, cadence: s.cadence,
+        distance_km: s.distance_km, pace: s.pace, notes: s.notes,
+      })),
+    };
+  })();
 
   // ===== save =====
   const persist = async (activate = false): Promise<string | null> => {
@@ -603,84 +645,84 @@ const PrescreverEditor = () => {
                           {e.sets.map(st => (
                             (() => {
                               const f = FIELDS_BY_TYPE[st.set_type] || FIELDS_BY_TYPE.reps_load;
-                              const inp = "px-2 py-1.5 bg-card border border-border rounded font-dm text-center focus:outline-none";
+                              const inp = "px-3 py-2.5 text-sm bg-background border border-border rounded font-dm text-center focus:outline-none focus:ring-1 focus:ring-primary w-full";
+                              const Field = ({ label, children }: { label: string; children: any }) => (
+                                <div className="flex-1 min-w-[80px]">
+                                  <label className="text-[10px] font-dm text-muted-foreground mb-0.5 block">{label}</label>
+                                  {children}
+                                </div>
+                              );
                               return (
-                            <div key={st.id} className="flex flex-wrap items-end gap-1.5 text-xs">
-                              <select value={st.set_type}
-                                onChange={ev => updateSetRow(s.id, e.id, st.id, { set_type: ev.target.value })}
-                                className="px-2 py-1.5 bg-card border border-border rounded font-dm focus:outline-none">
-                                {SET_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
-                              </select>
-                              {f.notesOnly ? (
-                                <input value={st.notes}
-                                  onChange={ev => updateSetRow(s.id, e.id, st.id, { notes: ev.target.value })}
-                                  className="flex-1 min-w-[200px] px-2 py-1.5 bg-card border border-border rounded font-dm focus:outline-none" placeholder="Observação livre..." />
-                              ) : (
-                                <>
-                                  {f.sets && (
-                                    <input type="number" min={1} value={st.sets}
-                                      onChange={ev => updateSetRow(s.id, e.id, st.id, { sets: parseInt(ev.target.value) || 1 })}
-                                      className={`${inp} w-12`} placeholder="x" title="Séries" />
-                                  )}
-                                  {f.reps && (
-                                    <input value={st.reps}
-                                      onChange={ev => updateSetRow(s.id, e.id, st.id, { reps: ev.target.value })}
-                                      className={`${inp} w-16`} placeholder="reps" />
-                                  )}
-                                  {f.load && (
-                                    <input value={st.load}
-                                      onChange={ev => updateSetRow(s.id, e.id, st.id, { load: ev.target.value })}
-                                      className={`${inp} w-20`} placeholder="carga" />
-                                  )}
-                                  {f.time && (
-                                    <input type="number" value={st.time_seconds || ""}
-                                      onChange={ev => updateSetRow(s.id, e.id, st.id, { time_seconds: parseInt(ev.target.value) || null })}
-                                      className={`${inp} w-16`} placeholder="tempo s" title="Tempo (s)" />
-                                  )}
-                                  {f.incline && (
-                                    <input value={st.incline}
-                                      onChange={ev => updateSetRow(s.id, e.id, st.id, { incline: ev.target.value })}
-                                      className={`${inp} w-16`} placeholder="incl %" />
-                                  )}
-                                  {f.distance && (
-                                    <input value={st.distance_km}
-                                      onChange={ev => updateSetRow(s.id, e.id, st.id, { distance_km: ev.target.value })}
-                                      className={`${inp} w-16`} placeholder="km" />
-                                  )}
-                                  {f.pace && (
-                                    <input value={st.pace}
-                                      onChange={ev => updateSetRow(s.id, e.id, st.id, { pace: ev.target.value })}
-                                      className={`${inp} w-20`} placeholder="min/km" />
-                                  )}
-                                  {f.cadence && (
-                                    <input value={st.cadence}
-                                      onChange={ev => updateSetRow(s.id, e.id, st.id, { cadence: ev.target.value })}
-                                      className={`${inp} w-20`} placeholder="3-0-1-0" />
-                                  )}
-                                  {f.rest && (
-                                    <input type="number" value={st.rest_seconds}
-                                      onChange={ev => updateSetRow(s.id, e.id, st.id, { rest_seconds: parseInt(ev.target.value) || 0 })}
-                                      className={`${inp} w-16`} placeholder="int s" title="Intervalo (s)" />
-                                  )}
-                                  <select value={st.method_id || ""}
-                                    onChange={ev => updateSetRow(s.id, e.id, st.id, { method_id: ev.target.value || null })}
-                                    className="px-2 py-1.5 bg-card border border-border rounded font-dm focus:outline-none">
-                                    <option value="">Método...</option>
-                                    {methods.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
+                            <div key={st.id} className="border-b border-border/40 last:border-0 pb-3 last:pb-0 space-y-2">
+                              <div className="flex items-end gap-2">
+                                <Field label="Tipo da série">
+                                  <select value={st.set_type}
+                                    onChange={ev => updateSetRow(s.id, e.id, st.id, { set_type: ev.target.value })}
+                                    className="w-full px-3 py-2.5 text-sm bg-background border border-border rounded font-dm focus:outline-none focus:ring-1 focus:ring-primary">
+                                    {SET_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
                                   </select>
+                                </Field>
+                                <button onClick={() => removeSetRow(s.id, e.id, st.id)} className="p-2.5 text-red-400 hover:bg-red-50 rounded"><Trash2 size={14} /></button>
+                              </div>
+                              {f.notesOnly ? (
+                                <Field label="Observação">
                                   <input value={st.notes}
                                     onChange={ev => updateSetRow(s.id, e.id, st.id, { notes: ev.target.value })}
-                                    className="flex-1 min-w-[120px] px-2 py-1.5 bg-card border border-border rounded font-dm focus:outline-none" placeholder="obs" />
-                                </>
+                                    className={`${inp} text-left`} placeholder="Observação livre..." />
+                                </Field>
+                              ) : (
+                                <div className="flex flex-wrap items-end gap-2">
+                                  {f.sets && (<Field label="Séries"><input type="number" min={1} value={st.sets}
+                                    onChange={ev => updateSetRow(s.id, e.id, st.id, { sets: parseInt(ev.target.value) || 1 })} className={inp} /></Field>)}
+                                  {f.reps && (<Field label="Reps"><input value={st.reps}
+                                    onChange={ev => updateSetRow(s.id, e.id, st.id, { reps: ev.target.value })} className={inp} placeholder="12" /></Field>)}
+                                  {f.load && (<Field label="Carga"><input value={st.load}
+                                    onChange={ev => updateSetRow(s.id, e.id, st.id, { load: ev.target.value })} className={inp} placeholder="40kg" /></Field>)}
+                                  {f.time && (<Field label="Tempo (s)"><input type="number" value={st.time_seconds || ""}
+                                    onChange={ev => updateSetRow(s.id, e.id, st.id, { time_seconds: parseInt(ev.target.value) || null })} className={inp} /></Field>)}
+                                  {f.incline && (<Field label="Incl %"><input value={st.incline}
+                                    onChange={ev => updateSetRow(s.id, e.id, st.id, { incline: ev.target.value })} className={inp} /></Field>)}
+                                  {f.distance && (<Field label="Dist km"><input value={st.distance_km}
+                                    onChange={ev => updateSetRow(s.id, e.id, st.id, { distance_km: ev.target.value })} className={inp} /></Field>)}
+                                  {f.pace && (<Field label="Ritmo"><input value={st.pace}
+                                    onChange={ev => updateSetRow(s.id, e.id, st.id, { pace: ev.target.value })} className={inp} placeholder="min/km" /></Field>)}
+                                  {f.cadence && (<Field label="Cadência"><input value={st.cadence}
+                                    onChange={ev => updateSetRow(s.id, e.id, st.id, { cadence: ev.target.value })} className={inp} placeholder="3-0-1-0" /></Field>)}
+                                  {f.rest && (<Field label="Intervalo (s)"><input type="number" value={st.rest_seconds}
+                                    onChange={ev => updateSetRow(s.id, e.id, st.id, { rest_seconds: parseInt(ev.target.value) || 0 })} className={inp} /></Field>)}
+                                  <Field label="Método">
+                                    <select value={st.method_id || ""}
+                                      onChange={ev => updateSetRow(s.id, e.id, st.id, { method_id: ev.target.value || null })}
+                                      className="w-full px-3 py-2.5 text-sm bg-background border border-border rounded font-dm focus:outline-none focus:ring-1 focus:ring-primary">
+                                      <option value="">—</option>
+                                      {methods.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
+                                    </select>
+                                  </Field>
+                                  <Field label="Obs"><input value={st.notes}
+                                    onChange={ev => updateSetRow(s.id, e.id, st.id, { notes: ev.target.value })} className={`${inp} text-left`} placeholder="obs" /></Field>
+                                </div>
                               )}
-                              <button onClick={() => removeSetRow(s.id, e.id, st.id)} className="p-1.5 text-red-400 hover:bg-red-50 rounded"><Trash2 size={12} /></button>
                             </div>
                               );
                             })()
                           ))}
-                          <button onClick={() => addSetRow(s.id, e.id)}
-                            className="text-[11px] font-dm text-primary hover:underline flex items-center gap-1">
-                            <Plus size={11} /> Adicionar série
+                          <div className="flex flex-wrap gap-2 pt-2">
+                            <button onClick={() => addSetRow(s.id, e.id)}
+                              className="flex-1 min-w-[120px] bg-primary text-primary-foreground text-xs font-dm font-semibold py-2 px-3 rounded-lg hover:bg-primary/90 flex items-center justify-center gap-1.5">
+                              <Plus size={12} /> Adicionar série
+                            </button>
+                            <button onClick={() => replicateSets(s.id, e.id)}
+                              className="flex-1 min-w-[120px] border border-primary text-primary text-xs font-dm font-semibold py-2 px-3 rounded-lg hover:bg-primary/5 flex items-center justify-center gap-1.5">
+                              <Copy size={12} /> Replicar séries
+                            </button>
+                            <button onClick={() => setPresetTarget({ sid: s.id, eid: e.id, mode: "picker" })}
+                              className="flex-1 min-w-[120px] border border-primary text-primary text-xs font-dm font-semibold py-2 px-3 rounded-lg hover:bg-primary/5 flex items-center justify-center gap-1.5">
+                              <BookmarkPlus size={12} /> Adicionar preset
+                            </button>
+                          </div>
+                          <button onClick={() => setPresetTarget({ sid: s.id, eid: e.id, mode: "create" })}
+                            className="w-full text-center text-xs font-dm text-primary hover:underline py-1">
+                            Salvar como preset
                           </button>
                         </div>
                       </div>
@@ -742,6 +784,15 @@ const PrescreverEditor = () => {
         onSave={async (form) => { await saveAsTemplate(form); setShowSaveTpl(false); }} />
 
       <HistoryDialog open={showHistory} onClose={() => setShowHistory(false)} clientId={clientId} />
+
+      <SetPresetDialog
+        open={presetTarget !== null}
+        onClose={() => setPresetTarget(null)}
+        initialMode={presetTarget?.mode || "picker"}
+        prefillSetType={currentPresetCtx?.setType}
+        prefillSets={presetTarget?.mode === "create" ? currentPresetCtx?.sets : undefined}
+        onApply={(preset) => { if (presetTarget) applyPreset(presetTarget.sid, presetTarget.eid, preset); }}
+      />
     </div>
   );
 
