@@ -1749,6 +1749,36 @@ export type Database = {
           },
         ]
       }
+      training_set_presets: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          name: string
+          set_type: string
+          sets: Json
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          name: string
+          set_type?: string
+          sets?: Json
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          name?: string
+          set_type?: string
+          sets?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
       training_weeks: {
         Row: {
           created_at: string
