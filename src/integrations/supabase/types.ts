@@ -1517,12 +1517,14 @@ export type Database = {
         Row: {
           cadence: string | null
           created_at: string
+          distance_km: number | null
           id: string
           incline: string | null
           load: string | null
           method_id: string | null
           notes: string | null
           order_index: number
+          pace: string | null
           reps: string | null
           rest_seconds: number | null
           session_exercise_id: string
@@ -1533,12 +1535,14 @@ export type Database = {
         Insert: {
           cadence?: string | null
           created_at?: string
+          distance_km?: number | null
           id?: string
           incline?: string | null
           load?: string | null
           method_id?: string | null
           notes?: string | null
           order_index?: number
+          pace?: string | null
           reps?: string | null
           rest_seconds?: number | null
           session_exercise_id: string
@@ -1549,12 +1553,14 @@ export type Database = {
         Update: {
           cadence?: string | null
           created_at?: string
+          distance_km?: number | null
           id?: string
           incline?: string | null
           load?: string | null
           method_id?: string | null
           notes?: string | null
           order_index?: number
+          pace?: string | null
           reps?: string | null
           rest_seconds?: number | null
           session_exercise_id?: string
