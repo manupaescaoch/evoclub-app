@@ -366,6 +366,8 @@ const PrescreverEditor = () => {
                   load: st.load || null, rest_seconds: st.rest_seconds || null,
                   time_seconds: st.time_seconds, incline: st.incline || null,
                   cadence: st.cadence || null, method_id: st.method_id,
+                  distance_km: st.distance_km ? Number(st.distance_km) : null,
+                  pace: st.pace || null,
                   notes: st.notes || null, order_index: idx,
                 }))
               );
