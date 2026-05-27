@@ -25,6 +25,8 @@ type SetRow = {
   time_seconds: number | null;
   incline: string;
   cadence: string;
+  distance_km: string;
+  pace: string;
   method_id: string | null;
   notes: string;
 };
@@ -62,21 +64,35 @@ const DAYS = [
   { value: "domingo", label: "Domingo" },
 ];
 const SET_TYPES = [
-  { value: "warmup", label: "Aquecimento" },
-  { value: "prep", label: "Preparatória" },
-  { value: "reps_load", label: "Válida (reps + carga)" },
-  { value: "reps_load_time", label: "Válida (reps + carga + tempo)" },
-  { value: "reps_time", label: "Válida (reps + tempo)" },
-  { value: "time_incline", label: "Cardio (tempo + inclinação)" },
+  { value: "reps_load", label: "Repetições e carga" },
+  { value: "reps_load_time", label: "Repetições, carga e tempo" },
+  { value: "reps_time", label: "Repetições e tempo" },
+  { value: "time_incline", label: "Tempo e inclinação" },
+  { value: "run", label: "Corrida" },
   { value: "cadence", label: "Cadência" },
   { value: "notes_only", label: "Observações" },
 ];
+
+// Quais campos cada tipo de série exibe
+const FIELDS_BY_TYPE: Record<string, {
+  sets?: boolean; reps?: boolean; load?: boolean; rest?: boolean;
+  time?: boolean; incline?: boolean; distance?: boolean; pace?: boolean; cadence?: boolean;
+  notesOnly?: boolean;
+}> = {
+  reps_load:       { sets: true, reps: true, load: true, rest: true },
+  reps_load_time:  { sets: true, reps: true, load: true, time: true, rest: true },
+  reps_time:       { sets: true, reps: true, time: true, rest: true },
+  time_incline:    { sets: true, time: true, incline: true, rest: true },
+  run:             { sets: true, distance: true, time: true, pace: true, rest: true },
+  cadence:         { sets: true, reps: true, load: true, cadence: true, rest: true },
+  notes_only:      { notesOnly: true },
+};
 
 const newId = () => "tmp_" + Math.random().toString(36).slice(2, 10);
 const defaultSet = (): SetRow => ({
   id: newId(), set_type: "reps_load", sets: 1, reps: "12", load: "",
   rest_seconds: 60, time_seconds: null, incline: "", cadence: "",
-  method_id: null, notes: "",
+  distance_km: "", pace: "", method_id: null, notes: "",
 });
 
 // ============================================================================
