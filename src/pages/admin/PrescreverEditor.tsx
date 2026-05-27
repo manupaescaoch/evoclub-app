@@ -185,6 +185,8 @@ const PrescreverEditor = () => {
         id: s.id, set_type: s.set_type, sets: s.sets, reps: s.reps || "",
         load: s.load || "", rest_seconds: s.rest_seconds || 0,
         time_seconds: s.time_seconds, incline: s.incline || "", cadence: s.cadence || "",
+        distance_km: s.distance_km != null ? String(s.distance_km) : "",
+        pace: s.pace || "",
         method_id: s.method_id, notes: s.notes || "",
       });
     });
