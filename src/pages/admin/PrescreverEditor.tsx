@@ -601,48 +601,78 @@ const PrescreverEditor = () => {
                         {/* Sets editor */}
                         <div className="space-y-2">
                           {e.sets.map(st => (
+                            (() => {
+                              const f = FIELDS_BY_TYPE[st.set_type] || FIELDS_BY_TYPE.reps_load;
+                              const inp = "px-2 py-1.5 bg-card border border-border rounded font-dm text-center focus:outline-none";
+                              return (
                             <div key={st.id} className="flex flex-wrap items-end gap-1.5 text-xs">
                               <select value={st.set_type}
                                 onChange={ev => updateSetRow(s.id, e.id, st.id, { set_type: ev.target.value })}
                                 className="px-2 py-1.5 bg-card border border-border rounded font-dm focus:outline-none">
                                 {SET_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
                               </select>
-                              <input type="number" min={1} value={st.sets}
-                                onChange={ev => updateSetRow(s.id, e.id, st.id, { sets: parseInt(ev.target.value) || 1 })}
-                                className="w-12 px-2 py-1.5 bg-card border border-border rounded font-dm text-center focus:outline-none" placeholder="x" title="Séries" />
-                              <input value={st.reps}
-                                onChange={ev => updateSetRow(s.id, e.id, st.id, { reps: ev.target.value })}
-                                className="w-16 px-2 py-1.5 bg-card border border-border rounded font-dm text-center focus:outline-none" placeholder="reps" />
-                              <input value={st.load}
-                                onChange={ev => updateSetRow(s.id, e.id, st.id, { load: ev.target.value })}
-                                className="w-20 px-2 py-1.5 bg-card border border-border rounded font-dm text-center focus:outline-none" placeholder="carga" />
-                              <input type="number" value={st.rest_seconds}
-                                onChange={ev => updateSetRow(s.id, e.id, st.id, { rest_seconds: parseInt(ev.target.value) || 0 })}
-                                className="w-16 px-2 py-1.5 bg-card border border-border rounded font-dm text-center focus:outline-none" placeholder="int s" title="Intervalo (s)" />
-                              {(st.set_type === "reps_load_time" || st.set_type === "reps_time" || st.set_type === "time_incline") && (
-                                <input type="number" value={st.time_seconds || ""}
-                                  onChange={ev => updateSetRow(s.id, e.id, st.id, { time_seconds: parseInt(ev.target.value) || null })}
-                                  className="w-16 px-2 py-1.5 bg-card border border-border rounded font-dm text-center focus:outline-none" placeholder="tempo" />
+                              {f.notesOnly ? (
+                                <input value={st.notes}
+                                  onChange={ev => updateSetRow(s.id, e.id, st.id, { notes: ev.target.value })}
+                                  className="flex-1 min-w-[200px] px-2 py-1.5 bg-card border border-border rounded font-dm focus:outline-none" placeholder="Observação livre..." />
+                              ) : (
+                                <>
+                                  {f.sets && (
+                                    <input type="number" min={1} value={st.sets}
+                                      onChange={ev => updateSetRow(s.id, e.id, st.id, { sets: parseInt(ev.target.value) || 1 })}
+                                      className={`${inp} w-12`} placeholder="x" title="Séries" />
+                                  )}
+                                  {f.reps && (
+                                    <input value={st.reps}
+                                      onChange={ev => updateSetRow(s.id, e.id, st.id, { reps: ev.target.value })}
+                                      className={`${inp} w-16`} placeholder="reps" />
+                                  )}
+                                  {f.load && (
+                                    <input value={st.load}
+                                      onChange={ev => updateSetRow(s.id, e.id, st.id, { load: ev.target.value })}
+                                      className={`${inp} w-20`} placeholder="carga" />
+                                  )}
+                                  {f.time && (
+                                    <input type="number" value={st.time_seconds || ""}
+                                      onChange={ev => updateSetRow(s.id, e.id, st.id, { time_seconds: parseInt(ev.target.value) || null })}
+                                      className={`${inp} w-16`} placeholder="tempo s" title="Tempo (s)" />
+                                  )}
+                                  {f.incline && (
+                                    <input value={st.incline}
+                                      onChange={ev => updateSetRow(s.id, e.id, st.id, { incline: ev.target.value })}
+                                      className={`${inp} w-16`} placeholder="incl %" />
+                                  )}
+                                  {f.distance && (
+                                    <input value={st.distance_km}
+                                      onChange={ev => updateSetRow(s.id, e.id, st.id, { distance_km: ev.target.value })}
+                                      className={`${inp} w-16`} placeholder="km" />
+                                  )}
+                                  {f.pace && (
+                                    <input value={st.pace}
+                                      onChange={ev => updateSetRow(s.id, e.id, st.id, { pace: ev.target.value })}
+                                      className={`${inp} w-20`} placeholder="min/km" />
+                                  )}
+                                  {f.cadence && (
+                                    <input value={st.cadence}
+                                      onChange={ev => updateSetRow(s.id, e.id, st.id, { cadence: ev.target.value })}
+                                      className={`${inp} w-20`} placeholder="3-0-1-0" />
+                                  )}
+                                  {f.rest && (
+                                    <input type="number" value={st.rest_seconds}
+                                      onChange={ev => updateSetRow(s.id, e.id, st.id, { rest_seconds: parseInt(ev.target.value) || 0 })}
+                                      className={`${inp} w-16`} placeholder="int s" title="Intervalo (s)" />
+                                  )}
+                                  <select value={st.method_id || ""}
+                                    onChange={ev => updateSetRow(s.id, e.id, st.id, { method_id: ev.target.value || null })}
+                                    className="px-2 py-1.5 bg-card border border-border rounded font-dm focus:outline-none">
+                                    <option value="">Método...</option>
+                                    {methods.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
+                                  </select>
+                                  <input value={st.notes}
+                                    onChange={ev => updateSetRow(s.id, e.id, st.id, { notes: ev.target.value })}
+                                    className="flex-1 min-w-[120px] px-2 py-1.5 bg-card border border-border rounded font-dm focus:outline-none" placeholder="obs" />
+                                </>
                               )}
-                              {st.set_type === "time_incline" && (
-                                <input value={st.incline}
-                                  onChange={ev => updateSetRow(s.id, e.id, st.id, { incline: ev.target.value })}
-                                  className="w-16 px-2 py-1.5 bg-card border border-border rounded font-dm text-center focus:outline-none" placeholder="incl" />
-                              )}
-                              {st.set_type === "cadence" && (
-                                <input value={st.cadence}
-                                  onChange={ev => updateSetRow(s.id, e.id, st.id, { cadence: ev.target.value })}
-                                  className="w-20 px-2 py-1.5 bg-card border border-border rounded font-dm text-center focus:outline-none" placeholder="3-0-1-0" />
-                              )}
-                              <select value={st.method_id || ""}
-                                onChange={ev => updateSetRow(s.id, e.id, st.id, { method_id: ev.target.value || null })}
-                                className="px-2 py-1.5 bg-card border border-border rounded font-dm focus:outline-none">
-                                <option value="">Método...</option>
-                                {methods.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
-                              </select>
-                              <input value={st.notes}
-                                onChange={ev => updateSetRow(s.id, e.id, st.id, { notes: ev.target.value })}
-                                className="flex-1 min-w-[120px] px-2 py-1.5 bg-card border border-border rounded font-dm focus:outline-none" placeholder="obs" />
                               <button onClick={() => removeSetRow(s.id, e.id, st.id)} className="p-1.5 text-red-400 hover:bg-red-50 rounded"><Trash2 size={12} /></button>
                             </div>
                           ))}
