@@ -293,24 +293,33 @@ export type Database = {
       class_bookings: {
         Row: {
           booked_at: string | null
+          checked_in_at: string | null
           class_id: string | null
           client_id: number | null
           id: string
+          muscle_group: string | null
           status: string | null
+          student_name: string | null
         }
         Insert: {
           booked_at?: string | null
+          checked_in_at?: string | null
           class_id?: string | null
           client_id?: number | null
           id?: string
+          muscle_group?: string | null
           status?: string | null
+          student_name?: string | null
         }
         Update: {
           booked_at?: string | null
+          checked_in_at?: string | null
           class_id?: string | null
           client_id?: number | null
           id?: string
+          muscle_group?: string | null
           status?: string | null
+          student_name?: string | null
         }
         Relationships: [
           {
