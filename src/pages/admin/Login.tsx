@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import logo from "@/assets/logo-iron.png";
+import { logAudit } from "@/lib/audit";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -20,6 +21,7 @@ const Login = () => {
     if (error) {
       toast.error("Erro ao fazer login: " + error.message);
     } else {
+      logAudit({ action: "login", entity: "auth", description: `Entrou no sistema (${email})` });
       navigate("/admin");
     }
   };
