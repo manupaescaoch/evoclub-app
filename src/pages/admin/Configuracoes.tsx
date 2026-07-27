@@ -306,6 +306,8 @@ const Configuracoes = () => {
           </div>
         </div>
       )}
+
+      {tab === "auditoria" && <AuditLogTab />}
     </div>
   );
 };
