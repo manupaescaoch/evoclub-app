@@ -181,12 +181,10 @@ const GradeTab = () => {
           const endHour = parseInt(c.end_time.slice(0, 2), 10);
           const endMinute = parseInt(c.end_time.slice(3, 5), 10) || 0;
           const isCurrent = isToday && hour === currentHour;
-          // Aula é passada se o dia visualizado já passou, ou se é hoje e o horário de término já passou
-          const viewedDayDiff = ((viewingDbDay - todayDbDay) + 7) % 7;
-          const isPastDay = viewedDayDiff > 3 && viewedDayDiff !== 0; // heurística: dias já passados na semana
           const nowMinutesTotal = currentHour * 60 + currentMinutes;
           const endMinutesTotal = endHour * 60 + endMinute;
-          const isPast = isPastDay || (isToday && nowMinutesTotal >= endMinutesTotal);
+          // Só desabilita quando é hoje e a aula já terminou
+          const isPast = isToday && nowMinutesTotal >= endMinutesTotal;
           const filled = bookingsByClass[c.id] || 0;
           const max = c.max_slots || 14;
           const remaining = Math.max(0, max - filled);
