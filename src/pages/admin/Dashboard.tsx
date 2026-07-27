@@ -11,7 +11,7 @@ import {
 const DONUT_COLORS = ["#7C3AED", "#3B82F6", "#10B981", "#1400FF"];
 const REASON_LABELS: Record<string, string> = {
   financeiro: "Problemas financeiros",
-  transferencia: "Transferido para filial IRON FIT - UND 2",
+  transferencia: "Transferido para filial EVO TRAINING CLUB - UND 2",
   tempo: "Falta de tempo/Não frequenta",
   outro: "Outros (especificar)",
 };

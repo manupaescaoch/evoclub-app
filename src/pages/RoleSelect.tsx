@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import logo from "@/assets/logo-iron.png";
+import logo from "@/assets/logo-evo.png";
 
 const RoleSelect = () => {
   const navigate = useNavigate();
@@ -22,10 +22,10 @@ const RoleSelect = () => {
 
       {/* Logo + branding */}
       <div className="flex flex-col items-center mb-10 z-10">
-        <img src={logo} alt="Iron Fit" className="w-24 h-24 rounded-2xl mb-5 hero-shadow" />
+        <img src={logo} alt="EVO Training Club" className="w-24 h-24 rounded-2xl mb-5 hero-shadow" />
         <div className="flex items-baseline gap-1.5">
-          <span className="font-barlow font-black text-3xl tracking-tight text-foreground">IRON</span>
-          <span className="font-barlow font-bold text-3xl tracking-tight text-muted-foreground">FIT</span>
+          <span className="font-barlow font-black text-3xl tracking-tight text-foreground">EVO</span>
+          <span className="font-barlow font-bold text-3xl tracking-tight text-muted-foreground">TRAINING CLUB</span>
         </div>
         <p className="text-sm text-muted-foreground font-dm mt-1">O seu app</p>
       </div>
@@ -42,7 +42,7 @@ const RoleSelect = () => {
           onClick={() => navigate("/admin/login")}
           className="w-full py-4 rounded-xl bg-[#1E1E2E] text-white font-dm font-semibold text-base hover:bg-[#2a2a3e] transition-colors"
         >
-          Sou profissional Iron
+          Sou profissional EVO
         </button>
       </div>
     </div>
