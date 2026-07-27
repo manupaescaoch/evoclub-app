@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Plus, Search, X, Camera } from "lucide-react";
 import { toast } from "sonner";
+import { logCreate } from "@/lib/audit";
 
 type Client = {
   id: number;
@@ -70,7 +71,7 @@ const Clientes = () => {
     }
     setSaving(true);
     const fullName = `${form.firstName} ${form.lastName}`;
-    const { error } = await supabase.from("clients").insert({
+    const { data, error } = await supabase.from("clients").insert({
       name: fullName,
       email: form.email,
       phone: form.phone,
@@ -79,11 +80,12 @@ const Clientes = () => {
       visit_type: form.visitType,
       observations: form.observations || null,
       unit_id: "a1b2c3d4-0000-0000-0000-000000000001",
-    } as any);
+    } as any).select().single();
     setSaving(false);
     if (error) {
       toast.error("Erro ao salvar: " + error.message);
     } else {
+      logCreate("client", (data as any)?.id, `Cadastrou cliente ${fullName}`, { email: form.email, phone: form.phone, visit_type: form.visitType });
       toast.success("Cliente cadastrado com sucesso!");
       setForm(emptyForm);
       setShowDrawer(false);
