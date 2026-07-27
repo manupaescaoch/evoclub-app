@@ -32,6 +32,8 @@ const GradeTab = () => {
   const [authName, setAuthName] = useState<string>(
     typeof window !== "undefined" ? localStorage.getItem("student_name") || "" : ""
   );
+  const [editingName, setEditingName] = useState(false);
+  const [nameDraft, setNameDraft] = useState("");
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -85,8 +87,23 @@ const GradeTab = () => {
   };
 
   const openCheckIn = (c: ClassRow) => {
+    if (!authName.trim()) {
+      setEditingName(true);
+      toast.info("Digite seu nome para fazer check-in");
+      return;
+    }
     setActiveClass(c);
     setDialogOpen(true);
+  };
+
+  const saveName = () => {
+    const v = nameDraft.trim();
+    if (!v) return;
+    setAuthName(v);
+    localStorage.setItem("student_name", v);
+    setEditingName(false);
+    setNameDraft("");
+    toast.success("Nome salvo!");
   };
 
   return (
@@ -107,6 +124,41 @@ const GradeTab = () => {
             {d}
           </button>
         ))}
+      </div>
+
+      <div className="px-4 pb-2">
+        {authName && !editingName ? (
+          <div className="flex items-center justify-between bg-white card-shadow rounded-xl px-3 py-2">
+            <div className="text-xs font-dm">
+              <span className="text-muted-foreground">Aluno: </span>
+              <span className="font-semibold text-foreground">{authName}</span>
+            </div>
+            <button
+              onClick={() => { setNameDraft(authName); setEditingName(true); }}
+              className="text-[11px] font-dm text-primary font-semibold"
+            >
+              Alterar
+            </button>
+          </div>
+        ) : (
+          <div className="flex gap-2 bg-white card-shadow rounded-xl p-2">
+            <input
+              autoFocus
+              value={nameDraft}
+              onChange={(e) => setNameDraft(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter") saveName(); }}
+              placeholder="Digite seu nome"
+              className="flex-1 px-3 py-1.5 text-xs font-dm bg-transparent outline-none"
+            />
+            <button
+              onClick={saveName}
+              disabled={!nameDraft.trim()}
+              className="bg-primary text-white text-[11px] font-dm font-semibold px-3 py-1.5 rounded-lg cta-shadow disabled:opacity-40"
+            >
+              Salvar
+            </button>
+          </div>
+        )}
       </div>
 
       <div className="px-4 pb-4">
