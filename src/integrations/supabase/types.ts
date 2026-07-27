@@ -142,6 +142,54 @@ export type Database = {
         }
         Relationships: []
       }
+      audit_logs: {
+        Row: {
+          action: string
+          created_at: string
+          description: string
+          entity: string
+          entity_id: string | null
+          id: string
+          ip: string | null
+          metadata: Json
+          unit_id: string | null
+          user_agent: string | null
+          user_email: string | null
+          user_id: string
+          user_name: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          description: string
+          entity: string
+          entity_id?: string | null
+          id?: string
+          ip?: string | null
+          metadata?: Json
+          unit_id?: string | null
+          user_agent?: string | null
+          user_email?: string | null
+          user_id: string
+          user_name?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          description?: string
+          entity?: string
+          entity_id?: string | null
+          id?: string
+          ip?: string | null
+          metadata?: Json
+          unit_id?: string | null
+          user_agent?: string | null
+          user_email?: string | null
+          user_id?: string
+          user_name?: string | null
+        }
+        Relationships: []
+      }
       automations: {
         Row: {
           active: boolean | null

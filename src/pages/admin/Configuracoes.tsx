@@ -6,15 +6,17 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { Building2, Sliders, Plug, User, KeyRound, LogOut, Save } from "lucide-react";
+import { Building2, Sliders, Plug, User, KeyRound, LogOut, Save, ScrollText } from "lucide-react";
+import AuditLogTab from "@/components/admin/AuditLogTab";
 
-type TabKey = "empresa" | "sistema" | "integracoes" | "conta";
+type TabKey = "empresa" | "sistema" | "integracoes" | "conta" | "auditoria";
 
 const TABS: { key: TabKey; label: string; icon: any }[] = [
   { key: "empresa", label: "Dados da empresa", icon: Building2 },
   { key: "sistema", label: "Preferências do sistema", icon: Sliders },
   { key: "integracoes", label: "Integrações", icon: Plug },
   { key: "conta", label: "Conta e segurança", icon: User },
+  { key: "auditoria", label: "Auditoria", icon: ScrollText },
 ];
 
 type CompanyData = {
@@ -304,6 +306,8 @@ const Configuracoes = () => {
           </div>
         </div>
       )}
+
+      {tab === "auditoria" && <AuditLogTab />}
     </div>
   );
 };

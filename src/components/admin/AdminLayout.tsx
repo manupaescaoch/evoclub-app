@@ -10,6 +10,7 @@ import {
   Gift, ListTodo, ClipboardCheck, CalendarClock,
 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { logAudit } from "@/lib/audit";
 
 type NavItem = {
   label: string;
@@ -95,6 +96,7 @@ const AdminLayout = () => {
   }, [location.pathname, isMobile]);
 
   const handleLogout = async () => {
+    await logAudit({ action: "logout", entity: "auth", description: "Saiu do sistema" });
     await supabase.auth.signOut();
     navigate("/admin/login");
   };
