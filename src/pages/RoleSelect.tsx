@@ -24,8 +24,8 @@ const RoleSelect = () => {
       <div className="flex flex-col items-center mb-10 z-10">
         <img src={logo} alt="EVO Training Club" className="w-24 h-24 rounded-2xl mb-5 hero-shadow" />
         <div className="flex items-baseline gap-1.5">
-          <span className="font-barlow font-black text-3xl tracking-tight text-foreground">IRON</span>
-          <span className="font-barlow font-bold text-3xl tracking-tight text-muted-foreground">FIT</span>
+          <span className="font-barlow font-black text-3xl tracking-tight text-foreground">EVO</span>
+          <span className="font-barlow font-bold text-3xl tracking-tight text-muted-foreground">TRAINING CLUB</span>
         </div>
         <p className="text-sm text-muted-foreground font-dm mt-1">O seu app</p>
       </div>
