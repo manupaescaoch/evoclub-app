@@ -29,7 +29,23 @@ const GradeTab = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [activeClass, setActiveClass] = useState<ClassRow | null>(null);
 
-  const savedName = typeof window !== "undefined" ? localStorage.getItem("student_name") || "" : "";
+  const [authName, setAuthName] = useState<string>(
+    typeof window !== "undefined" ? localStorage.getItem("student_name") || "" : ""
+  );
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      const u = data.user;
+      if (!u) return;
+      const meta = (u.user_metadata || {}) as Record<string, string>;
+      const name = meta.full_name || meta.name || (u.email ? u.email.split("@")[0] : "");
+      if (name) {
+        setAuthName(name);
+        localStorage.setItem("student_name", name);
+      }
+    });
+  }, []);
+
   const currentHour = new Date().getHours();
 
   const load = async () => {
@@ -151,7 +167,7 @@ const GradeTab = () => {
         open={dialogOpen}
         onOpenChange={setDialogOpen}
         classInfo={activeClass}
-        defaultName={savedName}
+        defaultName={authName}
         onConfirm={handleConfirm}
       />
     </div>
