@@ -17,6 +17,11 @@ const CheckInDialog = ({ open, onOpenChange, classInfo, defaultName = "", onConf
   const [name, setName] = useState(defaultName);
   const [saving, setSaving] = useState(false);
 
+  // Mantém o nome sincronizado com o usuário logado
+  // (quando o dialog reabre após login, defaultName muda)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { setName(defaultName); }, [defaultName, open]);
+
   const reset = () => { setGroup(null); setSaving(false); };
 
   const handleConfirm = async () => {
@@ -48,10 +53,17 @@ const CheckInDialog = ({ open, onOpenChange, classInfo, defaultName = "", onConf
           </div>
         )}
 
-        <div className="space-y-2">
-          <Label className="text-xs font-dm">Seu nome</Label>
-          <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Digite seu nome" />
-        </div>
+        {name ? (
+          <div className="bg-white border border-border rounded-lg px-3 py-2 text-xs font-dm">
+            <span className="text-muted-foreground">Aluno: </span>
+            <span className="font-semibold text-foreground">{name}</span>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            <Label className="text-xs font-dm">Seu nome</Label>
+            <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Digite seu nome" />
+          </div>
+        )}
 
         <div className="space-y-2">
           <Label className="text-xs font-dm">O que vai treinar hoje?</Label>
