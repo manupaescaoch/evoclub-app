@@ -95,7 +95,7 @@ export default function AuditLogTab() {
       ACTION_LABEL[r.action] || r.action,
       r.entity,
       r.entity_id || "",
-      (r.description || "").replaceAll('"', '""'),
+      (r.description || "").split('"').join('""'),
     ].map(v => `"${v}"`).join(","));
     const csv = [header.join(","), ...lines].join("\n");
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
