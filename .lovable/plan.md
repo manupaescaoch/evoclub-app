@@ -1,31 +1,55 @@
-# Tipos de série — exibir só campos pertinentes
+# Auditoria em Configurações
 
-Hoje, no editor de prescrição (`src/pages/admin/PrescreverEditor.tsx`), todos os tipos mostram os mesmos campos fixos (séries, reps, carga, intervalo) e só adicionam tempo/inclinação/cadência condicionalmente. Isso gera "Carga" em "Repetições e tempo", "Reps" em "Tempo e inclinação", etc.
+Registrar tudo que cada usuário faz no sistema (criar, editar, excluir) e exibir em uma nova aba de Configurações com filtros e busca.
 
-## Mapeamento novo de campos por tipo
+## 1. Banco de dados
 
-| Tipo | Séries | Reps | Carga | Tempo | Inclinação | Distância | Ritmo | Cadência | Intervalo | Obs |
-|---|---|---|---|---|---|---|---|---|---|---|
-| Repetições e carga | ✓ | ✓ | ✓ |  |  |  |  |  | ✓ | ✓ |
-| Repetições, carga e tempo | ✓ | ✓ | ✓ | ✓ |  |  |  |  | ✓ | ✓ |
-| Repetições e tempo | ✓ | ✓ |  | ✓ |  |  |  |  | ✓ | ✓ |
-| Tempo e inclinação | ✓ |  |  | ✓ | ✓ |  |  |  | ✓ | ✓ |
-| Corrida | ✓ |  |  | ✓ |  | ✓ | ✓ |  | ✓ | ✓ |
-| Cadência | ✓ | ✓ | ✓ |  |  |  |  | ✓ | ✓ | ✓ |
-| Observações |  |  |  |  |  |  |  |  |  | ✓ (campo único largo) |
+Nova tabela `audit_logs`:
+- `user_id` (uuid) — quem fez
+- `user_name`, `user_email` (text) — snapshot legível mesmo se o usuário sair
+- `action` (text) — `create` | `update` | `delete` | `login` | `logout` | `custom`
+- `entity` (text) — ex.: `client`, `sale`, `training_plan`, `contract`, `transaction`…
+- `entity_id` (text) — id do registro afetado
+- `description` (text) — texto amigável ("Vendeu plano Mensal para João")
+- `unit_id` (uuid, opcional) — unidade em que ocorreu
+- `metadata` (jsonb) — diff antes/depois, valores relevantes
+- `ip`, `user_agent` (text)
 
-## Mudanças técnicas
+RLS: leitura só para admin/coordinator (via `has_role`). Inserção permitida a qualquer usuário autenticado (o app grava o próprio log).
 
-1. **`PrescreverEditor.tsx`** — substituir o bloco `<div className="flex flex-wrap items-end gap-1.5 ...">` (linhas ~584–626) por renderização condicional via um mapa `FIELDS_BY_TYPE` que lista quais inputs aparecer.
-2. Adicionar inputs novos:
-   - `distance` (km) e `pace` (min/km) para "Corrida"
-3. **Banco**: adicionar colunas `distance_km numeric` e `pace text` em `workout_set_rows` (ou nome equivalente da tabela de sets). Migração separada antes do código.
-4. Atualizar `newSetRow()` (linha ~77) para já criar com `set_type` adequado e os defaults certos.
-5. Para tipo "Observações", esconder todos os campos numéricos e expandir `notes` para ocupar a linha inteira.
+## 2. Helper de log
 
-## Fora do escopo
+Criar `src/lib/audit.ts` com `logAudit({ action, entity, entity_id, description, metadata, unit_id })` que:
+- pega usuário atual da sessão
+- insere em `audit_logs` sem bloquear a UI (fire-and-forget)
+- exporta helpers curtos: `logCreate`, `logUpdate`, `logDelete`
 
-- Não muda a lista de tipos (continua a mesma).
-- Não muda a tela do aluno / execução do treino — só o editor de prescrição.
+## 3. Instrumentação (nesta fase, pontos de maior valor)
 
-Confirma se a tabela de campos acima está correta antes de eu implementar?
+Chamar o helper após sucesso das operações-chave já existentes:
+- Clientes (criar/editar/excluir)
+- Vendas / planos contratados
+- Contratos, Cupons, Serviços, Colaboradores (módulo Gerencial)
+- Transações, Contas a pagar, Folha (Financeiro)
+- Planos de treino (criar/prescrever/apagar)
+- Login/Logout (em `AdminLayout` e `Login`)
+
+Os demais módulos ficam preparados para receber `logAudit` depois — a tabela e o helper já suportam qualquer entidade.
+
+## 4. UI — nova aba "Auditoria" em `/admin/configuracoes`
+
+Adicionar aba ao lado de Empresa / Sistema / Integrações / Conta:
+
+- Filtros: período (data de/até), usuário, entidade, ação, unidade, busca por texto
+- Tabela paginada: Data/hora · Usuário · Ação (badge colorido) · Entidade · Descrição · Unidade
+- Clique numa linha → drawer com `metadata` completo (JSON formatado, ip, user agent)
+- Botão "Exportar CSV" do resultado filtrado
+- Acesso restrito: se o usuário não é admin/coordinator, mostrar aviso "Sem permissão"
+
+## Detalhes técnicos
+
+- Índices: `(created_at desc)`, `(user_id)`, `(entity, entity_id)`, `(action)`
+- Política RLS de leitura usa `public.has_role(auth.uid(),'admin') OR public.has_role(auth.uid(),'coordinator')`
+- Política de inserção: `auth.uid() = user_id` e `user_id NOT NULL`
+- Nenhum trigger no `auth` schema — o registro é feito do client após cada mutação bem-sucedida
+- Sem alteração visual nas outras abas
