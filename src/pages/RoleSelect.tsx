@@ -42,7 +42,7 @@ const RoleSelect = () => {
           onClick={() => navigate("/admin/login")}
           className="w-full py-4 rounded-xl bg-[#1E1E2E] text-white font-dm font-semibold text-base hover:bg-[#2a2a3e] transition-colors"
         >
-          Sou profissional Iron
+          Sou profissional EVO
         </button>
       </div>
     </div>
