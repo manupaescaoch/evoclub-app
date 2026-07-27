@@ -19,6 +19,7 @@ type ClassData = {
   day_of_week: number | null;
   max_slots: number | null;
   bookings_count?: number;
+  bookings_list?: { name: string; group: string | null }[];
 };
 
 const getWeekDates = (offset: number) => {
@@ -75,12 +76,22 @@ const Grade = () => {
       setLoading(true);
       const { data } = await supabase.from("classes").select("*");
       const classesData = (data || []) as ClassData[];
-      const { data: bookings } = await supabase.from("class_bookings").select("class_id");
-      const bookingCount: Record<string, number> = {};
-      (bookings || []).forEach(b => {
-        if (b.class_id) bookingCount[b.class_id] = (bookingCount[b.class_id] || 0) + 1;
+      const { data: bookings } = await supabase
+        .from("class_bookings")
+        .select("class_id, student_name, muscle_group");
+      const byClass: Record<string, { name: string; group: string | null }[]> = {};
+      (bookings || []).forEach((b: any) => {
+        if (!b.class_id) return;
+        (byClass[b.class_id] ||= []).push({
+          name: b.student_name || "Aluno",
+          group: b.muscle_group,
+        });
       });
-      setClasses(classesData.map(c => ({ ...c, bookings_count: bookingCount[c.id] || 0 })));
+      setClasses(classesData.map(c => ({
+        ...c,
+        bookings_count: (byClass[c.id] || []).length,
+        bookings_list: byClass[c.id] || [],
+      })));
       setLoading(false);
   };
 
@@ -324,6 +335,27 @@ const Grade = () => {
                                       <span className="font-medium">{cls.name}</span>
                                       <Lock size={10} className="text-muted-foreground" />
                                     </div>
+                                    {(cls.bookings_list && cls.bookings_list.length > 0) && (
+                                      <div className="mt-1.5 pt-1.5 border-t border-black/10 space-y-0.5">
+                                        {cls.bookings_list.slice(0, 6).map((b, idx) => (
+                                          <div key={idx} className="flex items-center justify-between gap-1">
+                                            <span className="truncate text-[9px] font-medium text-foreground">{b.name}</span>
+                                            {b.group && (
+                                              <span className={`shrink-0 text-[8px] font-bold uppercase px-1 rounded ${
+                                                b.group === "inferior"
+                                                  ? "bg-blue-100 text-blue-700"
+                                                  : "bg-amber-100 text-amber-700"
+                                              }`}>
+                                                {b.group === "inferior" ? "INF" : "SUP"}
+                                              </span>
+                                            )}
+                                          </div>
+                                        ))}
+                                        {cls.bookings_list.length > 6 && (
+                                          <div className="text-[9px] text-muted-foreground">+{cls.bookings_list.length - 6} mais</div>
+                                        )}
+                                      </div>
+                                    )}
                                   </div>
                                 );
                               })
