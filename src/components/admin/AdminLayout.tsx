@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Outlet, useNavigate, useLocation, Link } from "react-router-dom";
-import logoSpartan from "@/assets/logo-spartan.png";
+import logoSpartan from "@/assets/logo-evo.png";
 import { supabase } from "@/integrations/supabase/client";
 import {
   LayoutDashboard, Users, CalendarDays, Megaphone, DollarSign,
@@ -108,10 +108,10 @@ const AdminLayout = () => {
       {/* Logo */}
       <div className="p-5 flex items-center gap-3">
         <div className="w-10 h-10 rounded-lg overflow-hidden shrink-0">
-          <img src={logoSpartan} alt="Iron Club Fit" className="w-full h-full object-cover" />
+          <img src={logoSpartan} alt="EVO Training Club" className="w-full h-full object-cover" />
         </div>
         <div>
-          <p className="text-white font-barlow font-bold text-sm leading-tight">IRON FIT</p>
+          <p className="text-white font-barlow font-bold text-sm leading-tight">EVO TRAINING CLUB</p>
           <p className="text-gray-500 text-[10px] font-dm">UND 1 — Admin</p>
         </div>
         {isMobile && (
