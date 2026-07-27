@@ -48,7 +48,16 @@ const GradeTab = () => {
     });
   }, []);
 
-  const currentHour = new Date().getHours();
+  // Horário de Brasília (America/Sao_Paulo)
+  const nowBR = useMemo(() => {
+    const s = new Date().toLocaleString("en-US", { timeZone: "America/Sao_Paulo" });
+    return new Date(s);
+  }, []);
+  const currentHour = nowBR.getHours();
+  const currentMinutes = nowBR.getMinutes();
+  const todayDbDay = nowBR.getDay(); // 0..6
+  const viewingDbDay = dayIndexToDb[activeDay];
+  const isToday = viewingDbDay === todayDbDay;
 
   const load = async () => {
     setLoading(true);
@@ -168,7 +177,14 @@ const GradeTab = () => {
         )}
         {classes.map((c) => {
           const hour = parseInt(c.start_time.slice(0, 2), 10);
-          const isCurrent = hour === currentHour;
+          const minute = parseInt(c.start_time.slice(3, 5), 10) || 0;
+          const endHour = parseInt(c.end_time.slice(0, 2), 10);
+          const endMinute = parseInt(c.end_time.slice(3, 5), 10) || 0;
+          const isCurrent = isToday && hour === currentHour;
+          const nowMinutesTotal = currentHour * 60 + currentMinutes;
+          const endMinutesTotal = endHour * 60 + endMinute;
+          // Só desabilita quando é hoje e a aula já terminou
+          const isPast = isToday && nowMinutesTotal >= endMinutesTotal;
           const filled = bookingsByClass[c.id] || 0;
           const max = c.max_slots || 14;
           const remaining = Math.max(0, max - filled);
@@ -182,13 +198,16 @@ const GradeTab = () => {
                 </span>
                 <div className={`flex-1 w-0.5 mt-1 ${isCurrent ? "bg-primary" : "bg-border"}`} />
               </div>
-              <div className={`flex-1 rounded-2xl p-3 card-shadow ${isCurrent ? "bg-primary/5 border-l-4 border-l-primary" : "bg-white"}`}>
+              <div className={`flex-1 rounded-2xl p-3 card-shadow ${isCurrent ? "bg-primary/5 border-l-4 border-l-primary" : isPast ? "bg-muted/40 opacity-60" : "bg-white"}`}>
                 <div className="flex items-start justify-between">
                   <div>
                     <div className="flex items-center gap-2">
                       <p className="font-dm font-semibold text-sm text-foreground">{c.name || "Musculação"}</p>
                       {isPeak && (
                         <span className="text-[9px] font-barlow font-bold tracking-[1px] uppercase bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full">HORÁRIO NOBRE</span>
+                      )}
+                      {isPast && (
+                        <span className="text-[9px] font-barlow font-bold tracking-[1px] uppercase bg-muted text-muted-foreground px-2 py-0.5 rounded-full">ENCERRADA</span>
                       )}
                     </div>
                     <p className="text-[11px] text-muted font-dm mt-0.5">
@@ -202,11 +221,11 @@ const GradeTab = () => {
                     </div>
                   </div>
                   <button
-                    disabled={full}
+                    disabled={full || isPast}
                     onClick={() => openCheckIn(c)}
                     className="bg-primary text-white text-[11px] font-dm font-semibold px-3 py-1.5 rounded-lg cta-shadow disabled:opacity-40"
                   >
-                    Check-in
+                    {isPast ? "Encerrada" : "Check-in"}
                   </button>
                 </div>
               </div>
