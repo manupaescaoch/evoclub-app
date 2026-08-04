@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Outlet, useNavigate, useLocation, Link } from "react-router-dom";
-import logoSpartan from "@/assets/logo-evo.png";
+import logoAsset from "@/assets/logo-evo.png.asset.json";
 import { supabase } from "@/integrations/supabase/client";
 import {
   LayoutDashboard, Users, CalendarDays, Megaphone, DollarSign,

@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import logo from "@/assets/logo-evo.png";
+import logoAsset from "@/assets/logo-evo.png.asset.json";
 
 const RoleSelect = () => {
   const navigate = useNavigate();

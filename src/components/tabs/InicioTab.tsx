@@ -1,5 +1,5 @@
 import { Bell, Zap, ChevronRight, Check } from "lucide-react";
-import logo from "@/assets/logo-evo.png";
+import logoAsset from "@/assets/logo-evo.png.asset.json";
 
 const days = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"];
 const dayStates = ["done", "today", "future", "future", "future", "future", "future"] as const;
