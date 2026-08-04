@@ -197,7 +197,7 @@ const Grade = () => {
                 <CheckSquare size={14} /> Selecionar
               </Button>
               <Button size="sm" className="gap-2" onClick={() => setBulkOpen(true)}>
-                <Plus size={14} /> Criar em massa
+                <Plus size={14} /> Criar
               </Button>
             </>
           )}
