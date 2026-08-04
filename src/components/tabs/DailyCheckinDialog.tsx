@@ -3,6 +3,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Moon, Zap, Smile } from "lucide-react";
+import { useStudentName, brGreeting } from "@/hooks/useStudentName";
 
 const brDate = () =>
   new Date(new Date().toLocaleString("en-US", { timeZone: "America/Sao_Paulo" }))
@@ -71,8 +72,9 @@ const SectionHeader = ({
 
 const DailyCheckinDialog = () => {
   const [open, setOpen] = useState(false);
-  const [studentName, setStudentName] = useState("");
+  const { name: studentName, saveName } = useStudentName();
   const [nameDraft, setNameDraft] = useState("");
+  const greeting = brGreeting();
   const [sleepHours, setSleepHours] = useState(7);
   const [sleepQuality, setSleepQuality] = useState(4);
   const [energy, setEnergy] = useState(4);
@@ -83,20 +85,7 @@ const DailyCheckinDialog = () => {
   useEffect(() => {
     const today = brDate();
     if (localStorage.getItem("daily_checkin_date") === today) return;
-    const stored = localStorage.getItem("student_name") || "";
-    setStudentName(stored);
-    supabase.auth.getUser().then(({ data }) => {
-      const u = data.user;
-      if (u) {
-        const meta = (u.user_metadata || {}) as Record<string, string>;
-        const name = meta.full_name || meta.name || (u.email ? u.email.split("@")[0] : "");
-        if (name) {
-          setStudentName(name);
-          localStorage.setItem("student_name", name);
-        }
-      }
-      setOpen(true);
-    });
+    setOpen(true);
   }, []);
 
   const skip = () => {
@@ -111,7 +100,7 @@ const DailyCheckinDialog = () => {
       return;
     }
     setSaving(true);
-    localStorage.setItem("student_name", name);
+    saveName(name);
     const { error } = await supabase.from("daily_checkins").upsert(
       {
         student_name: name,
@@ -138,7 +127,10 @@ const DailyCheckinDialog = () => {
     <Dialog open={open} onOpenChange={(v) => { if (!v) skip(); }}>
       <DialogContent className="max-w-[360px] p-0 rounded-2xl overflow-hidden">
         <div className="max-h-[75vh] overflow-y-auto px-4 pt-5 pb-3">
-          <h2 className="font-barlow font-[800] text-2xl text-foreground">Bom dia ☀️</h2>
+          <h2 className="font-barlow font-[800] text-2xl text-foreground">
+            {greeting.text}
+            {studentName ? `, ${studentName.split(" ")[0]}` : ""} {greeting.emoji}
+          </h2>
           <p className="text-xs text-muted-foreground font-dm mt-0.5">
             Seu shape entrega como você viveu ontem.
           </p>
