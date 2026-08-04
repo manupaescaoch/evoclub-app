@@ -5,10 +5,11 @@ import GradeTab from "../tabs/GradeTab";
 import TreinoTab from "../tabs/TreinoTab";
 import ComunidadeTab from "../tabs/ComunidadeTab";
 import RankingTab from "../tabs/RankingTab";
+import ClubTab from "../tabs/ClubTab";
 import PerfilTab from "../tabs/PerfilTab";
 import DailyCheckinDialog from "../tabs/DailyCheckinDialog";
 
-const tabs = ["inicio", "grade", "treino", "comunidade", "ranking", "perfil"] as const;
+const tabs = ["inicio", "grade", "treino", "comunidade", "ranking", "club", "perfil"] as const;
 type Tab = (typeof tabs)[number];
 
 const AppShell = () => {
@@ -23,6 +24,7 @@ const AppShell = () => {
         {activeTab === "treino" && <TreinoTab />}
         {activeTab === "comunidade" && <ComunidadeTab />}
         {activeTab === "ranking" && <RankingTab />}
+        {activeTab === "club" && <ClubTab />}
         {activeTab === "perfil" && <PerfilTab onBack={() => setActiveTab("inicio")} />}
       </div>
       {activeTab !== "perfil" && <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />}

@@ -1,4 +1,4 @@
-import { Home, CalendarDays, Dumbbell, Users, Trophy } from "lucide-react";
+import { Home, CalendarDays, Dumbbell, Users, Trophy, Ticket } from "lucide-react";
 
 const navItems = [
   { id: "inicio", label: "Início", icon: Home },
@@ -6,6 +6,7 @@ const navItems = [
   { id: "treino", label: "Treino", icon: Dumbbell },
   { id: "comunidade", label: "Comunidade", icon: Users },
   { id: "ranking", label: "Ranking", icon: Trophy },
+  { id: "club", label: "Club", icon: Ticket },
 ] as const;
 
 interface BottomNavProps {
