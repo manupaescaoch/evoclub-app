@@ -30,8 +30,7 @@ const GradeTab = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [activeClass, setActiveClass] = useState<ClassRow | null>(null);
 
-  const { name: authName, saveName, loading: nameLoading } = useStudentName();
-  const [nameDraft, setNameDraft] = useState("");
+  const { name: authName } = useStudentName();
 
   // Horário de Brasília (America/Sao_Paulo)
   const nowBR = useMemo(() => {
