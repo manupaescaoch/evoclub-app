@@ -732,6 +732,56 @@ export type Database = {
         }
         Relationships: []
       }
+      daily_checkins: {
+        Row: {
+          checkin_date: string
+          client_id: number | null
+          created_at: string
+          energy: number
+          id: string
+          mood: number
+          sleep_hours: number
+          sleep_quality: number
+          stress_level: number
+          student_name: string
+          updated_at: string
+        }
+        Insert: {
+          checkin_date?: string
+          client_id?: number | null
+          created_at?: string
+          energy: number
+          id?: string
+          mood: number
+          sleep_hours: number
+          sleep_quality: number
+          stress_level: number
+          student_name: string
+          updated_at?: string
+        }
+        Update: {
+          checkin_date?: string
+          client_id?: number | null
+          created_at?: string
+          energy?: number
+          id?: string
+          mood?: number
+          sleep_hours?: number
+          sleep_quality?: number
+          stress_level?: number
+          student_name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "daily_checkins_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       discount_coupons: {
         Row: {
           code: string
