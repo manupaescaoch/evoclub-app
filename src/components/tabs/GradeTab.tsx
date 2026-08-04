@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import CheckInDialog from "./CheckInDialog";
+import { useStudentName } from "@/hooks/useStudentName";
 
 // DB day_of_week: 0=Dom ... 6=Sáb. Display order Seg..Dom.
 const daysOfWeek = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"];
@@ -29,24 +30,8 @@ const GradeTab = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [activeClass, setActiveClass] = useState<ClassRow | null>(null);
 
-  const [authName, setAuthName] = useState<string>(
-    typeof window !== "undefined" ? localStorage.getItem("student_name") || "" : ""
-  );
-  const [editingName, setEditingName] = useState(false);
+  const { name: authName, saveName, loading: nameLoading } = useStudentName();
   const [nameDraft, setNameDraft] = useState("");
-
-  useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      const u = data.user;
-      if (!u) return;
-      const meta = (u.user_metadata || {}) as Record<string, string>;
-      const name = meta.full_name || meta.name || (u.email ? u.email.split("@")[0] : "");
-      if (name) {
-        setAuthName(name);
-        localStorage.setItem("student_name", name);
-      }
-    });
-  }, []);
 
   // Horário de Brasília (America/Sao_Paulo)
   const nowBR = useMemo(() => {
@@ -97,7 +82,6 @@ const GradeTab = () => {
 
   const openCheckIn = (c: ClassRow) => {
     if (!authName.trim()) {
-      setEditingName(true);
       toast.info("Digite seu nome para fazer check-in");
       return;
     }
@@ -105,12 +89,9 @@ const GradeTab = () => {
     setDialogOpen(true);
   };
 
-  const saveName = () => {
-    const v = nameDraft.trim();
-    if (!v) return;
-    setAuthName(v);
-    localStorage.setItem("student_name", v);
-    setEditingName(false);
+  const submitName = () => {
+    if (!nameDraft.trim()) return;
+    saveName(nameDraft);
     setNameDraft("");
     toast.success("Nome salvo!");
   };
@@ -136,31 +117,22 @@ const GradeTab = () => {
       </div>
 
       <div className="px-4 pb-2">
-        {authName && !editingName ? (
-          <div className="flex items-center justify-between bg-white card-shadow rounded-xl px-3 py-2">
-            <div className="text-xs font-dm">
-              <span className="text-muted-foreground">Aluno: </span>
-              <span className="font-semibold text-foreground">{authName}</span>
-            </div>
-            <button
-              onClick={() => { setNameDraft(authName); setEditingName(true); }}
-              className="text-[11px] font-dm text-primary font-semibold"
-            >
-              Alterar
-            </button>
+        {authName ? (
+          <div className="bg-white card-shadow rounded-xl px-3 py-2 text-xs font-dm">
+            <span className="text-muted-foreground">Aluno: </span>
+            <span className="font-semibold text-foreground">{authName}</span>
           </div>
-        ) : (
+        ) : nameLoading ? null : (
           <div className="flex gap-2 bg-white card-shadow rounded-xl p-2">
             <input
-              autoFocus
               value={nameDraft}
               onChange={(e) => setNameDraft(e.target.value)}
-              onKeyDown={(e) => { if (e.key === "Enter") saveName(); }}
+              onKeyDown={(e) => { if (e.key === "Enter") submitName(); }}
               placeholder="Digite seu nome"
               className="flex-1 px-3 py-1.5 text-xs font-dm bg-transparent outline-none"
             />
             <button
-              onClick={saveName}
+              onClick={submitName}
               disabled={!nameDraft.trim()}
               className="bg-primary text-white text-[11px] font-dm font-semibold px-3 py-1.5 rounded-lg cta-shadow disabled:opacity-40"
             >
