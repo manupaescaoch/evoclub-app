@@ -1,10 +1,15 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
+/** Nome padrão do perfil do aluno (usado quando não há login com metadata). */
+export const DEFAULT_STUDENT_NAME = "Rafael Costa";
+
 /** Nome do aluno vindo do perfil (metadata do login) com fallback no dispositivo. */
 export const useStudentName = () => {
   const [name, setName] = useState<string>(
-    typeof window !== "undefined" ? localStorage.getItem("student_name") || "" : ""
+    typeof window !== "undefined"
+      ? localStorage.getItem("student_name") || DEFAULT_STUDENT_NAME
+      : DEFAULT_STUDENT_NAME
   );
   const [loading, setLoading] = useState(true);
 
