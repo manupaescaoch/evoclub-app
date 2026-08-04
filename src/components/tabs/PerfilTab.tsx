@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useStudentName } from "@/hooks/useStudentName";
 import {
   Camera, ChevronRight, ChevronLeft, Scale, Calendar, Bell,
   Settings, Shield, LogOut, Trophy, Flame, Award, TrendingUp,
@@ -46,6 +47,15 @@ interface PerfilTabProps {
 
 const PerfilTab = ({ onBack }: PerfilTabProps) => {
   const [showAchievements, setShowAchievements] = useState(false);
+  const { name: studentName, saveName } = useStudentName();
+  const [editingName, setEditingName] = useState(false);
+  const [nameDraft, setNameDraft] = useState("");
+  const initials = studentName
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((p) => p[0]?.toUpperCase())
+    .join("");
   const [consistencyView, setConsistencyView] = useState<"Semana" | "Mês" | "Ano" | "Tudo">("Mês");
 
   const today = new Date();
@@ -70,16 +80,39 @@ const PerfilTab = ({ onBack }: PerfilTabProps) => {
       <div className="flex flex-col items-center mb-6">
         <div className="relative mb-3">
           <div className="w-24 h-24 rounded-full bg-primary flex items-center justify-center">
-            <span className="text-white text-2xl font-bold font-dm">RC</span>
+            <span className="text-white text-2xl font-bold font-dm">{initials || "?"}</span>
           </div>
           <button className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-white border-2 border-primary flex items-center justify-center shadow-md">
             <Camera size={14} className="text-primary" />
           </button>
         </div>
-        <div className="flex items-center gap-2">
-          <p className="font-barlow font-bold text-xl text-foreground">Rafael Costa</p>
-          <Edit2 size={14} className="text-muted" />
-        </div>
+        {editingName ? (
+          <div className="flex items-center gap-2">
+            <input
+              autoFocus
+              value={nameDraft}
+              onChange={(e) => setNameDraft(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && nameDraft.trim()) { saveName(nameDraft); setEditingName(false); }
+              }}
+              className="text-center font-barlow font-bold text-xl text-foreground bg-white rounded-lg px-3 py-1 border border-border outline-none"
+            />
+            <button
+              onClick={() => { if (nameDraft.trim()) saveName(nameDraft); setEditingName(false); }}
+              className="text-[11px] font-dm font-semibold text-primary"
+            >
+              Salvar
+            </button>
+          </div>
+        ) : (
+          <button
+            className="flex items-center gap-2"
+            onClick={() => { setNameDraft(studentName); setEditingName(true); }}
+          >
+            <p className="font-barlow font-bold text-xl text-foreground">{studentName}</p>
+            <Edit2 size={14} className="text-muted" />
+          </button>
+        )}
         <p className="text-xs text-muted font-dm">Membro desde Jan/2024</p>
       </div>
 
