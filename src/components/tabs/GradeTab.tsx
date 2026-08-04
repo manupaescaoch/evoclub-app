@@ -116,31 +116,14 @@ const GradeTab = () => {
         ))}
       </div>
 
-      <div className="px-4 pb-2">
-        {authName ? (
+      {authName && (
+        <div className="px-4 pb-2">
           <div className="bg-white card-shadow rounded-xl px-3 py-2 text-xs font-dm">
             <span className="text-muted-foreground">Aluno: </span>
             <span className="font-semibold text-foreground">{authName}</span>
           </div>
-        ) : nameLoading ? null : (
-          <div className="flex gap-2 bg-white card-shadow rounded-xl p-2">
-            <input
-              value={nameDraft}
-              onChange={(e) => setNameDraft(e.target.value)}
-              onKeyDown={(e) => { if (e.key === "Enter") submitName(); }}
-              placeholder="Digite seu nome"
-              className="flex-1 px-3 py-1.5 text-xs font-dm bg-transparent outline-none"
-            />
-            <button
-              onClick={submitName}
-              disabled={!nameDraft.trim()}
-              className="bg-primary text-white text-[11px] font-dm font-semibold px-3 py-1.5 rounded-lg cta-shadow disabled:opacity-40"
-            >
-              Salvar
-            </button>
-          </div>
-        )}
-      </div>
+        </div>
+      )}
 
       <div className="px-4 pb-4">
         {loading && <p className="text-xs text-muted font-dm py-4">Carregando...</p>}
