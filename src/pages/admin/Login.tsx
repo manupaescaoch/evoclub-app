@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
-import logo from "@/assets/logo-evo.png";
+import logoAsset from "@/assets/logo-evo.png.asset.json";
 import { logAudit } from "@/lib/audit";
 
 const Login = () => {
@@ -30,7 +30,7 @@ const Login = () => {
     <div className="min-h-screen bg-background flex items-center justify-center">
       <div className="w-full max-w-sm p-8 bg-card rounded-xl card-shadow">
         <div className="flex flex-col items-center mb-8">
-          <img src={logo} alt="EVO Training Club" className="w-14 h-14 rounded-lg mb-3" />
+          <img src={logoAsset.url} alt="EVO Training Club" className="w-14 h-14 rounded-lg mb-3" />
           <h1 className="font-barlow font-bold text-2xl text-foreground">EVO TRAINING CLUB</h1>
           <p className="text-sm text-muted-foreground font-dm">Painel Administrativo</p>
         </div>

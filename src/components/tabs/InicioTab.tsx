@@ -1,5 +1,5 @@
 import { Bell, Zap, ChevronRight, Check } from "lucide-react";
-import logo from "@/assets/logo-evo.png";
+import logoAsset from "@/assets/logo-evo.png.asset.json";
 
 const days = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"];
 const dayStates = ["done", "today", "future", "future", "future", "future", "future"] as const;
@@ -14,7 +14,7 @@ const InicioTab = ({ onTabChange }: InicioTabProps) => {
       {/* Header */}
       <div className="flex items-center justify-between mb-5">
         <div className="flex items-center gap-2">
-          <img src={logo} alt="EVO Training Club" className="w-9 h-9 rounded-lg object-contain" />
+          <img src={logoAsset.url} alt="EVO Training Club" className="w-9 h-9 rounded-lg object-contain" />
           <span className="font-barlow font-bold text-foreground text-lg">EVO TRAINING</span>
         </div>
         <div className="flex items-center gap-3">
