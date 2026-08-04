@@ -441,6 +441,80 @@ export type Database = {
           },
         ]
       }
+      club_members: {
+        Row: {
+          created_at: string
+          member_code: string
+          name: string | null
+          student_id: string
+          unit: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          member_code: string
+          name?: string | null
+          student_id: string
+          unit?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          member_code?: string
+          name?: string | null
+          student_id?: string
+          unit?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      club_redemptions: {
+        Row: {
+          amount_saved: number | null
+          confirmed_at: string | null
+          confirmed_by: string | null
+          created_at: string
+          id: string
+          partner_id: string | null
+          redeemed_at: string
+          status: string
+          student_id: string
+          updated_at: string
+        }
+        Insert: {
+          amount_saved?: number | null
+          confirmed_at?: string | null
+          confirmed_by?: string | null
+          created_at?: string
+          id?: string
+          partner_id?: string | null
+          redeemed_at?: string
+          status?: string
+          student_id: string
+          updated_at?: string
+        }
+        Update: {
+          amount_saved?: number | null
+          confirmed_at?: string | null
+          confirmed_by?: string | null
+          created_at?: string
+          id?: string
+          partner_id?: string | null
+          redeemed_at?: string
+          status?: string
+          student_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "club_redemptions_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       collaborators: {
         Row: {
           cpf: string | null
@@ -1157,6 +1231,54 @@ export type Database = {
           unit_id?: string | null
           updated_at?: string
           whatsapp_group_link?: string | null
+        }
+        Relationships: []
+      }
+      partners: {
+        Row: {
+          active: boolean
+          category: string
+          code: string | null
+          created_at: string
+          description: string | null
+          discount_label: string | null
+          id: string
+          image_url: string | null
+          location: string | null
+          name: string
+          redeem_instructions: string | null
+          tag: string | null
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          category?: string
+          code?: string | null
+          created_at?: string
+          description?: string | null
+          discount_label?: string | null
+          id?: string
+          image_url?: string | null
+          location?: string | null
+          name: string
+          redeem_instructions?: string | null
+          tag?: string | null
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          category?: string
+          code?: string | null
+          created_at?: string
+          description?: string | null
+          discount_label?: string | null
+          id?: string
+          image_url?: string | null
+          location?: string | null
+          name?: string
+          redeem_instructions?: string | null
+          tag?: string | null
+          updated_at?: string
         }
         Relationships: []
       }
