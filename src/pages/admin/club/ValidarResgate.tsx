@@ -10,7 +10,7 @@ import {
 import { toast } from "sonner";
 import { Check, Clock, Search, User } from "lucide-react";
 import { fmtBRL } from "@/lib/finance";
-import { logAudit } from "@/lib/audit";
+import { logCreate, logUpdate } from "@/lib/audit";
 
 type Member = { student_id: string; member_code: string; name: string | null; unit: string | null };
 type Partner = { id: string; name: string };
@@ -97,10 +97,7 @@ export default function ValidarResgate() {
     setBusy(false);
     if (error) return toast.error("Não foi possível confirmar o resgate.");
     toast.success("Resgate confirmado.");
-    logAudit({
-      action: "confirm", entity: "club_redemption", entityId: r.id,
-      description: `Resgate do Club confirmado (${fmtBRL(value)})`,
-    });
+    logUpdate("club_redemption", r.id, `Resgate do Club confirmado (${fmtBRL(value)})`);
     setAmount("");
     if (member) loadRedemptions(member.student_id);
   };
@@ -122,10 +119,7 @@ export default function ValidarResgate() {
     setBusy(false);
     if (error) return toast.error("Não foi possível registrar o resgate.");
     toast.success("Resgate registrado e confirmado.");
-    logAudit({
-      action: "create", entity: "club_redemption",
-      description: `Resgate do Club registrado para ${member.name ?? member.member_code} (${fmtBRL(value)})`,
-    });
+    logCreate("club_redemption", null, `Resgate do Club registrado para ${member.name ?? member.member_code} (${fmtBRL(value)})`);
     setAmount("");
     setPartnerId("");
     loadRedemptions(member.student_id);
