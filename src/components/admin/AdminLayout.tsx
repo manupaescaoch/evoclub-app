@@ -58,6 +58,7 @@ const navItems: NavItem[] = [
       { label: "Métodos de Treino", icon: Wrench, path: "/admin/treinos/metodos" },
     ],
   },
+  { label: "Validar Resgate (Club)", icon: Ticket, path: "/admin/club/validar" },
   { label: "Configurações", icon: Settings, path: "/admin/configuracoes" },
   { label: "Novidades", icon: Sparkles, path: "/admin/novidades" },
   { label: "Central de Ajuda", icon: HelpCircle, path: "/admin/ajuda" },

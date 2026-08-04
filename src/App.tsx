@@ -45,6 +45,7 @@ import Indicacoes from "./pages/admin/crm/Indicacoes.tsx";
 import Tarefas from "./pages/admin/crm/Tarefas.tsx";
 import Operacional from "./pages/admin/crm/Operacional.tsx";
 import Escala from "./pages/admin/crm/Escala.tsx";
+import ValidarResgate from "./pages/admin/club/ValidarResgate";
 import Configuracoes from "./pages/admin/Configuracoes.tsx";
 
 const queryClient = new QueryClient();
@@ -104,6 +105,7 @@ const App = () => (
               <Route path="biblioteca" element={<TreinosBiblioteca />} />
               <Route path="metodos" element={<TreinosMetodos />} />
             </Route>
+            <Route path="club/validar" element={<ValidarResgate />} />
             <Route path="configuracoes" element={<Configuracoes />} />
             <Route path="novidades" element={<Placeholder />} />
             <Route path="ajuda" element={<Placeholder />} />
