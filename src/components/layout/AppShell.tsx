@@ -6,6 +6,7 @@ import TreinoTab from "../tabs/TreinoTab";
 import ComunidadeTab from "../tabs/ComunidadeTab";
 import RankingTab from "../tabs/RankingTab";
 import PerfilTab from "../tabs/PerfilTab";
+import DailyCheckinDialog from "../tabs/DailyCheckinDialog";
 
 const tabs = ["inicio", "grade", "treino", "comunidade", "ranking", "perfil"] as const;
 type Tab = (typeof tabs)[number];
@@ -15,6 +16,7 @@ const AppShell = () => {
 
   return (
     <div className="mx-auto max-w-[390px] min-h-screen bg-background relative">
+      <DailyCheckinDialog />
       <div className="pb-24 overflow-y-auto min-h-screen">
         {activeTab === "inicio" && <InicioTab onTabChange={setActiveTab} />}
         {activeTab === "grade" && <GradeTab />}
