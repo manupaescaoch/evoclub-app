@@ -81,19 +81,8 @@ const GradeTab = () => {
   };
 
   const openCheckIn = (c: ClassRow) => {
-    if (!authName.trim()) {
-      toast.info("Digite seu nome para fazer check-in");
-      return;
-    }
     setActiveClass(c);
     setDialogOpen(true);
-  };
-
-  const submitName = () => {
-    if (!nameDraft.trim()) return;
-    saveName(nameDraft);
-    setNameDraft("");
-    toast.success("Nome salvo!");
   };
 
   return (
