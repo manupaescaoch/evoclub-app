@@ -515,9 +515,24 @@ const TreinoTab = () => {
     toast(`+${XP_START} XP — Treino iniciado!`, { icon: <Zap size={16} className="text-primary" /> });
   };
 
-  const handleFinishWorkout = useCallback(() => {
+  const handleFinishWorkout = useCallback(async () => {
+    if (!logId) { setShowXpModal(true); return; }
+    setSaving(true);
+    // Garante que todas as séries executadas estejam gravadas
+    for (let i = 0; i < exercises.length; i++) {
+      await persistExercise(logId, exercises[i], i, exercises[i].done);
+    }
+    await supabase
+      .from("workout_logs")
+      .update({ status: "completed", finished_at: new Date().toISOString() })
+      .eq("id", logId);
+    setSaving(false);
+    setWorkouts(prev => prev.map(w => ({
+      ...w,
+      days: w.days.map(d => (d.id === currentSessionId ? { ...d, state: "done" as const } : d)),
+    })));
     setShowXpModal(true);
-  }, []);
+  }, [logId, exercises, persistExercise, currentSessionId]);
 
   // Screen: Exercise detail
   if (screen === "exercises" && selectedWorkout) {
