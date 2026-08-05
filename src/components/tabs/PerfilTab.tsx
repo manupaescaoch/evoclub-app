@@ -337,7 +337,10 @@ const PerfilTab = ({ onBack }: PerfilTabProps) => {
       </div>
 
       {/* Sair */}
-      <button className="w-full py-3 rounded-2xl border border-red-200 text-red-500 font-dm font-semibold text-sm flex items-center justify-center gap-2 mb-4">
+      <button
+        onClick={async () => { await signOut(); navigate("/aluno/login", { replace: true }); }}
+        className="w-full py-3 rounded-2xl border border-red-200 text-red-500 font-dm font-semibold text-sm flex items-center justify-center gap-2 mb-4"
+      >
         <LogOut size={16} />
         Sair da Conta
       </button>
