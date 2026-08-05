@@ -2,8 +2,9 @@ import { useState } from "react";
 import { useStudentName } from "@/hooks/useStudentName";
 import { useNavigate } from "react-router-dom";
 import { useStudent } from "@/contexts/StudentContext";
+import PushNotificationsCard from "@/components/tabs/PushNotificationsCard";
 import {
-  Camera, ChevronRight, ChevronLeft, Scale, Calendar, Bell,
+  Camera, ChevronRight, ChevronLeft, Scale, Calendar,
   Settings, Shield, LogOut, Trophy, Flame, Award, TrendingUp,
   AlertTriangle, CheckCircle2, Edit2
 } from "lucide-react";
@@ -38,7 +39,6 @@ const weightData = [
 const consistencyDays = [1, 2, 3, 5, 7, 8, 9, 10, 12, 14, 15, 16];
 
 const menuItems = [
-  { label: "Notificações", icon: Bell },
   { label: "Configurações", icon: Settings },
   { label: "Privacidade", icon: Shield },
 ];
@@ -325,6 +325,8 @@ const PerfilTab = ({ onBack }: PerfilTabProps) => {
       </div>
 
       {/* Menu Items */}
+      <PushNotificationsCard />
+
       <div className="space-y-2 mb-4">
         {menuItems.map((item) => (
           <button
