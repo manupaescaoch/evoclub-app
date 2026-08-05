@@ -573,8 +573,8 @@ const TreinoTab = () => {
 
           {started && doneCount === exercises.length && doneCount > 0 && !showXpModal && (
             <div className="mb-4">
-              <button onClick={handleFinishWorkout} className="w-full py-3.5 rounded-2xl font-barlow font-bold text-base tracking-wide text-white active:scale-[0.98] transition-transform" style={{ background: "linear-gradient(135deg, #1400FF 0%, #0A00B0 100%)", boxShadow: "0 3px 14px #1400FF55" }}>
-                🏆 FINALIZAR TREINO
+              <button onClick={handleFinishWorkout} disabled={saving} className="w-full py-3.5 rounded-2xl font-barlow font-bold text-base tracking-wide text-white active:scale-[0.98] transition-transform disabled:opacity-60" style={{ background: "linear-gradient(135deg, #1400FF 0%, #0A00B0 100%)", boxShadow: "0 3px 14px #1400FF55" }}>
+                {saving ? "SALVANDO..." : "🏆 FINALIZAR TREINO"}
               </button>
             </div>
           )}
@@ -633,7 +633,7 @@ const TreinoTab = () => {
         </div>
 
         {editTarget && (
-          <LoadModal value={exercises[editTarget.ex].series[editTarget.s].load} onSave={(v) => updateLoad(editTarget.ex, editTarget.s, v)} onClose={() => setEditTarget(null)} />
+          <LoadModal series={exercises[editTarget.ex].series[editTarget.s]} onSave={(v) => updateLoad(editTarget.ex, editTarget.s, v)} onClose={() => setEditTarget(null)} />
         )}
         {timerTarget !== null && (
           <TimerModal seconds={timerTarget} onClose={() => setTimerTarget(null)} />
