@@ -580,6 +580,158 @@ export type Database = {
           },
         ]
       }
+      community_announcements: {
+        Row: {
+          active: boolean
+          body: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          pinned: boolean
+          title: string
+          unit_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          body?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          pinned?: boolean
+          title: string
+          unit_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          body?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          pinned?: boolean
+          title?: string
+          unit_id?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      community_post_likes: {
+        Row: {
+          client_id: number
+          created_at: string
+          id: string
+          post_id: string
+        }
+        Insert: {
+          client_id: number
+          created_at?: string
+          id?: string
+          post_id: string
+        }
+        Update: {
+          client_id?: number
+          created_at?: string
+          id?: string
+          post_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "community_post_likes_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "community_post_likes_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "community_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      community_posts: {
+        Row: {
+          author_name: string | null
+          client_id: number | null
+          content: string | null
+          created_at: string
+          id: string
+          image_url: string | null
+          unit_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          author_name?: string | null
+          client_id?: number | null
+          content?: string | null
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          unit_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          author_name?: string | null
+          client_id?: number | null
+          content?: string | null
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          unit_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "community_posts_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      community_reports: {
+        Row: {
+          client_id: number | null
+          created_at: string
+          id: string
+          post_id: string
+          reason: string | null
+        }
+        Insert: {
+          client_id?: number | null
+          created_at?: string
+          id?: string
+          post_id: string
+          reason?: string | null
+        }
+        Update: {
+          client_id?: number | null
+          created_at?: string
+          id?: string
+          post_id?: string
+          reason?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "community_reports_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "community_reports_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "community_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contracts: {
         Row: {
           body: string | null
@@ -2515,6 +2667,19 @@ export type Database = {
         Returns: boolean
       }
       link_client_by_email: { Args: { _email: string }; Returns: Json }
+      ranking_scores: {
+        Args: { _from?: string; _unit_id?: string }
+        Returns: {
+          class_checkins: number
+          client_id: number
+          daily_checkins: number
+          name: string
+          points: number
+          posts: number
+          unit_id: string
+          workouts: number
+        }[]
+      }
     }
     Enums: {
       app_role: "admin" | "coach" | "coordinator" | "student" | "viewer"
