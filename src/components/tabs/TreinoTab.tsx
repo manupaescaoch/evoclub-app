@@ -1,7 +1,11 @@
 import { useState, useEffect, useCallback } from "react";
 import { ArrowLeft, Check, Play, Clock, X, Pause, RotateCcw, Dumbbell, PersonStanding, ChevronRight, Pencil, Zap, Trophy } from "lucide-react";
 import { toast } from "sonner";
-// ... types & data
+import { supabase } from "@/integrations/supabase/client";
+import { useStudentName } from "@/hooks/useStudentName";
+
+const DEFAULT_THUMB =
+  "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=300&h=300&fit=crop";
 
 interface ExerciseSeries {
   reps: string;
@@ -20,114 +24,11 @@ interface Workout {
   id: string;
   name: string;
   icon: "weights" | "cardio";
-  days: { day: string; name: string; state: "done" | "today" | "upcoming" }[];
-  exercises: Exercise[];
+  days: { id: string; day: string; name: string; state: "done" | "today" | "upcoming" }[];
 }
 
-const workoutsData: Workout[] = [
-  {
-    id: "rotinas",
-    name: "Costas & Bíceps",
-    icon: "weights",
-    days: [
-      { day: "SEG", name: "Peito & Tríceps", state: "done" },
-      { day: "TER", name: "Costas & Bíceps", state: "today" },
-      { day: "QUA", name: "Pernas", state: "upcoming" },
-      { day: "QUI", name: "Ombros & Trapézio", state: "upcoming" },
-      { day: "SEX", name: "Braços & Abdômen", state: "upcoming" },
-    ],
-    exercises: [
-      {
-        name: "Puxada Frontal",
-        videoThumb: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=300&h=300&fit=crop",
-        series: [
-          { reps: "1x15-20", load: "0", rest: "60s" },
-          { reps: "2x12-15", load: "0", rest: "60s" },
-          { reps: "2x8-12", load: "0", rest: "60s" },
-        ],
-        done: false,
-      },
-      {
-        name: "Remada Curvada",
-        videoThumb: "https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?w=300&h=300&fit=crop",
-        series: [
-          { reps: "1x15-20", load: "0", rest: "60s" },
-          { reps: "2x12-15", load: "0", rest: "60s" },
-          { reps: "2x8-12", load: "0", rest: "60s" },
-        ],
-        done: false,
-      },
-      {
-        name: "Remada Unilateral",
-        videoThumb: "https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?w=300&h=300&fit=crop",
-        series: [
-          { reps: "1x15-20", load: "0", rest: "60s" },
-          { reps: "3x12", load: "0", rest: "60s" },
-        ],
-        done: false,
-      },
-      {
-        name: "Pulldown Corda",
-        videoThumb: "https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=300&h=300&fit=crop",
-        series: [
-          { reps: "1x15-20", load: "0", rest: "60s" },
-          { reps: "2x12-15", load: "0", rest: "60s" },
-          { reps: "2x8-12", load: "0", rest: "60s" },
-        ],
-        done: false,
-      },
-      {
-        name: "Rosca Direta",
-        videoThumb: "https://images.unsplash.com/photo-1581009137042-c552e485697a?w=300&h=300&fit=crop",
-        series: [
-          { reps: "1x15-20", load: "0", rest: "60s" },
-          { reps: "2x12-15", load: "0", rest: "60s" },
-          { reps: "2x8-12", load: "0", rest: "60s" },
-        ],
-        done: false,
-      },
-      {
-        name: "Rosca Martelo",
-        videoThumb: "https://images.unsplash.com/photo-1584952811565-c4c4031a2cd2?w=300&h=300&fit=crop",
-        series: [
-          { reps: "1x15-20", load: "0", rest: "60s" },
-          { reps: "3x12", load: "0", rest: "60s" },
-        ],
-        done: false,
-      },
-    ],
-  },
-  {
-    id: "cardio",
-    name: "Treinos de Cardio",
-    icon: "cardio",
-    days: [
-      { day: "TER", name: "HIIT 30min", state: "today" },
-      { day: "QUI", name: "Esteira 45min", state: "upcoming" },
-      { day: "SAB", name: "Bike 40min", state: "upcoming" },
-    ],
-    exercises: [
-      {
-        name: "Burpees",
-        videoThumb: "https://images.unsplash.com/photo-1599058917765-a780eda07a3e?w=300&h=300&fit=crop",
-        series: [
-          { reps: "3x15", load: "0", rest: "45s" },
-          { reps: "2x20", load: "0", rest: "30s" },
-        ],
-        done: false,
-      },
-      {
-        name: "Mountain Climbers",
-        videoThumb: "https://images.unsplash.com/photo-1434682881908-b43d0467b798?w=300&h=300&fit=crop",
-        series: [
-          { reps: "3x30s", load: "0", rest: "30s" },
-          { reps: "2x45s", load: "0", rest: "30s" },
-        ],
-        done: false,
-      },
-    ],
-  },
-];
+const dayShort = (label: string | null, index: number) =>
+  label ? label.slice(0, 3).toUpperCase() : `D${index + 1}`;
 
 const parseRestSeconds = (rest: string): number => {
   const match = rest.match(/(\d+)/);
@@ -316,6 +217,10 @@ type Screen = "menu" | "days" | "exercises";
 
 const TreinoTab = () => {
   const [screen, setScreen] = useState<Screen>("menu");
+  const { clientId } = useStudentName();
+  const [workouts, setWorkouts] = useState<Workout[]>([]);
+  const [loadingPlan, setLoadingPlan] = useState(true);
+  const [loadingDay, setLoadingDay] = useState(false);
   const [selectedWorkout, setSelectedWorkout] = useState<Workout | null>(null);
   const [started, setStarted] = useState(false);
   const [exercises, setExercises] = useState<Exercise[]>([]);
@@ -325,18 +230,92 @@ const TreinoTab = () => {
   const [loadAnnotations, setLoadAnnotations] = useState(0);
   const [showXpModal, setShowXpModal] = useState(false);
 
+  // Carrega o plano ativo prescrito para o aluno
+  useEffect(() => {
+    if (!clientId) return;
+    let alive = true;
+    (async () => {
+      setLoadingPlan(true);
+      const { data: plans } = await supabase
+        .from("training_plans")
+        .select("id, name, goal")
+        .eq("student_id", clientId)
+        .eq("is_active", true)
+        .order("created_at", { ascending: false })
+        .limit(1);
+      const plan = plans?.[0];
+      if (!plan) {
+        if (alive) { setWorkouts([]); setLoadingPlan(false); }
+        return;
+      }
+      const { data: weeks } = await supabase
+        .from("training_weeks")
+        .select("id")
+        .eq("training_plan_id", plan.id)
+        .order("week_number")
+        .limit(1);
+      const week = weeks?.[0];
+      let days: Workout["days"] = [];
+      if (week) {
+        const { data: sessions } = await supabase
+          .from("training_sessions")
+          .select("id, name, day_of_week, order_index")
+          .eq("training_week_id", week.id)
+          .order("order_index");
+        days = (sessions || []).map((s, i) => ({
+          id: s.id,
+          day: dayShort(s.day_of_week, i),
+          name: s.name,
+          state: "upcoming" as const,
+        }));
+      }
+      if (!alive) return;
+      setWorkouts([{ id: plan.id, name: plan.name, icon: "weights", days }]);
+      setLoadingPlan(false);
+    })();
+    return () => { alive = false; };
+  }, [clientId]);
+
   const openWorkout = (w: Workout) => {
     setSelectedWorkout(w);
     setScreen("days");
   };
 
-  const openDay = (dayName: string, w: Workout) => {
-    setSelectedDay(dayName);
-    setExercises(w.exercises.map(e => ({ ...e, done: false })));
+  const openDay = async (day: Workout["days"][number]) => {
+    setSelectedDay(day.name);
     setStarted(false);
     setLoadAnnotations(0);
     setShowXpModal(false);
+    setExercises([]);
     setScreen("exercises");
+    setLoadingDay(true);
+    const { data: exs } = await supabase
+      .from("training_session_exercises")
+      .select("id, exercise_name, order_index")
+      .eq("training_session_id", day.id)
+      .order("order_index");
+    const ids = (exs || []).map((e) => e.id);
+    const { data: sets } = ids.length
+      ? await supabase
+          .from("training_exercise_sets")
+          .select("session_exercise_id, sets, reps, load, rest_seconds, time_seconds, order_index")
+          .in("session_exercise_id", ids)
+          .order("order_index")
+      : { data: [] as never[] };
+    const mapped: Exercise[] = (exs || []).map((e) => ({
+      name: e.exercise_name,
+      videoThumb: DEFAULT_THUMB,
+      done: false,
+      series: (sets || [])
+        .filter((s) => s.session_exercise_id === e.id)
+        .map((s) => ({
+          reps: `${s.sets || 1}x${s.reps || (s.time_seconds ? `${s.time_seconds}s` : "-")}`,
+          load: s.load || "0",
+          rest: `${s.rest_seconds ?? 60}s`,
+        })),
+    }));
+    setExercises(mapped);
+    setLoadingDay(false);
   };
 
   const updateLoad = (exerciseIdx: number, seriesIdx: number, value: string) => {
@@ -394,6 +373,12 @@ const TreinoTab = () => {
 
         {/* Scrollable content */}
         <div className="flex-1 overflow-y-auto px-4 pb-24">
+          {loadingDay && <p className="text-xs font-dm text-muted py-4">Carregando treino...</p>}
+          {!loadingDay && exercises.length === 0 && (
+            <p className="text-xs font-dm text-muted py-4 text-center">
+              Nenhum exercício cadastrado neste dia.
+            </p>
+          )}
           {!started && (
             <div className="mb-4">
               <button onClick={handleStartWorkout} className="w-full py-3 rounded-2xl bg-primary text-primary-foreground font-barlow font-bold text-base tracking-wide active:scale-[0.98] transition-transform" style={{ boxShadow: "0 3px 10px #1400FF44" }}>
@@ -505,8 +490,8 @@ const TreinoTab = () => {
         <div className="space-y-2">
           {selectedWorkout.days.map((w) => (
             <button
-              key={w.day}
-              onClick={() => openDay(w.name, selectedWorkout)}
+              key={w.id}
+              onClick={() => openDay(w)}
               className={`w-full rounded-2xl p-4 card-shadow flex items-center gap-3 text-left min-h-[56px]
                 ${w.state === "done" ? "bg-card opacity-60" : w.state === "today" ? "bg-primary/5 border border-primary/20" : "bg-card"}`}
             >
@@ -531,8 +516,17 @@ const TreinoTab = () => {
   return (
     <div className="px-4 pt-4 pb-24">
       <h1 className="font-barlow font-bold text-xl text-foreground mb-4">TREINOS</h1>
+      {loadingPlan && <p className="text-xs font-dm text-muted">Carregando seu treino...</p>}
+      {!loadingPlan && workouts.length === 0 && (
+        <div className="rounded-2xl bg-card card-shadow p-5 text-center">
+          <p className="font-dm font-semibold text-sm text-foreground">Nenhum treino prescrito</p>
+          <p className="text-xs font-dm text-muted-foreground mt-1">
+            Fale com seu professor para receber seu plano de treino.
+          </p>
+        </div>
+      )}
       <div className="space-y-3">
-        {workoutsData.map((w) => (
+        {workouts.map((w) => (
           <button
             key={w.id}
             onClick={() => openWorkout(w)}

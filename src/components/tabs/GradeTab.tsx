@@ -18,19 +18,18 @@ type ClassRow = {
   max_slots: number | null;
 };
 
-type BookingRow = { class_id: string | null; muscle_group: string | null };
-
 const GradeTab = () => {
   const todayJs = new Date().getDay(); // 0..6 (Dom..Sáb)
   const initialDay = Math.max(0, dayIndexToDb.indexOf(todayJs));
   const [activeDay, setActiveDay] = useState(initialDay);
   const [classes, setClasses] = useState<ClassRow[]>([]);
-  const [bookings, setBookings] = useState<BookingRow[]>([]);
+  const [counts, setCounts] = useState<Record<string, number>>({});
+  const [myBookings, setMyBookings] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [activeClass, setActiveClass] = useState<ClassRow | null>(null);
 
-  const { name: authName } = useStudentName();
+  const { name: authName, clientId } = useStudentName();
 
   // Horário de Brasília (America/Sao_Paulo)
   const nowBR = useMemo(() => {
@@ -46,28 +45,32 @@ const GradeTab = () => {
   const load = async () => {
     setLoading(true);
     const dbDay = dayIndexToDb[activeDay];
-    const [{ data: cls }, { data: bks }] = await Promise.all([
+    const [{ data: cls }, { data: cnt }, { data: mine }] = await Promise.all([
       supabase.from("classes").select("*").eq("day_of_week", dbDay).order("start_time"),
-      supabase.from("class_bookings").select("class_id, muscle_group"),
+      supabase.rpc("class_booking_counts", { _day: dbDay }),
+      clientId
+        ? supabase.from("class_bookings").select("class_id").eq("client_id", clientId)
+        : Promise.resolve({ data: [] as { class_id: string | null }[] }),
     ]);
     setClasses((cls || []) as ClassRow[]);
-    setBookings((bks || []) as BookingRow[]);
+    const map: Record<string, number> = {};
+    ((cnt || []) as { class_id: string; total: number }[]).forEach((r) => {
+      map[r.class_id] = Number(r.total);
+    });
+    setCounts(map);
+    setMyBookings(
+      ((mine || []) as { class_id: string | null }[]).map((b) => b.class_id || "").filter(Boolean)
+    );
     setLoading(false);
   };
 
-  useEffect(() => { load(); /* eslint-disable-next-line */ }, [activeDay]);
-
-  const bookingsByClass = useMemo(() => {
-    const m: Record<string, number> = {};
-    bookings.forEach((b) => { if (b.class_id) m[b.class_id] = (m[b.class_id] || 0) + 1; });
-    return m;
-  }, [bookings]);
+  useEffect(() => { load(); /* eslint-disable-next-line */ }, [activeDay, clientId]);
 
   const handleConfirm = async ({ studentName, muscleGroup }: { studentName: string; muscleGroup: "inferior" | "superior" }) => {
     if (!activeClass) return;
-    localStorage.setItem("student_name", studentName);
     const { error } = await supabase.from("class_bookings").insert({
       class_id: activeClass.id,
+      client_id: clientId,
       student_name: studentName,
       muscle_group: muscleGroup,
       checked_in_at: new Date().toISOString(),
@@ -128,7 +131,8 @@ const GradeTab = () => {
           const endMinutesTotal = endHour * 60 + endMinute;
           // Só desabilita quando é hoje e a aula já terminou
           const isPast = isToday && nowMinutesTotal >= endMinutesTotal;
-          const filled = bookingsByClass[c.id] || 0;
+          const filled = counts[c.id] || 0;
+          const already = myBookings.includes(c.id);
           const max = c.max_slots || 14;
           const remaining = Math.max(0, max - filled);
           const isPeak = (hour >= 6 && hour <= 9) || (hour >= 17 && hour <= 20);
@@ -164,11 +168,11 @@ const GradeTab = () => {
                     </div>
                   </div>
                   <button
-                    disabled={full || isPast}
+                    disabled={full || isPast || already}
                     onClick={() => openCheckIn(c)}
                     className="bg-primary text-white text-[11px] font-dm font-semibold px-3 py-1.5 rounded-lg cta-shadow disabled:opacity-40"
                   >
-                    {isPast ? "Encerrada" : "Check-in"}
+                    {already ? "Confirmado" : isPast ? "Encerrada" : "Check-in"}
                   </button>
                 </div>
               </div>

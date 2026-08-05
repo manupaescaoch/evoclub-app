@@ -381,6 +381,7 @@ export type Database = {
       }
       clients: {
         Row: {
+          auth_user_id: string | null
           contract_end: string | null
           contract_start: string | null
           cpf: string | null
@@ -390,6 +391,7 @@ export type Database = {
           id: number
           name: string
           observations: string | null
+          onboarding_completed: boolean
           phone: string | null
           plan: string | null
           plan_value: number | null
@@ -398,6 +400,7 @@ export type Database = {
           visit_type: string | null
         }
         Insert: {
+          auth_user_id?: string | null
           contract_end?: string | null
           contract_start?: string | null
           cpf?: string | null
@@ -407,6 +410,7 @@ export type Database = {
           id?: number
           name: string
           observations?: string | null
+          onboarding_completed?: boolean
           phone?: string | null
           plan?: string | null
           plan_value?: number | null
@@ -415,6 +419,7 @@ export type Database = {
           visit_type?: string | null
         }
         Update: {
+          auth_user_id?: string | null
           contract_end?: string | null
           contract_start?: string | null
           cpf?: string | null
@@ -424,6 +429,7 @@ export type Database = {
           id?: number
           name?: string
           observations?: string | null
+          onboarding_completed?: boolean
           phone?: string | null
           plan?: string | null
           plan_value?: number | null
@@ -2344,6 +2350,14 @@ export type Database = {
     }
     Functions: {
       can_manage_training: { Args: { _user_id: string }; Returns: boolean }
+      class_booking_counts: {
+        Args: { _day: number }
+        Returns: {
+          class_id: string
+          total: number
+        }[]
+      }
+      current_client_id: { Args: never; Returns: number }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -2351,6 +2365,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      link_client_by_email: { Args: { _email: string }; Returns: Json }
     }
     Enums: {
       app_role: "admin" | "coach" | "coordinator" | "student" | "viewer"
