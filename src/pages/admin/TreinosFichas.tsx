@@ -384,6 +384,9 @@ const TreinosFichas = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Adesão real dos alunos (prescrito vs executado) */}
+      <ExecucaoAluno title="ADESÃO DOS ALUNOS (PRESCRITO VS REALIZADO)" limit={20} />
     </div>
   );
 };
