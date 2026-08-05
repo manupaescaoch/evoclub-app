@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import ExecucaoAluno from "@/components/admin/treinos/ExecucaoAluno";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -744,6 +745,9 @@ const PrescreverEditor = () => {
           </button>
         </div>
       )}
+
+      {/* Adesão real do aluno (prescrito vs executado) */}
+      <ExecucaoAluno clientId={clientId} title="EXECUÇÃO DO ALUNO (PRESCRITO VS REALIZADO)" />
 
       {/* Mobile fixed bottom bar */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 bg-card border-t border-border p-3 flex gap-2 z-30">
