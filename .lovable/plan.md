@@ -1,63 +1,40 @@
+# Login do aluno + onboarding no primeiro acesso
+
 ## Objetivo
+O app do aluno passa a exigir login por e-mail e senha, vinculado a um cadastro existente em `clients`. No primeiro acesso, um tutorial curto apresenta as abas. Todo o resto (Grade, Club, Comunidade, Ranking, Treino, admin) continua igual visualmente.
 
-No app do aluno, ao reservar/fazer check-in numa aula da grade, perguntar qual grupamento vai treinar (Inferior / Superior) e confirmar. Na grade do admin/professor (desktop), mostrar em cada horário o nome do aluno + grupamento escolhido.
+## 1. Banco de dados
+- `clients`: adicionar `auth_user_id uuid unique` (referência ao usuário autenticado) e `onboarding_completed boolean not null default false`.
+- Função `public.current_client_id()` (security definer) que retorna o `clients.id` do usuário logado — usada nas políticas e no app.
+- Função `public.link_client_by_email(text)` (security definer): procura em `clients` um registro com aquele e-mail e sem `auth_user_id`, e o vincula ao usuário logado. Retorna sucesso/erro para o app decidir a mensagem.
+- RLS por aluno (mantendo as políticas de staff que já existem):
+  - `daily_checkins`: aluno vê/insere/edita só linhas com `client_id = current_client_id()`. As políticas públicas atuais (`Public can insert/update/view daily checkins`) são removidas.
+  - `class_bookings`: aluno vê/insere/cancela só as próprias (`client_id = current_client_id()`); as políticas públicas de insert/select saem. Leitura da lotação da grade continua possível via contagem agregada permitida a `authenticated`.
+  - `training_plans`, `training_weeks`, `training_sessions`, `training_session_exercises`, `training_exercise_sets`: leitura restrita ao próprio plano do aluno (hoje qualquer autenticado lê tudo); staff continua com acesso total.
+  - `clients`: aluno pode ler a própria linha e atualizar apenas `onboarding_completed`.
+- `classes`, `partners` seguem legíveis para autenticados (grade e Club sem mudança de comportamento).
 
-## Escopo
+Observação: os check-ins e reservas antigos foram gravados só com `student_name` (sem `client_id`), então não aparecerão para o aluno após a mudança. Se quiser, posso tentar casar por nome numa etapa de limpeza depois.
 
-### 1. Banco de dados
-Nova migration adicionando colunas em `class_bookings`:
-- `student_name text` — nome do aluno (cacheado para exibição rápida)
-- `muscle_group text` — valor `inferior` ou `superior`
-- `checked_in_at timestamptz` — quando confirmou
+## 2. Autenticação
+- Auth por e-mail/senha (sem magic link, sem social). Sem confirmação automática por padrão: no cadastro o aluno vê "confirme seu e-mail". Se preferir entrar direto após cadastrar, ativo a confirmação automática — me diga.
+- Novas telas, reaproveitando o visual de `/admin/login`, dentro do padrão mobile (máx 390px):
+  - `/aluno/login` — e-mail + senha, link para cadastro.
+  - `/aluno/cadastro` — e-mail, senha, confirmar senha. Após criar a conta, tenta vincular ao `clients` pelo e-mail; se não houver cadastro correspondente, mostra "Não encontramos seu cadastro. Fale com a recepção da sua unidade." e não deixa a conta seguir sem vínculo.
+- `RoleSelect`: o botão "Sou aluno" passa a levar para `/aluno` protegido (redireciona ao login se não houver sessão).
+- Guarda de rota `StudentGuard`: sem sessão → `/aluno/login`; com sessão mas sem vínculo em `clients` → tela de "procure a recepção" com opção de sair.
+- Novo hook `useStudentProfile` (nome, `client_id`, unidade, `onboarding_completed`) substituindo o nome vindo do `localStorage`. `useStudentName` passa a ler do perfil autenticado (sem "Rafael Costa" fixo).
 
-Sem novas tabelas, sem mudar RLS existente.
+## 3. Ajustes nas telas do aluno (sem mudar layout)
+- `GradeTab`: check-in grava `client_id` do aluno logado (mantém `student_name` preenchido a partir do perfil para o painel admin), sem input de nome.
+- `DailyCheckinDialog`: grava `client_id`; controle de "uma vez por dia" passa a considerar o registro do dia no banco (fallback local mantido).
+- `TreinoTab`: hoje usa dados de exemplo; passa a buscar o plano ativo do aluno logado (`training_plans` do próprio `client_id`), mantendo o layout atual. Se preferir deixar `TreinoTab` como está nesta etapa, é só dizer.
+- `PerfilTab`: nome vem do perfil; edição de nome grava em `clients`.
 
-### 2. App do aluno — `src/components/tabs/GradeTab.tsx`
-- Botão "Reservar" abre um `Dialog` (shadcn) com:
-  - Título: "Confirmar check-in"
-  - Info da aula (horário + professor)
-  - Duas opções grandes lado a lado: **INFERIOR** / **SUPERIOR** (cards clicáveis, seleção destaca em `primary`)
-  - Botões "Cancelar" / "Confirmar" (Confirmar desabilitado até escolher)
-- Ao confirmar → `insert` em `class_bookings` com `class_id`, `student_name` (pega do perfil/localStorage), `muscle_group`, `checked_in_at = now()`, `status = 'confirmed'`.
-- Feedback: toast "Check-in confirmado" e botão vira "Reservado ✓".
-- Substitui a geração fake atual por leitura real de `classes` do dia selecionado (mantém o layout timeline já existente).
+## 4. Onboarding
+- `OnboardingDialog` (carrossel de poucos slides) apresentando Início, Treino, Grade, Club, Comunidade, Ranking e Perfil, no design atual (azul #1400FF, Barlow/DM Sans).
+- Aparece uma única vez, quando `clients.onboarding_completed = false`; ao concluir ou pular, marca `true`. Sem passo de "adicionar à tela de início".
+- Ordem no `AppShell`: onboarding primeiro; o check-in diário só aparece depois de concluído.
 
-### 3. Grade admin/professor — `src/pages/admin/Grade.tsx`
-Dentro de cada célula de aula, abaixo do `filled/max` e nome da atividade, renderizar a lista de alunos reservados:
-
-```text
-06:00 - 07:00      3/14
-Musculação
-─────────────
-• João Silva      INF
-• Maria Souza     SUP
-• Pedro Alves     INF
-```
-
-- Buscar `class_bookings` já retorna `student_name` e `muscle_group` (uma query só, agrupa em memória por `class_id`).
-- Badge colorido pequeno: azul p/ INF, âmbar p/ SUP.
-- No mobile/admin compacto, mostrar só contagem por grupamento (ex: `2 INF · 1 SUP`); no desktop (≥md) mostrar a lista completa.
-
-### 4. Não muda
-- Layout, cores, filtros, seleção em massa e criação em massa da grade admin.
-- Estrutura da `GradeTab` (dias, cards).
-- Nenhum outro módulo é tocado.
-
-## Detalhes técnicos
-
-- Migration (schema only):
-  ```sql
-  ALTER TABLE public.class_bookings
-    ADD COLUMN IF NOT EXISTS student_name text,
-    ADD COLUMN IF NOT EXISTS muscle_group text,
-    ADD COLUMN IF NOT EXISTS checked_in_at timestamptz;
-  ```
-  Sem CHECK constraint no valor (validação no client) para manter flexibilidade caso surjam mais grupos depois.
-- `GradeTab` passa a receber/consultar `supabase.from("classes")` filtrado por `day_of_week` do dia ativo, ordenado por `start_time`.
-- Componente novo pequeno: `src/components/tabs/CheckInDialog.tsx` reaproveitável.
-- `Grade.tsx`: adicionar ao `select` de `class_bookings` os campos `student_name, muscle_group` e montar `bookingsByClass: Record<string, {name,group}[]>`.
-
-## Perguntas em aberto
-
-- Opções: manter apenas **Inferior** e **Superior**? (Full Body / Cardio podem entrar depois se quiser — posso deixar preparado.)
-- Nome do aluno: por ora usarei o nome salvo no perfil local (`localStorage`) já que o app do aluno hoje não tem auth Supabase completa; quando integrar auth de aluno, plugamos no `auth.uid()` + tabela `clients`.
+## Fora de escopo nesta etapa
+Login social, recuperação de senha por e-mail personalizado, notificações push, mudanças no painel admin e no layout das abas.
