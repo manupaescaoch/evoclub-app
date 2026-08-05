@@ -34,11 +34,17 @@ const slides = [
     text: "Acompanhe a galera, ganhe XP nos treinos e dispute o topo do ranking da unidade.",
   },
   {
+    emoji: "🔔",
+    title: "INSTALE NA TELA DE INÍCIO",
+    text: "Assim o EVO abre como app e você recebe o lembrete da aula 30 minutos antes.",
+    install: true,
+  },
+  {
     emoji: "👤",
     title: "PERFIL",
     text: "Seus dados, histórico de presença e evolução. Pronto para começar?",
   },
-];
+] as { emoji: string; title: string; text: string; install?: boolean }[];
 
 const OnboardingDialog = () => {
   const { client, completeOnboarding } = useStudent();
@@ -62,6 +68,27 @@ const OnboardingDialog = () => {
         </div>
         <h2 className="font-barlow font-bold text-xl text-foreground mt-3">{slide.title}</h2>
         <p className="text-sm font-dm text-muted-foreground mt-1">{slide.text}</p>
+
+        {slide.install && (
+          <div className="mt-4 space-y-2 text-left">
+            <div className="rounded-xl bg-amber-50 p-3">
+              <p className="text-[11px] font-dm font-semibold text-amber-700">iPhone (Safari)</p>
+              <p className="text-[10px] font-dm text-amber-700 leading-relaxed mt-0.5">
+                Toque em Compartilhar (o quadrado com a seta para cima) → "Adicionar à Tela de Início" → Adicionar.
+                No iPhone as notificações só funcionam depois desse passo.
+              </p>
+            </div>
+            <div className="rounded-xl bg-primary/5 p-3">
+              <p className="text-[11px] font-dm font-semibold text-primary">Android (Chrome)</p>
+              <p className="text-[10px] font-dm text-muted-foreground leading-relaxed mt-0.5">
+                Toque no menu (três pontinhos) → "Instalar app" ou "Adicionar à tela inicial".
+              </p>
+            </div>
+            <p className="text-[10px] font-dm text-muted-foreground leading-relaxed">
+              Depois é só ativar as notificações no seu Perfil.
+            </p>
+          </div>
+        )}
 
         <div className="flex items-center justify-center gap-1.5 mt-5">
           {slides.map((s, i) => (
