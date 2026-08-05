@@ -11,6 +11,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import NotificacoesPanel from "@/components/admin/NotificacoesPanel";
 
 type Ann = {
   id: string; title: string; body: string | null; pinned: boolean; active: boolean; created_at: string;
@@ -91,7 +93,12 @@ export default function Comunidade() {
       }
     >
       {loading ? <LoadingState /> : (
-        <div className="space-y-6">
+        <Tabs defaultValue="mural">
+          <TabsList className="mb-4">
+            <TabsTrigger value="mural" className="font-dm">Mural e moderação</TabsTrigger>
+            <TabsTrigger value="push" className="font-dm">Notificações</TabsTrigger>
+          </TabsList>
+          <TabsContent value="mural" className="space-y-6">
           <div>
             <p className="font-barlow font-bold text-lg mb-2">Mural de avisos</p>
             {anns.length === 0 ? <EmptyState message="Nenhum aviso publicado." /> : (
@@ -142,7 +149,11 @@ export default function Comunidade() {
               </div>
             )}
           </div>
-        </div>
+          </TabsContent>
+          <TabsContent value="push">
+            <NotificacoesPanel />
+          </TabsContent>
+        </Tabs>
       )}
 
       <Dialog open={open} onOpenChange={setOpen}>
