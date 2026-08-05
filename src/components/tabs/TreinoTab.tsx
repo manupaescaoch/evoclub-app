@@ -54,15 +54,22 @@ const formatTime = (seconds: number): string => {
 };
 
 const LoadModal = ({
-  value,
+  series,
   onSave,
   onClose,
 }: {
-  value: string;
-  onSave: (v: string) => void;
+  series: ExerciseSeries;
+  onSave: (v: { load: string; sets: string; reps: string }) => void;
   onClose: () => void;
 }) => {
-  const [input, setInput] = useState(value === "0" ? "" : value);
+  const initialLoad = series.performedLoad ?? (series.load === "0" ? "" : series.load);
+  const [input, setInput] = useState(initialLoad === "0" ? "" : initialLoad);
+  const [setsInput, setSetsInput] = useState(
+    String(series.performedSets ?? series.prescribedSets ?? "")
+  );
+  const [repsInput, setRepsInput] = useState(
+    series.performedReps ?? series.prescribedReps ?? ""
+  );
   const numVal = parseFloat(input) || 0;
 
   return (
@@ -70,11 +77,16 @@ const LoadModal = ({
       <div className="absolute inset-0 bg-black/40" />
       <div className="relative w-full max-w-[340px] bg-card rounded-3xl p-5" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-4">
-          <p className="font-dm font-semibold text-sm text-foreground">Atualizar carga (kg)</p>
+          <p className="font-dm font-semibold text-sm text-foreground">O que você executou</p>
           <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full bg-secondary">
             <X size={16} className="text-muted" />
           </button>
         </div>
+        <p className="text-[11px] font-dm text-muted mb-3">
+          Prescrito: {series.prescribedSets ?? "-"}x{series.prescribedReps || "-"}
+          {series.prescribedLoad ? ` · ${series.prescribedLoad}kg` : ""}
+        </p>
+        <p className="text-[10px] font-barlow tracking-[1px] uppercase text-muted mb-1">Carga (kg)</p>
         <input
           type="number"
           inputMode="decimal"
@@ -94,8 +106,28 @@ const LoadModal = ({
             </button>
           ))}
         </div>
+        <div className="flex gap-2 mb-4">
+          <div className="flex-1">
+            <p className="text-[10px] font-barlow tracking-[1px] uppercase text-muted mb-1">Séries feitas</p>
+            <input
+              type="number"
+              inputMode="numeric"
+              value={setsInput}
+              onChange={(e) => setSetsInput(e.target.value)}
+              className="w-full h-12 rounded-2xl bg-secondary text-center text-lg font-barlow font-[800] text-foreground border border-muted/20 outline-none focus:ring-2 focus:ring-primary/30"
+            />
+          </div>
+          <div className="flex-1">
+            <p className="text-[10px] font-barlow tracking-[1px] uppercase text-muted mb-1">Reps feitas</p>
+            <input
+              value={repsInput}
+              onChange={(e) => setRepsInput(e.target.value)}
+              className="w-full h-12 rounded-2xl bg-secondary text-center text-lg font-barlow font-[800] text-foreground border border-muted/20 outline-none focus:ring-2 focus:ring-primary/30"
+            />
+          </div>
+        </div>
         <button
-          onClick={() => { onSave(input); onClose(); }}
+          onClick={() => { onSave({ load: input, sets: setsInput, reps: repsInput }); onClose(); }}
           className="w-full py-3.5 rounded-2xl bg-primary text-primary-foreground font-barlow font-bold text-base active:scale-[0.98] transition-transform"
           style={{ boxShadow: "0 3px 10px #1400FF44" }}
         >
