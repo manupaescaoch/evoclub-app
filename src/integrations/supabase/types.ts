@@ -2232,6 +2232,155 @@ export type Database = {
           },
         ]
       }
+      workout_log_sets: {
+        Row: {
+          completed: boolean
+          created_at: string
+          exercise_name: string
+          exercise_order: number
+          id: string
+          order_index: number
+          performed_load: string | null
+          performed_reps: string | null
+          performed_sets: number | null
+          prescribed_load: string | null
+          prescribed_reps: string | null
+          prescribed_set_id: string | null
+          prescribed_sets: number | null
+          session_exercise_id: string | null
+          set_type: string | null
+          updated_at: string
+          workout_log_id: string
+        }
+        Insert: {
+          completed?: boolean
+          created_at?: string
+          exercise_name: string
+          exercise_order?: number
+          id?: string
+          order_index?: number
+          performed_load?: string | null
+          performed_reps?: string | null
+          performed_sets?: number | null
+          prescribed_load?: string | null
+          prescribed_reps?: string | null
+          prescribed_set_id?: string | null
+          prescribed_sets?: number | null
+          session_exercise_id?: string | null
+          set_type?: string | null
+          updated_at?: string
+          workout_log_id: string
+        }
+        Update: {
+          completed?: boolean
+          created_at?: string
+          exercise_name?: string
+          exercise_order?: number
+          id?: string
+          order_index?: number
+          performed_load?: string | null
+          performed_reps?: string | null
+          performed_sets?: number | null
+          prescribed_load?: string | null
+          prescribed_reps?: string | null
+          prescribed_set_id?: string | null
+          prescribed_sets?: number | null
+          session_exercise_id?: string | null
+          set_type?: string | null
+          updated_at?: string
+          workout_log_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workout_log_sets_prescribed_set_id_fkey"
+            columns: ["prescribed_set_id"]
+            isOneToOne: false
+            referencedRelation: "training_exercise_sets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workout_log_sets_session_exercise_id_fkey"
+            columns: ["session_exercise_id"]
+            isOneToOne: false
+            referencedRelation: "training_session_exercises"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workout_log_sets_workout_log_id_fkey"
+            columns: ["workout_log_id"]
+            isOneToOne: false
+            referencedRelation: "workout_logs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workout_logs: {
+        Row: {
+          client_id: number
+          created_at: string
+          finished_at: string | null
+          id: string
+          session_name: string | null
+          started_at: string
+          status: string
+          student_notes: string | null
+          training_plan_id: string | null
+          training_session_id: string | null
+          updated_at: string
+          workout_date: string
+        }
+        Insert: {
+          client_id: number
+          created_at?: string
+          finished_at?: string | null
+          id?: string
+          session_name?: string | null
+          started_at?: string
+          status?: string
+          student_notes?: string | null
+          training_plan_id?: string | null
+          training_session_id?: string | null
+          updated_at?: string
+          workout_date?: string
+        }
+        Update: {
+          client_id?: number
+          created_at?: string
+          finished_at?: string | null
+          id?: string
+          session_name?: string | null
+          started_at?: string
+          status?: string
+          student_notes?: string | null
+          training_plan_id?: string | null
+          training_session_id?: string | null
+          updated_at?: string
+          workout_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workout_logs_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workout_logs_training_plan_id_fkey"
+            columns: ["training_plan_id"]
+            isOneToOne: false
+            referencedRelation: "training_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workout_logs_training_session_id_fkey"
+            columns: ["training_session_id"]
+            isOneToOne: false
+            referencedRelation: "training_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       workout_sessions: {
         Row: {
           created_at: string
