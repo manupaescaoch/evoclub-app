@@ -1587,6 +1587,123 @@ export type Database = {
         }
         Relationships: []
       }
+      push_notifications: {
+        Row: {
+          body: string | null
+          booking_id: string | null
+          client_id: number | null
+          created_at: string
+          created_by: string | null
+          failed_count: number
+          id: string
+          kind: string
+          sent_count: number
+          target: string
+          title: string
+          unit_id: string | null
+          url: string | null
+        }
+        Insert: {
+          body?: string | null
+          booking_id?: string | null
+          client_id?: number | null
+          created_at?: string
+          created_by?: string | null
+          failed_count?: number
+          id?: string
+          kind?: string
+          sent_count?: number
+          target?: string
+          title: string
+          unit_id?: string | null
+          url?: string | null
+        }
+        Update: {
+          body?: string | null
+          booking_id?: string | null
+          client_id?: number | null
+          created_at?: string
+          created_by?: string | null
+          failed_count?: number
+          id?: string
+          kind?: string
+          sent_count?: number
+          target?: string
+          title?: string
+          unit_id?: string | null
+          url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "push_notifications_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "class_bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "push_notifications_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "push_notifications_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "units"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      push_subscriptions: {
+        Row: {
+          active: boolean
+          auth: string
+          client_id: number | null
+          created_at: string
+          endpoint: string
+          id: string
+          p256dh: string
+          updated_at: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          active?: boolean
+          auth: string
+          client_id?: number | null
+          created_at?: string
+          endpoint: string
+          id?: string
+          p256dh: string
+          updated_at?: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          active?: boolean
+          auth?: string
+          client_id?: number | null
+          created_at?: string
+          endpoint?: string
+          id?: string
+          p256dh?: string
+          updated_at?: string
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "push_subscriptions_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sales: {
         Row: {
           client_id: number | null
