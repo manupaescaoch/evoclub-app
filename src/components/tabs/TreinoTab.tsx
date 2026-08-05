@@ -11,9 +11,18 @@ interface ExerciseSeries {
   reps: string;
   load: string;
   rest: string;
+  setId: string | null;
+  setType: string | null;
+  prescribedSets: number | null;
+  prescribedReps: string | null;
+  prescribedLoad: string | null;
+  performedSets: number | null;
+  performedReps: string | null;
+  performedLoad: string | null;
 }
 
 interface Exercise {
+  sessionExerciseId: string;
   name: string;
   videoThumb: string;
   series: ExerciseSeries[];
@@ -29,6 +38,9 @@ interface Workout {
 
 const dayShort = (label: string | null, index: number) =>
   label ? label.slice(0, 3).toUpperCase() : `D${index + 1}`;
+
+const brazilToday = () =>
+  new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo" }).format(new Date());
 
 const parseRestSeconds = (rest: string): number => {
   const match = rest.match(/(\d+)/);
