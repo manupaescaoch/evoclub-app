@@ -166,7 +166,7 @@ export default function Comunidade() {
             <Button variant="outline" onClick={() => setOpen(false)} className="font-dm">Cancelar</Button>
             <Button onClick={save} className="font-dm">Salvar</Button>
           </DialogFooter>
-        </DialogFooter>
+        </DialogContent>
       </Dialog>
     </PageShell>
   );
