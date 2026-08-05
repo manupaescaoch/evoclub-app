@@ -72,8 +72,7 @@ const SectionHeader = ({
 
 const DailyCheckinDialog = () => {
   const [open, setOpen] = useState(false);
-  const { name: studentName, saveName } = useStudentName();
-  const [nameDraft, setNameDraft] = useState("");
+  const { name: studentName, clientId } = useStudentName();
   const greeting = brGreeting();
   const [sleepHours, setSleepHours] = useState(7);
   const [sleepQuality, setSleepQuality] = useState(4);
@@ -83,10 +82,26 @@ const DailyCheckinDialog = () => {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
+    if (!clientId) return;
     const today = brDate();
     if (localStorage.getItem("daily_checkin_date") === today) return;
-    setOpen(true);
-  }, []);
+    let alive = true;
+    supabase
+      .from("daily_checkins")
+      .select("id")
+      .eq("client_id", clientId)
+      .eq("checkin_date", today)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (!alive) return;
+        if (data) {
+          localStorage.setItem("daily_checkin_date", today);
+          return;
+        }
+        setOpen(true);
+      });
+    return () => { alive = false; };
+  }, [clientId]);
 
   const skip = () => {
     localStorage.setItem("daily_checkin_date", brDate());
@@ -94,16 +109,12 @@ const DailyCheckinDialog = () => {
   };
 
   const save = async () => {
-    const name = (studentName || nameDraft).trim();
-    if (!name) {
-      toast.error("Digite seu nome para salvar");
-      return;
-    }
+    if (!clientId) return;
     setSaving(true);
-    saveName(name);
     const { error } = await supabase.from("daily_checkins").upsert(
       {
-        student_name: name,
+        client_id: clientId,
+        student_name: studentName,
         checkin_date: brDate(),
         sleep_hours: sleepHours,
         sleep_quality: sleepQuality,
@@ -134,15 +145,6 @@ const DailyCheckinDialog = () => {
           <p className="text-xs text-muted-foreground font-dm mt-0.5">
             Seu shape entrega como você viveu ontem.
           </p>
-
-          {!studentName && (
-            <input
-              value={nameDraft}
-              onChange={(e) => setNameDraft(e.target.value)}
-              placeholder="Seu nome"
-              className="mt-3 w-full px-3 py-2 text-sm font-dm bg-secondary rounded-xl outline-none"
-            />
-          )}
 
           <div className="border-t border-border mt-4 pt-4">
             <SectionHeader icon={<span>😴</span>} title="Horas de sono" value={`${sleepHours}h`} />

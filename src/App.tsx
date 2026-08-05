@@ -47,6 +47,10 @@ import Operacional from "./pages/admin/crm/Operacional.tsx";
 import Escala from "./pages/admin/crm/Escala.tsx";
 import ValidarResgate from "./pages/admin/club/ValidarResgate";
 import Configuracoes from "./pages/admin/Configuracoes.tsx";
+import AlunoLogin from "./pages/aluno/Login.tsx";
+import AlunoCadastro from "./pages/aluno/Cadastro.tsx";
+import StudentGuard from "./components/auth/StudentGuard.tsx";
+import { StudentProvider } from "./contexts/StudentContext.tsx";
 
 const queryClient = new QueryClient();
 
@@ -62,7 +66,32 @@ const App = () => (
           <Route path="/" element={<RoleSelect />} />
 
           {/* Student app */}
-          <Route path="/aluno" element={<Index />} />
+          <Route
+            path="/aluno/login"
+            element={
+              <StudentProvider>
+                <AlunoLogin />
+              </StudentProvider>
+            }
+          />
+          <Route
+            path="/aluno/cadastro"
+            element={
+              <StudentProvider>
+                <AlunoCadastro />
+              </StudentProvider>
+            }
+          />
+          <Route
+            path="/aluno"
+            element={
+              <StudentProvider>
+                <StudentGuard>
+                  <Index />
+                </StudentGuard>
+              </StudentProvider>
+            }
+          />
 
           {/* Admin */}
           <Route path="/admin/login" element={<Login />} />

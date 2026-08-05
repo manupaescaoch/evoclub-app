@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { useStudentName } from "@/hooks/useStudentName";
+import { useNavigate } from "react-router-dom";
+import { useStudent } from "@/contexts/StudentContext";
 import {
   Camera, ChevronRight, ChevronLeft, Scale, Calendar, Bell,
   Settings, Shield, LogOut, Trophy, Flame, Award, TrendingUp,
@@ -48,6 +50,8 @@ interface PerfilTabProps {
 const PerfilTab = ({ onBack }: PerfilTabProps) => {
   const [showAchievements, setShowAchievements] = useState(false);
   const { name: studentName, saveName } = useStudentName();
+  const { signOut } = useStudent();
+  const navigate = useNavigate();
   const [editingName, setEditingName] = useState(false);
   const [nameDraft, setNameDraft] = useState("");
   const initials = studentName
@@ -337,7 +341,10 @@ const PerfilTab = ({ onBack }: PerfilTabProps) => {
       </div>
 
       {/* Sair */}
-      <button className="w-full py-3 rounded-2xl border border-red-200 text-red-500 font-dm font-semibold text-sm flex items-center justify-center gap-2 mb-4">
+      <button
+        onClick={async () => { await signOut(); navigate("/aluno/login", { replace: true }); }}
+        className="w-full py-3 rounded-2xl border border-red-200 text-red-500 font-dm font-semibold text-sm flex items-center justify-center gap-2 mb-4"
+      >
         <LogOut size={16} />
         Sair da Conta
       </button>
