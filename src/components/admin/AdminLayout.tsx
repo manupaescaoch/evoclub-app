@@ -59,6 +59,7 @@ const navItems: NavItem[] = [
     ],
   },
   { label: "Validar Resgate (Club)", icon: Ticket, path: "/admin/club/validar" },
+  { label: "Comunidade", icon: Megaphone, path: "/admin/comunidade" },
   { label: "Configurações", icon: Settings, path: "/admin/configuracoes" },
   { label: "Novidades", icon: Sparkles, path: "/admin/novidades" },
   { label: "Central de Ajuda", icon: HelpCircle, path: "/admin/ajuda" },

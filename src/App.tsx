@@ -47,6 +47,7 @@ import Operacional from "./pages/admin/crm/Operacional.tsx";
 import Escala from "./pages/admin/crm/Escala.tsx";
 import ValidarResgate from "./pages/admin/club/ValidarResgate";
 import Configuracoes from "./pages/admin/Configuracoes.tsx";
+import AdminComunidade from "./pages/admin/Comunidade.tsx";
 import AlunoLogin from "./pages/aluno/Login.tsx";
 import AlunoCadastro from "./pages/aluno/Cadastro.tsx";
 import StudentGuard from "./components/auth/StudentGuard.tsx";
@@ -135,6 +136,7 @@ const App = () => (
               <Route path="metodos" element={<TreinosMetodos />} />
             </Route>
             <Route path="club/validar" element={<ValidarResgate />} />
+            <Route path="comunidade" element={<AdminComunidade />} />
             <Route path="configuracoes" element={<Configuracoes />} />
             <Route path="novidades" element={<Placeholder />} />
             <Route path="ajuda" element={<Placeholder />} />
