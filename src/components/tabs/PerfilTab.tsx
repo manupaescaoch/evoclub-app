@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { useStudentName } from "@/hooks/useStudentName";
+import { useNavigate } from "react-router-dom";
+import { useStudent } from "@/contexts/StudentContext";
 import {
   Camera, ChevronRight, ChevronLeft, Scale, Calendar, Bell,
   Settings, Shield, LogOut, Trophy, Flame, Award, TrendingUp,
