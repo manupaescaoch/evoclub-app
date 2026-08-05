@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useStudent } from "@/contexts/StudentContext";
 import PushNotificationsCard from "@/components/tabs/PushNotificationsCard";
 import {
-  Camera, ChevronRight, ChevronLeft, Scale, Calendar, Bell,
+  Camera, ChevronRight, ChevronLeft, Scale, Calendar,
   Settings, Shield, LogOut, Trophy, Flame, Award, TrendingUp,
   AlertTriangle, CheckCircle2, Edit2
 } from "lucide-react";
