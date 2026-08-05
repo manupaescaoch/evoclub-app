@@ -23,10 +23,11 @@ type Ctx = {
 
 const StudentContext = createContext<Ctx | null>(null);
 
-const fetchClient = async (): Promise<StudentClient | null> => {
+const fetchClient = async (userId: string): Promise<StudentClient | null> => {
   const { data } = await supabase
     .from("clients")
     .select("id, name, email, unit_id, plan, onboarding_completed")
+    .eq("auth_user_id", userId)
     .maybeSingle();
   return (data as StudentClient) ?? null;
 };
@@ -39,7 +40,7 @@ export const StudentProvider = ({ children }: { children: React.ReactNode }) => 
   const reload = useCallback(async () => {
     const { data } = await supabase.auth.getSession();
     setSession(data.session);
-    setClient(data.session ? await fetchClient() : null);
+    setClient(data.session ? await fetchClient(data.session.user.id) : null);
     setLoading(false);
   }, []);
 
@@ -50,7 +51,7 @@ export const StudentProvider = ({ children }: { children: React.ReactNode }) => 
         setClient(null);
         setLoading(false);
       } else {
-        fetchClient().then((c) => {
+        fetchClient(s.user.id).then((c) => {
           setClient(c);
           setLoading(false);
         });
