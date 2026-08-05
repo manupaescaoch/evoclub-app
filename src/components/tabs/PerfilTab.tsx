@@ -50,6 +50,8 @@ interface PerfilTabProps {
 const PerfilTab = ({ onBack }: PerfilTabProps) => {
   const [showAchievements, setShowAchievements] = useState(false);
   const { name: studentName, saveName } = useStudentName();
+  const { signOut } = useStudent();
+  const navigate = useNavigate();
   const [editingName, setEditingName] = useState(false);
   const [nameDraft, setNameDraft] = useState("");
   const initials = studentName
