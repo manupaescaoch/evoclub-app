@@ -10,6 +10,7 @@ import { Dumbbell, FolderPlus } from "lucide-react";
 import { Search, Plus, FolderOpen, MoreVertical, ArrowLeft, Pencil, Trash2, Copy } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
+import ExecucaoAluno from "@/components/admin/treinos/ExecucaoAluno";
 
 const CATEGORIES = ["Masculino", "Feminino", "Iniciante", "Intermediário", "Avançado", "Funcional", "Hipertrofia", "Emagrecimento"];
 

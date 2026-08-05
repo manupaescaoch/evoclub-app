@@ -745,6 +745,9 @@ const PrescreverEditor = () => {
         </div>
       )}
 
+      {/* Adesão real do aluno (prescrito vs executado) */}
+      <ExecucaoAluno clientId={clientId} title="EXECUÇÃO DO ALUNO (PRESCRITO VS REALIZADO)" />
+
       {/* Mobile fixed bottom bar */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 bg-card border-t border-border p-3 flex gap-2 z-30">
         <Button variant="outline" size="sm" className="flex-1 font-dm" onClick={() => persist(false)} disabled={saving}>
