@@ -273,6 +273,9 @@ const TreinoTab = () => {
   const [selectedDay, setSelectedDay] = useState<string>("");
   const [loadAnnotations, setLoadAnnotations] = useState(0);
   const [showXpModal, setShowXpModal] = useState(false);
+  const [logId, setLogId] = useState<string | null>(null);
+  const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
 
   // Carrega o plano ativo prescrito para o aluno
   useEffect(() => {
@@ -306,11 +309,21 @@ const TreinoTab = () => {
           .select("id, name, day_of_week, order_index")
           .eq("training_week_id", week.id)
           .order("order_index");
+        const { data: todayLogs } = await supabase
+          .from("workout_logs")
+          .select("training_session_id, status")
+          .eq("client_id", clientId)
+          .eq("workout_date", brazilToday());
+        const doneIds = new Set(
+          (todayLogs || [])
+            .filter((l) => l.status === "completed" && l.training_session_id)
+            .map((l) => l.training_session_id as string)
+        );
         days = (sessions || []).map((s, i) => ({
           id: s.id,
           day: dayShort(s.day_of_week, i),
           name: s.name,
-          state: "upcoming" as const,
+          state: doneIds.has(s.id) ? ("done" as const) : ("upcoming" as const),
         }));
       }
       if (!alive) return;
@@ -331,6 +344,8 @@ const TreinoTab = () => {
     setLoadAnnotations(0);
     setShowXpModal(false);
     setExercises([]);
+    setLogId(null);
+    setCurrentSessionId(day.id);
     setScreen("exercises");
     setLoadingDay(true);
     const { data: exs } = await supabase
@@ -342,11 +357,12 @@ const TreinoTab = () => {
     const { data: sets } = ids.length
       ? await supabase
           .from("training_exercise_sets")
-          .select("session_exercise_id, sets, reps, load, rest_seconds, time_seconds, order_index")
+          .select("id, session_exercise_id, set_type, sets, reps, load, rest_seconds, time_seconds, order_index")
           .in("session_exercise_id", ids)
           .order("order_index")
       : { data: [] as never[] };
-    const mapped: Exercise[] = (exs || []).map((e) => ({
+    let mapped: Exercise[] = (exs || []).map((e) => ({
+      sessionExerciseId: e.id,
       name: e.exercise_name,
       videoThumb: DEFAULT_THUMB,
       done: false,
@@ -356,38 +372,146 @@ const TreinoTab = () => {
           reps: `${s.sets || 1}x${s.reps || (s.time_seconds ? `${s.time_seconds}s` : "-")}`,
           load: s.load || "0",
           rest: `${s.rest_seconds ?? 60}s`,
+          setId: s.id,
+          setType: s.set_type ?? null,
+          prescribedSets: s.sets ?? null,
+          prescribedReps: s.reps ?? (s.time_seconds ? `${s.time_seconds}s` : null),
+          prescribedLoad: s.load ?? null,
+          performedSets: null,
+          performedReps: null,
+          performedLoad: null,
         })),
     }));
+
+    // Retoma um registro em andamento do mesmo dia, se existir
+    if (clientId) {
+      const { data: logs } = await supabase
+        .from("workout_logs")
+        .select("id, status")
+        .eq("client_id", clientId)
+        .eq("training_session_id", day.id)
+        .eq("workout_date", brazilToday())
+        .eq("status", "in_progress")
+        .order("started_at", { ascending: false })
+        .limit(1);
+      const log = logs?.[0];
+      if (log) {
+        setLogId(log.id);
+        setStarted(true);
+        const { data: logSets } = await supabase
+          .from("workout_log_sets")
+          .select("session_exercise_id, prescribed_set_id, performed_sets, performed_reps, performed_load, completed")
+          .eq("workout_log_id", log.id);
+        if (logSets?.length) {
+          mapped = mapped.map((ex) => {
+            const rows = logSets.filter((r) => r.session_exercise_id === ex.sessionExerciseId);
+            if (!rows.length) return ex;
+            return {
+              ...ex,
+              done: rows.every((r) => r.completed),
+              series: ex.series.map((s) => {
+                const row = rows.find((r) => r.prescribed_set_id === s.setId);
+                if (!row) return s;
+                return {
+                  ...s,
+                  load: row.performed_load ?? s.load,
+                  performedSets: row.performed_sets ?? null,
+                  performedReps: row.performed_reps ?? null,
+                  performedLoad: row.performed_load ?? null,
+                };
+              }),
+            };
+          });
+        }
+      }
+    }
+
     setExercises(mapped);
     setLoadingDay(false);
   };
 
-  const updateLoad = (exerciseIdx: number, seriesIdx: number, value: string) => {
+  const updateLoad = (
+    exerciseIdx: number,
+    seriesIdx: number,
+    value: { load: string; sets: string; reps: string }
+  ) => {
     setExercises(prev => {
       const updated = [...prev];
       const ex = { ...updated[exerciseIdx] };
       const series = [...ex.series];
-      series[seriesIdx] = { ...series[seriesIdx], load: value };
+      series[seriesIdx] = {
+        ...series[seriesIdx],
+        load: value.load || series[seriesIdx].load,
+        performedLoad: value.load || null,
+        performedSets: value.sets ? parseInt(value.sets) : null,
+        performedReps: value.reps || null,
+      };
       ex.series = series;
       updated[exerciseIdx] = ex;
       return updated;
     });
-    if (value && value !== "0") {
+    if (value.load && value.load !== "0") {
       setLoadAnnotations(prev => prev + 1);
       toast(`+${XP_LOAD} XP — Carga anotada!`, { icon: <Zap size={16} className="text-primary" /> });
     }
   };
 
-  const toggleExerciseDone = (idx: number) => {
+  // Grava as séries executadas de um exercício no registro do dia
+  const persistExercise = useCallback(async (log: string, ex: Exercise, exIdx: number, done: boolean) => {
+    await supabase
+      .from("workout_log_sets")
+      .delete()
+      .eq("workout_log_id", log)
+      .eq("session_exercise_id", ex.sessionExerciseId);
+    if (!done || ex.series.length === 0) return;
+    const rows = ex.series.map((s, si) => ({
+      workout_log_id: log,
+      session_exercise_id: ex.sessionExerciseId,
+      prescribed_set_id: s.setId,
+      exercise_name: ex.name,
+      set_type: s.setType,
+      prescribed_sets: s.prescribedSets,
+      prescribed_reps: s.prescribedReps,
+      prescribed_load: s.prescribedLoad,
+      performed_sets: s.performedSets ?? s.prescribedSets,
+      performed_reps: s.performedReps ?? s.prescribedReps,
+      performed_load: s.performedLoad ?? (s.load !== "0" ? s.load : s.prescribedLoad),
+      completed: true,
+      exercise_order: exIdx,
+      order_index: si,
+    }));
+    await supabase.from("workout_log_sets").insert(rows);
+  }, []);
+
+  const toggleExerciseDone = async (idx: number) => {
+    const next = !exercises[idx].done;
     setExercises(prev => {
       const updated = [...prev];
-      updated[idx] = { ...updated[idx], done: !updated[idx].done };
+      updated[idx] = { ...updated[idx], done: next };
       return updated;
     });
+    if (logId) {
+      await persistExercise(logId, exercises[idx], idx, next);
+    }
   };
 
-  const handleStartWorkout = () => {
+  const handleStartWorkout = async () => {
     setStarted(true);
+    if (clientId && !logId) {
+      const { data, error } = await supabase
+        .from("workout_logs")
+        .insert({
+          client_id: clientId,
+          training_plan_id: selectedWorkout?.id ?? null,
+          training_session_id: currentSessionId,
+          session_name: selectedDay,
+          workout_date: brazilToday(),
+          status: "in_progress",
+        })
+        .select("id")
+        .single();
+      if (!error && data) setLogId(data.id);
+    }
     toast(`+${XP_START} XP — Treino iniciado!`, { icon: <Zap size={16} className="text-primary" /> });
   };
 
