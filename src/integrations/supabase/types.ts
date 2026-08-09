@@ -142,6 +142,94 @@ export type Database = {
         }
         Relationships: []
       }
+      assessment_bioimpedance: {
+        Row: {
+          assessment_id: string
+          basal_metabolism: number | null
+          bmi: number | null
+          body_fat_pct: number | null
+          body_water: number | null
+          created_at: string
+          fat_mass: number | null
+          id: string
+          lean_mass: number | null
+          muscle_mass: number | null
+          origin: string
+          updated_at: string
+          visceral_fat: number | null
+          weight: number | null
+        }
+        Insert: {
+          assessment_id: string
+          basal_metabolism?: number | null
+          bmi?: number | null
+          body_fat_pct?: number | null
+          body_water?: number | null
+          created_at?: string
+          fat_mass?: number | null
+          id?: string
+          lean_mass?: number | null
+          muscle_mass?: number | null
+          origin?: string
+          updated_at?: string
+          visceral_fat?: number | null
+          weight?: number | null
+        }
+        Update: {
+          assessment_id?: string
+          basal_metabolism?: number | null
+          bmi?: number | null
+          body_fat_pct?: number | null
+          body_water?: number | null
+          created_at?: string
+          fat_mass?: number | null
+          id?: string
+          lean_mass?: number | null
+          muscle_mass?: number | null
+          origin?: string
+          updated_at?: string
+          visceral_fat?: number | null
+          weight?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assessment_bioimpedance_assessment_id_fkey"
+            columns: ["assessment_id"]
+            isOneToOne: true
+            referencedRelation: "physical_assessments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      assessment_measures: {
+        Row: {
+          assessment_id: string
+          id: string
+          measure_key: string
+          value: number | null
+        }
+        Insert: {
+          assessment_id: string
+          id?: string
+          measure_key: string
+          value?: number | null
+        }
+        Update: {
+          assessment_id?: string
+          id?: string
+          measure_key?: string
+          value?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assessment_measures_assessment_id_fkey"
+            columns: ["assessment_id"]
+            isOneToOne: false
+            referencedRelation: "physical_assessments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       audit_logs: {
         Row: {
           action: string
@@ -293,30 +381,39 @@ export type Database = {
       class_bookings: {
         Row: {
           booked_at: string | null
+          cancelled_at: string | null
           checked_in_at: string | null
+          class_date: string | null
           class_id: string | null
           client_id: number | null
           id: string
+          kind: string
           muscle_group: string | null
           status: string | null
           student_name: string | null
         }
         Insert: {
           booked_at?: string | null
+          cancelled_at?: string | null
           checked_in_at?: string | null
+          class_date?: string | null
           class_id?: string | null
           client_id?: number | null
           id?: string
+          kind?: string
           muscle_group?: string | null
           status?: string | null
           student_name?: string | null
         }
         Update: {
           booked_at?: string | null
+          cancelled_at?: string | null
           checked_in_at?: string | null
+          class_date?: string | null
           class_id?: string | null
           client_id?: number | null
           id?: string
+          kind?: string
           muscle_group?: string | null
           status?: string | null
           student_name?: string | null
@@ -331,6 +428,54 @@ export type Database = {
           },
           {
             foreignKeyName: "class_bookings_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      class_waitlist: {
+        Row: {
+          class_date: string
+          class_id: string
+          client_id: number
+          created_at: string
+          id: string
+          muscle_group: string | null
+          position: number
+          status: string
+        }
+        Insert: {
+          class_date: string
+          class_id: string
+          client_id: number
+          created_at?: string
+          id?: string
+          muscle_group?: string | null
+          position?: number
+          status?: string
+        }
+        Update: {
+          class_date?: string
+          class_id?: string
+          client_id?: number
+          created_at?: string
+          id?: string
+          muscle_group?: string | null
+          position?: number
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "class_waitlist_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "class_waitlist_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
@@ -732,6 +877,47 @@ export type Database = {
           },
         ]
       }
+      connected_devices: {
+        Row: {
+          active: boolean
+          client_id: number
+          created_at: string
+          id: string
+          label: string | null
+          last_sync_at: string | null
+          provider: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          client_id: number
+          created_at?: string
+          id?: string
+          label?: string | null
+          last_sync_at?: string | null
+          provider: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          client_id?: number
+          created_at?: string
+          id?: string
+          label?: string | null
+          last_sync_at?: string | null
+          provider?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "connected_devices_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contracts: {
         Row: {
           body: string | null
@@ -964,6 +1150,35 @@ export type Database = {
         }
         Relationships: []
       }
+      daily_checkin_skips: {
+        Row: {
+          client_id: number
+          created_at: string
+          id: string
+          skip_date: string
+        }
+        Insert: {
+          client_id: number
+          created_at?: string
+          id?: string
+          skip_date: string
+        }
+        Update: {
+          client_id?: number
+          created_at?: string
+          id?: string
+          skip_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "daily_checkin_skips_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       daily_checkins: {
         Row: {
           checkin_date: string
@@ -974,7 +1189,7 @@ export type Database = {
           mood: number
           sleep_hours: number
           sleep_quality: number
-          stress_level: number
+          stress_level: number | null
           student_name: string
           updated_at: string
         }
@@ -987,7 +1202,7 @@ export type Database = {
           mood: number
           sleep_hours: number
           sleep_quality: number
-          stress_level: number
+          stress_level?: number | null
           student_name: string
           updated_at?: string
         }
@@ -1000,7 +1215,7 @@ export type Database = {
           mood?: number
           sleep_hours?: number
           sleep_quality?: number
-          stress_level?: number
+          stress_level?: number | null
           student_name?: string
           updated_at?: string
         }
@@ -1078,6 +1293,41 @@ export type Database = {
             columns: ["linked_service_id"]
             isOneToOne: false
             referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      evolution_photos: {
+        Row: {
+          client_id: number
+          created_at: string
+          id: string
+          pose: string
+          storage_path: string
+          taken_at: string
+        }
+        Insert: {
+          client_id: number
+          created_at?: string
+          id?: string
+          pose: string
+          storage_path: string
+          taken_at?: string
+        }
+        Update: {
+          client_id?: number
+          created_at?: string
+          id?: string
+          pose?: string
+          storage_path?: string
+          taken_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "evolution_photos_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
             referencedColumns: ["id"]
           },
         ]
@@ -1239,6 +1489,208 @@ export type Database = {
           visible_to_student?: boolean
         }
         Relationships: []
+      }
+      health_blood_pressure: {
+        Row: {
+          client_id: number
+          created_at: string
+          diastolic: number
+          id: string
+          measured_at: string
+          recorded_by: string | null
+          source: string
+          systolic: number
+          updated_at: string
+        }
+        Insert: {
+          client_id: number
+          created_at?: string
+          diastolic: number
+          id?: string
+          measured_at?: string
+          recorded_by?: string | null
+          source?: string
+          systolic: number
+          updated_at?: string
+        }
+        Update: {
+          client_id?: number
+          created_at?: string
+          diastolic?: number
+          id?: string
+          measured_at?: string
+          recorded_by?: string | null
+          source?: string
+          systolic?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "health_blood_pressure_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      health_metrics: {
+        Row: {
+          client_id: number
+          created_at: string
+          id: string
+          measured_at: string
+          metric: string
+          source: string
+          value: number
+        }
+        Insert: {
+          client_id: number
+          created_at?: string
+          id?: string
+          measured_at?: string
+          metric: string
+          source?: string
+          value: number
+        }
+        Update: {
+          client_id?: number
+          created_at?: string
+          id?: string
+          measured_at?: string
+          metric?: string
+          source?: string
+          value?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "health_metrics_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      health_weight_edits: {
+        Row: {
+          changed_by: string | null
+          client_id: number
+          created_at: string
+          id: string
+          new_value: number | null
+          old_value: number | null
+          weight_id: string
+        }
+        Insert: {
+          changed_by?: string | null
+          client_id: number
+          created_at?: string
+          id?: string
+          new_value?: number | null
+          old_value?: number | null
+          weight_id: string
+        }
+        Update: {
+          changed_by?: string | null
+          client_id?: number
+          created_at?: string
+          id?: string
+          new_value?: number | null
+          old_value?: number | null
+          weight_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "health_weight_edits_weight_id_fkey"
+            columns: ["weight_id"]
+            isOneToOne: false
+            referencedRelation: "health_weights"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      health_weights: {
+        Row: {
+          client_id: number
+          created_at: string
+          id: string
+          measured_at: string
+          recorded_by: string | null
+          source: string
+          updated_at: string
+          value: number
+        }
+        Insert: {
+          client_id: number
+          created_at?: string
+          id?: string
+          measured_at?: string
+          recorded_by?: string | null
+          source?: string
+          updated_at?: string
+          value: number
+        }
+        Update: {
+          client_id?: number
+          created_at?: string
+          id?: string
+          measured_at?: string
+          recorded_by?: string | null
+          source?: string
+          updated_at?: string
+          value?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "health_weights_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notifications: {
+        Row: {
+          body: string | null
+          client_id: number
+          created_at: string
+          id: string
+          kind: string
+          read_at: string | null
+          title: string
+          url: string | null
+        }
+        Insert: {
+          body?: string | null
+          client_id: number
+          created_at?: string
+          id?: string
+          kind?: string
+          read_at?: string | null
+          title: string
+          url?: string | null
+        }
+        Update: {
+          body?: string | null
+          client_id?: number
+          created_at?: string
+          id?: string
+          kind?: string
+          read_at?: string | null
+          title?: string
+          url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       operational_form_submissions: {
         Row: {
@@ -1587,6 +2039,50 @@ export type Database = {
         }
         Relationships: []
       }
+      physical_assessments: {
+        Row: {
+          client_id: number
+          created_at: string
+          id: string
+          notes: string | null
+          performed_at: string | null
+          professional_name: string | null
+          scheduled_at: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          client_id: number
+          created_at?: string
+          id?: string
+          notes?: string | null
+          performed_at?: string | null
+          professional_name?: string | null
+          scheduled_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          client_id?: number
+          created_at?: string
+          id?: string
+          notes?: string | null
+          performed_at?: string | null
+          professional_name?: string | null
+          scheduled_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "physical_assessments_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       push_notifications: {
         Row: {
           body: string | null
@@ -1868,6 +2364,35 @@ export type Database = {
           year?: number
         }
         Relationships: []
+      }
+      student_preferences: {
+        Row: {
+          client_id: number
+          key: string
+          updated_at: string
+          value: Json
+        }
+        Insert: {
+          client_id: number
+          key: string
+          updated_at?: string
+          value?: Json
+        }
+        Update: {
+          client_id?: number
+          key?: string
+          updated_at?: string
+          value?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_preferences_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       suppliers: {
         Row: {
@@ -2444,6 +2969,44 @@ export type Database = {
         }
         Relationships: []
       }
+      weight_goals: {
+        Row: {
+          achieved_at: string | null
+          active: boolean
+          client_id: number
+          created_at: string
+          id: string
+          start_value: number | null
+          target: number
+        }
+        Insert: {
+          achieved_at?: string | null
+          active?: boolean
+          client_id: number
+          created_at?: string
+          id?: string
+          start_value?: number | null
+          target: number
+        }
+        Update: {
+          achieved_at?: string | null
+          active?: boolean
+          client_id?: number
+          created_at?: string
+          id?: string
+          start_value?: number | null
+          target?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "weight_goals_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       workout_exercises: {
         Row: {
           day_label: string | null
@@ -2762,17 +3325,64 @@ export type Database = {
           },
         ]
       }
+      xp_rules: {
+        Row: {
+          active: boolean
+          created_at: string
+          id: string
+          key: string
+          label: string
+          points: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          key: string
+          label: string
+          points?: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          key?: string
+          label?: string
+          points?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      book_class: {
+        Args: { _class_date: string; _class_id: string; _muscle_group: string }
+        Returns: Json
+      }
+      br_now: { Args: never; Returns: string }
       can_manage_training: { Args: { _user_id: string }; Returns: boolean }
+      cancel_booking: { Args: { _booking_id: string }; Returns: Json }
       class_booking_counts: {
         Args: { _day: number }
         Returns: {
           class_id: string
           total: number
+        }[]
+      }
+      class_day_status: {
+        Args: { _class_date: string }
+        Returns: {
+          booked: number
+          class_id: string
+          my_booking_id: string
+          my_muscle_group: string
+          my_waitlist_position: number
+          waiting: number
         }[]
       }
       current_client_id: { Args: never; Returns: number }
@@ -2783,7 +3393,16 @@ export type Database = {
         }
         Returns: boolean
       }
+      join_waitlist: {
+        Args: { _class_date: string; _class_id: string; _muscle_group: string }
+        Returns: Json
+      }
+      leave_waitlist: {
+        Args: { _class_date: string; _class_id: string }
+        Returns: Json
+      }
       link_client_by_email: { Args: { _email: string }; Returns: Json }
+      purge_old_notifications: { Args: never; Returns: undefined }
       ranking_scores: {
         Args: { _from?: string; _unit_id?: string }
         Returns: {
@@ -2795,6 +3414,16 @@ export type Database = {
           posts: number
           unit_id: string
           workouts: number
+        }[]
+      }
+      student_xp: {
+        Args: { _client_id: number; _from?: string; _to?: string }
+        Returns: {
+          key: string
+          label: string
+          occurrences: number
+          points: number
+          total: number
         }[]
       }
     }

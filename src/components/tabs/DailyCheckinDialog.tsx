@@ -12,7 +12,6 @@ const brDate = () =>
 
 const sleepLabels = ["Péssimo", "Ruim", "Ok", "Bom", "Excelente"];
 const energyLabels = ["Muito baixa", "Baixa", "Normal", "Alta", "Muito alta"];
-const stressLabels = ["Muito baixo", "Baixo", "Moderado", "Alto", "Muito alto"];
 const moodEmojis = ["😭", "😕", "😐", "🙂", "😎"];
 
 type ScaleProps = {
@@ -78,7 +77,6 @@ const DailyCheckinDialog = () => {
   const [sleepQuality, setSleepQuality] = useState(4);
   const [energy, setEnergy] = useState(4);
   const [mood, setMood] = useState(3);
-  const [stress, setStress] = useState(3);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -86,26 +84,40 @@ const DailyCheckinDialog = () => {
     const today = brDate();
     if (localStorage.getItem("daily_checkin_date") === today) return;
     let alive = true;
-    supabase
-      .from("daily_checkins")
-      .select("id")
-      .eq("client_id", clientId)
-      .eq("checkin_date", today)
-      .maybeSingle()
-      .then(({ data }) => {
-        if (!alive) return;
-        if (data) {
-          localStorage.setItem("daily_checkin_date", today);
-          return;
-        }
-        setOpen(true);
-      });
+    (async () => {
+      const [{ data: done }, { data: skipped }] = await Promise.all([
+        supabase
+          .from("daily_checkins")
+          .select("id")
+          .eq("client_id", clientId)
+          .eq("checkin_date", today)
+          .maybeSingle(),
+        supabase
+          .from("daily_checkin_skips")
+          .select("id")
+          .eq("client_id", clientId)
+          .eq("skip_date", today)
+          .maybeSingle(),
+      ]);
+      if (!alive) return;
+      if (done || skipped) {
+        localStorage.setItem("daily_checkin_date", today);
+        return;
+      }
+      setOpen(true);
+    })();
     return () => { alive = false; };
   }, [clientId]);
 
-  const skip = () => {
-    localStorage.setItem("daily_checkin_date", brDate());
+  const skip = async () => {
+    const today = brDate();
+    localStorage.setItem("daily_checkin_date", today);
     setOpen(false);
+    if (clientId) {
+      await supabase
+        .from("daily_checkin_skips")
+        .upsert({ client_id: clientId, skip_date: today }, { onConflict: "client_id,skip_date" });
+    }
   };
 
   const save = async () => {
@@ -120,7 +132,6 @@ const DailyCheckinDialog = () => {
         sleep_quality: sleepQuality,
         energy,
         mood,
-        stress_level: stress,
       },
       { onConflict: "student_name,checkin_date" }
     );
@@ -202,14 +213,6 @@ const DailyCheckinDialog = () => {
             </div>
           </div>
 
-          <div className="border-t border-border mt-4 pt-4">
-            <SectionHeader
-              icon={<span>🧠</span>}
-              title="Nível de estresse"
-              value={stressLabels[stress - 1]}
-            />
-            <Scale value={stress} onChange={setStress} labels={stressLabels} />
-          </div>
         </div>
 
         <div className="flex items-center gap-3 px-4 py-3 border-t border-border">
