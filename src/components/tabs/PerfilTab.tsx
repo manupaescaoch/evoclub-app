@@ -45,9 +45,10 @@ const menuItems = [
 
 interface PerfilTabProps {
   onBack: () => void;
+  onNavigate?: (screen: string) => void;
 }
 
-const PerfilTab = ({ onBack }: PerfilTabProps) => {
+const PerfilTab = ({ onBack, onNavigate }: PerfilTabProps) => {
   const [showAchievements, setShowAchievements] = useState(false);
   const { name: studentName, saveName } = useStudentName();
   const { signOut } = useStudent();
