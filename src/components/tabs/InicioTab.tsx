@@ -1,9 +1,10 @@
-import { Bell, Zap, ChevronRight, Check, HeartPulse } from "lucide-react";
+import { Bell, Zap, ChevronRight, Check, HeartPulse, Trophy } from "lucide-react";
 import logoAsset from "@/assets/logo-evo.png.asset.json";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useStudentStats } from "@/hooks/useStudentStats";
 import { useStudentName } from "@/hooks/useStudentName";
 import { useLatestWeight } from "@/hooks/useHealth";
+import { useGamification, levelTitle } from "@/hooks/useGamification";
 
 const days = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"];
 
@@ -29,6 +30,7 @@ const InicioTab = ({ onTabChange }: InicioTabProps) => {
   const { name } = useStudentName();
   const stats = useStudentStats();
   const { weight } = useLatestWeight();
+  const gam = useGamification();
 
   const todayIdx = (() => {
     const d = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Sao_Paulo" })).getDay();
