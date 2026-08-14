@@ -32,7 +32,7 @@ const ClubTab = () => {
         memberCode={memberCode}
         studentId={studentId}
         onBack={() => setSelected(null)}
-        onRequest={() => request(selected.id)}
+        onRequest={() => request(selected.id, selected.discount_label)}
       />
     );
 
@@ -214,7 +214,13 @@ const Savings = ({ total, items }: { total: number; items: Redemption[] }) => (
                 {r.partners?.name ?? "Parceiro"}
               </p>
               <p className="text-[11px] font-dm text-muted">
-                {new Date(r.redeemed_at).toLocaleDateString("pt-BR")}
+                {new Date(r.redeemed_at).toLocaleString("pt-BR", {
+                  day: "2-digit",
+                  month: "2-digit",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+                {r.benefit_label ? ` · ${r.benefit_label}` : ""}
               </p>
               <span
                 className={`inline-flex items-center gap-1 mt-1 px-2 py-0.5 rounded-md text-[9px] font-dm font-bold uppercase tracking-wide ${

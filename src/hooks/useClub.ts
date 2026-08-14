@@ -21,6 +21,7 @@ export type Redemption = {
   status: string;
   redeemed_at: string;
   confirmed_at: string | null;
+  benefit_label: string | null;
   partners?: { name: string } | null;
 };
 
@@ -82,7 +83,7 @@ export const useClubRedemptions = (studentId: string | null) => {
     if (!studentId) { setItems([]); setLoading(false); return; }
     const { data } = await supabase
       .from("club_redemptions")
-      .select("id, partner_id, amount_saved, status, redeemed_at, confirmed_at, partners(name)")
+      .select("id, partner_id, amount_saved, status, redeemed_at, confirmed_at, benefit_label, partners(name)")
       .eq("student_id", studentId)
       .order("redeemed_at", { ascending: false });
     setItems((data ?? []) as unknown as Redemption[]);
@@ -93,11 +94,16 @@ export const useClubRedemptions = (studentId: string | null) => {
 
   /** Solicita resgate: fica pendente até a recepção/parceiro validar. */
   const request = useCallback(
-    async (partnerId: string) => {
+    async (partnerId: string, benefitLabel?: string | null) => {
       if (!studentId) return { error: "no-session" as const };
       const { error } = await supabase
         .from("club_redemptions")
-        .insert({ student_id: studentId, partner_id: partnerId, status: "pending" });
+        .insert({
+          student_id: studentId,
+          partner_id: partnerId,
+          status: "pending",
+          benefit_label: benefitLabel ?? null,
+        });
       if (!error) await load();
       return { error: error?.message ?? null };
     },

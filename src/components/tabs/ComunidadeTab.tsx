@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Heart, Camera, Image as ImageIcon, Megaphone, MoreHorizontal, Loader2 } from "lucide-react";
+import { Heart, Camera, Image as ImageIcon, Megaphone, MoreHorizontal, Loader2, Ban } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useStudent } from "@/contexts/StudentContext";
 import { toast } from "sonner";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
@@ -14,6 +15,7 @@ type Post = {
   content: string | null;
   image_url: string | null;
   created_at: string;
+  edited_at?: string | null;
   likes: number;
   liked: boolean;
   signedUrl?: string | null;
@@ -45,6 +47,76 @@ const timeAgo = (iso: string) => {
   return `${d}d`;
 };
 
+const REPORT_REASONS = [
+  "Conteúdo ofensivo",
+  "Spam ou propaganda",
+  "Conteúdo impróprio",
+  "Não tem relação com treino",
+];
+
+const LikersSheet = ({ postId, onClose }: { postId: string; onClose: () => void }) => {
+  const [names, setNames] = useState<string[] | null>(null);
+
+  useEffect(() => {
+    supabase.rpc("post_likers", { _post_id: postId }).then(({ data }) => {
+      setNames(((data as { name: string }[] | null) ?? []).map((r) => r.name));
+    });
+  }, [postId]);
+
+  return (
+    <Dialog open onOpenChange={(o) => { if (!o) onClose(); }}>
+      <DialogContent className="max-w-[320px] rounded-2xl">
+        <h2 className="font-barlow font-[800] text-lg text-foreground">QUEM CURTIU</h2>
+        {names === null && <p className="text-xs font-dm text-muted">Carregando...</p>}
+        {names?.length === 0 && <p className="text-xs font-dm text-muted">Ninguém curtiu ainda.</p>}
+        <div className="max-h-64 overflow-y-auto space-y-2">
+          {(names ?? []).map((n, i) => (
+            <div key={i} className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white text-[10px] font-semibold font-dm">
+                {initials(n)}
+              </div>
+              <p className="text-sm font-dm text-foreground">{n}</p>
+            </div>
+          ))}
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+const ReportSheet = ({
+  onClose, onSubmit,
+}: { onClose: () => void; onSubmit: (reason: string) => void }) => {
+  const [reason, setReason] = useState("");
+  return (
+    <Dialog open onOpenChange={(o) => { if (!o) onClose(); }}>
+      <DialogContent className="max-w-[320px] rounded-2xl">
+        <h2 className="font-barlow font-[800] text-lg text-foreground">DENUNCIAR POST</h2>
+        <div className="space-y-2">
+          {REPORT_REASONS.map((r) => (
+            <button
+              key={r}
+              onClick={() => setReason(r)}
+              className={`w-full text-left px-3 py-2.5 rounded-xl text-sm font-dm border ${
+                reason === r ? "border-primary bg-primary/5 text-primary" : "border-border text-foreground"
+              }`}
+            >
+              {r}
+            </button>
+          ))}
+        </div>
+        <button
+          onClick={() => onSubmit(reason)}
+          disabled={!reason}
+          className="w-full bg-primary text-white font-dm font-bold text-sm py-3 rounded-xl cta-shadow disabled:opacity-50"
+        >
+          Enviar denúncia
+        </button>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
 const ComunidadeTab = () => {
   const { client } = useStudent();
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
@@ -54,7 +126,27 @@ const ComunidadeTab = () => {
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
+  const [likersOf, setLikersOf] = useState<string | null>(null);
+  const [reportOf, setReportOf] = useState<Post | null>(null);
+  const [editing, setEditing] = useState<Post | null>(null);
+  const [editText, setEditText] = useState("");
+  const [blockedUntil, setBlockedUntil] = useState<Date | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+
+  const blocked = !!blockedUntil && blockedUntil.getTime() > Date.now();
+
+  useEffect(() => {
+    if (!client) return;
+    supabase
+      .from("clients")
+      .select("post_blocked_until")
+      .eq("id", client.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        const v = (data as { post_blocked_until: string | null } | null)?.post_blocked_until;
+        setBlockedUntil(v ? new Date(v) : null);
+      });
+  }, [client]);
 
   const load = useCallback(async () => {
     const [annRes, postRes, likeRes] = await Promise.all([
@@ -66,7 +158,7 @@ const ComunidadeTab = () => {
         .limit(5),
       supabase
         .from("community_posts")
-        .select("id, client_id, author_name, content, image_url, created_at")
+        .select("id, client_id, author_name, content, image_url, created_at, edited_at")
         .order("created_at", { ascending: false })
         .limit(50),
       supabase.from("community_post_likes").select("post_id, client_id"),
@@ -172,13 +264,35 @@ const ComunidadeTab = () => {
     }
   };
 
-  const report = async (post: Post) => {
+  const report = async (post: Post, reason: string) => {
     if (!client) return;
     const { error } = await supabase
       .from("community_reports")
-      .insert({ post_id: post.id, client_id: client.id, reason: "Denunciado pelo aluno" });
-    if (error) toast.error(error.message);
-    else toast.success("Denúncia enviada para a equipe.");
+      .insert({ post_id: post.id, client_id: client.id, reason });
+    setReportOf(null);
+    if (error) {
+      toast.error(
+        error.code === "23505" ? "Você já denunciou este post." : error.message
+      );
+      return;
+    }
+    toast.success("Denúncia enviada para a equipe.");
+    await load();
+  };
+
+  const saveEdit = async () => {
+    if (!editing) return;
+    const content = editText.trim();
+    const { error } = await supabase
+      .from("community_posts")
+      .update({ content: content || null, edited_at: new Date().toISOString() })
+      .eq("id", editing.id);
+    if (error) { toast.error(error.message); return; }
+    setPosts((prev) =>
+      prev.map((p) => (p.id === editing.id ? { ...p, content: content || null, edited_at: new Date().toISOString() } : p))
+    );
+    setEditing(null);
+    toast.success("Post atualizado");
   };
 
   const removePost = async (post: Post) => {
@@ -215,6 +329,20 @@ const ComunidadeTab = () => {
       )}
 
       {/* New Post */}
+      {blocked && (
+        <div className="rounded-2xl bg-white p-4 card-shadow mb-4 flex items-start gap-2.5">
+          <Ban size={18} className="text-red-500 shrink-0 mt-0.5" />
+          <div>
+            <p className="font-dm font-semibold text-sm text-foreground">Publicações bloqueadas por 24h</p>
+            <p className="text-[11px] font-dm text-muted">
+              Seu post foi denunciado pela comunidade. Você continua lendo e curtindo. Liberado em{" "}
+              {blockedUntil!.toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {!blocked && (
       <div className="rounded-2xl bg-white p-4 card-shadow mb-4">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-full bg-primary flex items-center justify-center text-white text-[11px] font-semibold font-dm">
@@ -268,6 +396,7 @@ const ComunidadeTab = () => {
           </button>
         )}
       </div>
+      )}
 
       {/* Feed */}
       <p className="font-barlow text-[10px] tracking-[2px] uppercase text-muted font-bold mb-3">FEED RECENTE</p>
@@ -287,7 +416,9 @@ const ComunidadeTab = () => {
                 </div>
                 <div>
                   <p className="font-dm font-semibold text-sm text-foreground">{p.author_name || "Aluno"}</p>
-                  <p className="text-[11px] text-muted font-dm">{timeAgo(p.created_at)} atrás</p>
+                  <p className="text-[11px] text-muted font-dm">
+                    {timeAgo(p.created_at)} atrás{p.edited_at ? " · editado" : ""}
+                  </p>
                 </div>
               </div>
               <DropdownMenu>
@@ -296,10 +427,18 @@ const ComunidadeTab = () => {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   {client?.id === p.client_id ? (
-                    <DropdownMenuItem onClick={() => removePost(p)}>Apagar post</DropdownMenuItem>
+                    <>
+                      <DropdownMenuItem
+                        onClick={() => { setEditing(p); setEditText(p.content || ""); }}
+                      >
+                        Editar post
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => removePost(p)}>Apagar post</DropdownMenuItem>
+                    </>
                   ) : (
-                    <DropdownMenuItem onClick={() => report(p)}>Denunciar post</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setReportOf(p)}>Denunciar post</DropdownMenuItem>
                   )}
+                  <DropdownMenuItem onClick={() => setLikersOf(p.id)}>Ver quem curtiu</DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
@@ -324,7 +463,7 @@ const ComunidadeTab = () => {
               </div>
             )}
 
-            <div className="px-4 py-3 flex items-center gap-5">
+            <div className="px-4 py-3 flex items-center gap-4">
               <button
                 onClick={() => toggleLike(p)}
                 className={`flex items-center gap-1.5 text-xs font-dm transition-colors ${
@@ -334,10 +473,42 @@ const ComunidadeTab = () => {
                 <Heart size={18} className={p.liked ? "fill-red-500" : ""} />
                 {p.likes}
               </button>
+              {p.likes > 0 && (
+                <button
+                  onClick={() => setLikersOf(p.id)}
+                  className="text-[11px] font-dm text-muted underline"
+                >
+                  quem curtiu
+                </button>
+              )}
             </div>
           </div>
         ))}
       </div>
+
+      {likersOf && <LikersSheet postId={likersOf} onClose={() => setLikersOf(null)} />}
+      {reportOf && (
+        <ReportSheet onClose={() => setReportOf(null)} onSubmit={(r) => report(reportOf, r)} />
+      )}
+      {editing && (
+        <Dialog open onOpenChange={(o) => { if (!o) setEditing(null); }}>
+          <DialogContent className="max-w-[320px] rounded-2xl">
+            <h2 className="font-barlow font-[800] text-lg text-foreground">EDITAR POST</h2>
+            <textarea
+              value={editText}
+              onChange={(e) => setEditText(e.target.value)}
+              rows={4}
+              className="w-full rounded-xl border border-border px-3 py-2.5 text-sm font-dm"
+            />
+            <button
+              onClick={saveEdit}
+              className="w-full bg-primary text-white font-dm font-bold text-sm py-3 rounded-xl cta-shadow"
+            >
+              Salvar
+            </button>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 };
