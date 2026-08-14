@@ -920,6 +920,10 @@ export function IndicacoesTab({ c }: { c: OverviewRow }) {
 export function OcorrenciasTab({ c }: { c: OverviewRow }) {
   const p = useClientRows("pain_reports", c.id, "client_id", "created_at");
   const alerts = useClientRows("crm_attendance_alerts", c.id, "client_id", "created_at");
+  return OcorrenciasBody({ p, alerts });
+}
+
+function OcorrenciasBody({ p, alerts }: { p: any; alerts: any }) {
   return (
     <div className="space-y-4">
       <Section title="Relatos de dor e lesão">
