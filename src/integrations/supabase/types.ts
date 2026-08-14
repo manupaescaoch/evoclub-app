@@ -142,25 +142,64 @@ export type Database = {
       }
       anamnesis: {
         Row: {
-          client_id: number
+          client_id: number | null
           content: string | null
           created_at: string | null
           id: string
+          injuries: string | null
+          lead_name: string | null
+          limitations: string | null
+          link_id: string | null
+          objective: string | null
+          pain: string | null
+          phone: string | null
+          restrictions: string | null
+          routine: string | null
+          sleep: string | null
+          stress: string | null
+          training_history: string | null
           type: string | null
+          unit_id: string | null
         }
         Insert: {
-          client_id: number
+          client_id?: number | null
           content?: string | null
           created_at?: string | null
           id?: string
+          injuries?: string | null
+          lead_name?: string | null
+          limitations?: string | null
+          link_id?: string | null
+          objective?: string | null
+          pain?: string | null
+          phone?: string | null
+          restrictions?: string | null
+          routine?: string | null
+          sleep?: string | null
+          stress?: string | null
+          training_history?: string | null
           type?: string | null
+          unit_id?: string | null
         }
         Update: {
-          client_id?: number
+          client_id?: number | null
           content?: string | null
           created_at?: string | null
           id?: string
+          injuries?: string | null
+          lead_name?: string | null
+          limitations?: string | null
+          link_id?: string | null
+          objective?: string | null
+          pain?: string | null
+          phone?: string | null
+          restrictions?: string | null
+          routine?: string | null
+          sleep?: string | null
+          stress?: string | null
+          training_history?: string | null
           type?: string | null
+          unit_id?: string | null
         }
         Relationships: [
           {
@@ -175,6 +214,20 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "anamnesis_link_id_fkey"
+            columns: ["link_id"]
+            isOneToOne: false
+            referencedRelation: "form_links"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "anamnesis_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "units"
             referencedColumns: ["id"]
           },
         ]
@@ -1736,16 +1789,27 @@ export type Database = {
       crm_tasks: {
         Row: {
           archived: boolean
+          attachment_url: string | null
           category: string | null
           created_at: string
           created_by: string | null
+          deadline_at: string | null
           description: string | null
           due_date: string | null
           due_time: string | null
           id: string
+          notes: string | null
+          notified_assign: boolean
+          notified_before: boolean
+          notified_due: boolean
+          notified_late: boolean
           priority: string
+          recurrence: string | null
+          responsible_id: string | null
           responsible_name: string | null
           responsible_phone: string | null
+          sector: string | null
+          source: string | null
           status: string
           title: string
           unit_id: string | null
@@ -1753,16 +1817,27 @@ export type Database = {
         }
         Insert: {
           archived?: boolean
+          attachment_url?: string | null
           category?: string | null
           created_at?: string
           created_by?: string | null
+          deadline_at?: string | null
           description?: string | null
           due_date?: string | null
           due_time?: string | null
           id?: string
+          notes?: string | null
+          notified_assign?: boolean
+          notified_before?: boolean
+          notified_due?: boolean
+          notified_late?: boolean
           priority?: string
+          recurrence?: string | null
+          responsible_id?: string | null
           responsible_name?: string | null
           responsible_phone?: string | null
+          sector?: string | null
+          source?: string | null
           status?: string
           title: string
           unit_id?: string | null
@@ -1770,22 +1845,41 @@ export type Database = {
         }
         Update: {
           archived?: boolean
+          attachment_url?: string | null
           category?: string | null
           created_at?: string
           created_by?: string | null
+          deadline_at?: string | null
           description?: string | null
           due_date?: string | null
           due_time?: string | null
           id?: string
+          notes?: string | null
+          notified_assign?: boolean
+          notified_before?: boolean
+          notified_due?: boolean
+          notified_late?: boolean
           priority?: string
+          recurrence?: string | null
+          responsible_id?: string | null
           responsible_name?: string | null
           responsible_phone?: string | null
+          sector?: string | null
+          source?: string | null
           status?: string
           title?: string
           unit_id?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "crm_tasks_responsible_id_fkey"
+            columns: ["responsible_id"]
+            isOneToOne: false
+            referencedRelation: "collaborators"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       daily_checkin_skips: {
         Row: {
@@ -2249,6 +2343,92 @@ export type Database = {
         }
         Relationships: []
       }
+      form_links: {
+        Row: {
+          answered_at: string | null
+          client_id: number | null
+          created_at: string
+          created_by: string | null
+          form_id: string | null
+          id: string
+          kind: string
+          lead_name: string | null
+          phone: string | null
+          response: Json | null
+          sent_at: string
+          status: string
+          token: string
+          unit_id: string | null
+          updated_at: string
+          viewed_at: string | null
+        }
+        Insert: {
+          answered_at?: string | null
+          client_id?: number | null
+          created_at?: string
+          created_by?: string | null
+          form_id?: string | null
+          id?: string
+          kind?: string
+          lead_name?: string | null
+          phone?: string | null
+          response?: Json | null
+          sent_at?: string
+          status?: string
+          token?: string
+          unit_id?: string | null
+          updated_at?: string
+          viewed_at?: string | null
+        }
+        Update: {
+          answered_at?: string | null
+          client_id?: number | null
+          created_at?: string
+          created_by?: string | null
+          form_id?: string | null
+          id?: string
+          kind?: string
+          lead_name?: string | null
+          phone?: string | null
+          response?: Json | null
+          sent_at?: string
+          status?: string
+          token?: string
+          unit_id?: string | null
+          updated_at?: string
+          viewed_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "form_links_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "client_overview"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "form_links_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "form_links_form_id_fkey"
+            columns: ["form_id"]
+            isOneToOne: false
+            referencedRelation: "operational_forms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "form_links_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "units"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       grade_activities: {
         Row: {
           activity_group: string | null
@@ -2580,6 +2760,74 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      nps_responses: {
+        Row: {
+          classification: string | null
+          client_id: number | null
+          comment: string | null
+          created_at: string
+          id: string
+          lead_name: string | null
+          link_id: string | null
+          score: number
+          source: string
+          unit_id: string | null
+        }
+        Insert: {
+          classification?: string | null
+          client_id?: number | null
+          comment?: string | null
+          created_at?: string
+          id?: string
+          lead_name?: string | null
+          link_id?: string | null
+          score: number
+          source?: string
+          unit_id?: string | null
+        }
+        Update: {
+          classification?: string | null
+          client_id?: number | null
+          comment?: string | null
+          created_at?: string
+          id?: string
+          lead_name?: string | null
+          link_id?: string | null
+          score?: number
+          source?: string
+          unit_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nps_responses_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "client_overview"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nps_responses_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nps_responses_link_id_fkey"
+            columns: ["link_id"]
+            isOneToOne: false
+            referencedRelation: "form_links"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nps_responses_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "units"
             referencedColumns: ["id"]
           },
         ]
@@ -3579,6 +3827,117 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      shift_closures: {
+        Row: {
+          answers: Json
+          collaborator_id: string | null
+          collaborator_name: string | null
+          created_at: string
+          date: string
+          id: string
+          sector: string
+          shift: string
+          started_at: string
+          status: string
+          submitted_at: string | null
+          summary: string | null
+          system_data: Json
+          unit_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          answers?: Json
+          collaborator_id?: string | null
+          collaborator_name?: string | null
+          created_at?: string
+          date?: string
+          id?: string
+          sector: string
+          shift?: string
+          started_at?: string
+          status?: string
+          submitted_at?: string | null
+          summary?: string | null
+          system_data?: Json
+          unit_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          answers?: Json
+          collaborator_id?: string | null
+          collaborator_name?: string | null
+          created_at?: string
+          date?: string
+          id?: string
+          sector?: string
+          shift?: string
+          started_at?: string
+          status?: string
+          submitted_at?: string | null
+          summary?: string | null
+          system_data?: Json
+          unit_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shift_closures_collaborator_id_fkey"
+            columns: ["collaborator_id"]
+            isOneToOne: false
+            referencedRelation: "collaborators"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shift_closures_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "units"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      shift_handover_reads: {
+        Row: {
+          closure_id: string
+          collaborator_id: string | null
+          collaborator_name: string | null
+          created_at: string
+          id: string
+          read_at: string
+        }
+        Insert: {
+          closure_id: string
+          collaborator_id?: string | null
+          collaborator_name?: string | null
+          created_at?: string
+          id?: string
+          read_at?: string
+        }
+        Update: {
+          closure_id?: string
+          collaborator_id?: string | null
+          collaborator_name?: string | null
+          created_at?: string
+          id?: string
+          read_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shift_handover_reads_closure_id_fkey"
+            columns: ["closure_id"]
+            isOneToOne: false
+            referencedRelation: "shift_closures"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shift_handover_reads_collaborator_id_fkey"
+            columns: ["collaborator_id"]
+            isOneToOne: false
+            referencedRelation: "collaborators"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       shift_schedules: {
         Row: {
@@ -5232,6 +5591,11 @@ export type Database = {
         Returns: number
       }
       evo_cycle_state: { Args: never; Returns: Json }
+      form_link_open: { Args: { p_token: string }; Returns: Json }
+      form_link_submit: {
+        Args: { p_payload: Json; p_token: string }
+        Returns: Json
+      }
       gamification_state: { Args: never; Returns: Json }
       geo_distance_m: {
         Args: { _lat1: number; _lat2: number; _lng1: number; _lng2: number }
@@ -5277,6 +5641,7 @@ export type Database = {
           waiting: number
         }[]
       }
+      handover_ack: { Args: { _closure_id: string }; Returns: Json }
       has_financial_release: { Args: { _user_id: string }; Returns: boolean }
       has_role: {
         Args: {
@@ -5354,6 +5719,11 @@ export type Database = {
         Args: { _id: string; _note?: string; _status: string }
         Returns: Json
       }
+      operational_dashboard: {
+        Args: { _from: string; _to: string; _unit_id: string }
+        Returns: Json
+      }
+      operational_ruler: { Args: never; Returns: Json }
       plan_blocked: { Args: { _client: number }; Returns: boolean }
       plan_state: { Args: never; Returns: Json }
       post_likers: {
@@ -5422,6 +5792,14 @@ export type Database = {
           _class_id: string
           _reason: string
         }
+        Returns: Json
+      }
+      shift_closure_prefill: {
+        Args: { _date: string; _sector: string; _unit_id: string }
+        Returns: Json
+      }
+      shift_closure_submit: {
+        Args: { _id: string; _summary: string }
         Returns: Json
       }
       sign_contract: {
