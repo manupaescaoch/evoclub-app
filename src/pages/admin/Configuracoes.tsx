@@ -310,6 +310,8 @@ const Configuracoes = () => {
       )}
 
       {tab === "auditoria" && <AuditLogTab />}
+
+      {tab === "unidades" && <UnidadesTab />}
     </div>
   );
 };
