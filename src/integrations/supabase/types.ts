@@ -1133,7 +1133,12 @@ export type Database = {
           phone: string | null
           photo_url: string | null
           role_title: string | null
+          shift_break_minutes: number | null
+          shift_end: string | null
+          shift_start: string | null
+          shift_weekdays: number[] | null
           status: string
+          supervisor_id: string | null
           unit_id: string | null
           updated_at: string
         }
@@ -1152,7 +1157,12 @@ export type Database = {
           phone?: string | null
           photo_url?: string | null
           role_title?: string | null
+          shift_break_minutes?: number | null
+          shift_end?: string | null
+          shift_start?: string | null
+          shift_weekdays?: number[] | null
           status?: string
+          supervisor_id?: string | null
           unit_id?: string | null
           updated_at?: string
         }
@@ -1171,7 +1181,12 @@ export type Database = {
           phone?: string | null
           photo_url?: string | null
           role_title?: string | null
+          shift_break_minutes?: number | null
+          shift_end?: string | null
+          shift_start?: string | null
+          shift_weekdays?: number[] | null
           status?: string
+          supervisor_id?: string | null
           unit_id?: string | null
           updated_at?: string
         }
@@ -1181,6 +1196,13 @@ export type Database = {
             columns: ["permission_profile_id"]
             isOneToOne: false
             referencedRelation: "permission_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "collaborators_supervisor_id_fkey"
+            columns: ["supervisor_id"]
+            isOneToOne: false
+            referencedRelation: "collaborators"
             referencedColumns: ["id"]
           },
         ]
@@ -3558,6 +3580,193 @@ export type Database = {
         }
         Relationships: []
       }
+      shift_schedules: {
+        Row: {
+          break_minutes: number | null
+          collaborator_id: string
+          created_at: string
+          day_type: string
+          end_time: string | null
+          id: string
+          notes: string | null
+          published_at: string | null
+          published_by: string | null
+          role_title: string | null
+          schedule_date: string
+          start_time: string | null
+          status: string
+          supervisor_id: string | null
+          unit_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          break_minutes?: number | null
+          collaborator_id: string
+          created_at?: string
+          day_type?: string
+          end_time?: string | null
+          id?: string
+          notes?: string | null
+          published_at?: string | null
+          published_by?: string | null
+          role_title?: string | null
+          schedule_date: string
+          start_time?: string | null
+          status?: string
+          supervisor_id?: string | null
+          unit_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          break_minutes?: number | null
+          collaborator_id?: string
+          created_at?: string
+          day_type?: string
+          end_time?: string | null
+          id?: string
+          notes?: string | null
+          published_at?: string | null
+          published_by?: string | null
+          role_title?: string | null
+          schedule_date?: string
+          start_time?: string | null
+          status?: string
+          supervisor_id?: string | null
+          unit_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shift_schedules_collaborator_id_fkey"
+            columns: ["collaborator_id"]
+            isOneToOne: false
+            referencedRelation: "collaborators"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shift_schedules_supervisor_id_fkey"
+            columns: ["supervisor_id"]
+            isOneToOne: false
+            referencedRelation: "collaborators"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shift_schedules_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "units"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      shift_swap_requests: {
+        Row: {
+          accepted_at: string | null
+          created_at: string
+          decided_at: string | null
+          decided_by: string | null
+          decision_note: string | null
+          id: string
+          reason: string | null
+          requester_id: string
+          schedule_id: string
+          status: string
+          target_id: string
+          updated_at: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          decision_note?: string | null
+          id?: string
+          reason?: string | null
+          requester_id: string
+          schedule_id: string
+          status?: string
+          target_id: string
+          updated_at?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          decision_note?: string | null
+          id?: string
+          reason?: string | null
+          requester_id?: string
+          schedule_id?: string
+          status?: string
+          target_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shift_swap_requests_requester_id_fkey"
+            columns: ["requester_id"]
+            isOneToOne: false
+            referencedRelation: "collaborators"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shift_swap_requests_schedule_id_fkey"
+            columns: ["schedule_id"]
+            isOneToOne: false
+            referencedRelation: "shift_schedules"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shift_swap_requests_target_id_fkey"
+            columns: ["target_id"]
+            isOneToOne: false
+            referencedRelation: "collaborators"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      staff_notifications: {
+        Row: {
+          body: string | null
+          collaborator_id: string
+          created_at: string
+          id: string
+          kind: string
+          read_at: string | null
+          title: string
+          url: string | null
+        }
+        Insert: {
+          body?: string | null
+          collaborator_id: string
+          created_at?: string
+          id?: string
+          kind?: string
+          read_at?: string | null
+          title: string
+          url?: string | null
+        }
+        Update: {
+          body?: string | null
+          collaborator_id?: string
+          created_at?: string
+          id?: string
+          kind?: string
+          read_at?: string | null
+          title?: string
+          url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "staff_notifications_collaborator_id_fkey"
+            columns: ["collaborator_id"]
+            isOneToOne: false
+            referencedRelation: "collaborators"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       staff_schedules: {
         Row: {
           cleaning_hours: string | null
@@ -3822,6 +4031,87 @@ export type Database = {
             columns: ["template_id"]
             isOneToOne: false
             referencedRelation: "workout_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      time_entries: {
+        Row: {
+          adjust_reason: string | null
+          adjusted_at: string | null
+          adjusted_by: string | null
+          collaborator_id: string
+          created_at: string
+          device: string | null
+          distance_m: number | null
+          entry_date: string
+          id: string
+          kind: string
+          latitude: number | null
+          longitude: number | null
+          photo_url: string | null
+          recorded_at: string
+          request_reason: string | null
+          status: string
+          unit_id: string | null
+          updated_at: string
+          within_radius: boolean
+        }
+        Insert: {
+          adjust_reason?: string | null
+          adjusted_at?: string | null
+          adjusted_by?: string | null
+          collaborator_id: string
+          created_at?: string
+          device?: string | null
+          distance_m?: number | null
+          entry_date?: string
+          id?: string
+          kind: string
+          latitude?: number | null
+          longitude?: number | null
+          photo_url?: string | null
+          recorded_at?: string
+          request_reason?: string | null
+          status?: string
+          unit_id?: string | null
+          updated_at?: string
+          within_radius?: boolean
+        }
+        Update: {
+          adjust_reason?: string | null
+          adjusted_at?: string | null
+          adjusted_by?: string | null
+          collaborator_id?: string
+          created_at?: string
+          device?: string | null
+          distance_m?: number | null
+          entry_date?: string
+          id?: string
+          kind?: string
+          latitude?: number | null
+          longitude?: number | null
+          photo_url?: string | null
+          recorded_at?: string
+          request_reason?: string | null
+          status?: string
+          unit_id?: string | null
+          updated_at?: string
+          within_radius?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "time_entries_collaborator_id_fkey"
+            columns: ["collaborator_id"]
+            isOneToOne: false
+            referencedRelation: "collaborators"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "time_entries_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "units"
             referencedColumns: ["id"]
           },
         ]
@@ -4893,6 +5183,25 @@ export type Database = {
           title: string
         }[]
       }
+      collaborator_scores: {
+        Args: { _from: string; _to: string; _unit_id: string }
+        Returns: {
+          assessments: number
+          avg_stars: number
+          breakdown: Json
+          collaborator_id: string
+          conversions: number
+          full_name: string
+          plans_updated: number
+          rank: number
+          role_title: string
+          score: number
+          sessions_done: number
+          trials: number
+          unique_students: number
+          unit_id: string
+        }[]
+      }
       commission_report: {
         Args: { _from: string; _to: string; _unit_id?: string }
         Returns: {
@@ -4924,6 +5233,10 @@ export type Database = {
       }
       evo_cycle_state: { Args: never; Returns: Json }
       gamification_state: { Args: never; Returns: Json }
+      geo_distance_m: {
+        Args: { _lat1: number; _lat2: number; _lng1: number; _lng2: number }
+        Returns: number
+      }
       grade_day_roster: {
         Args: { _class_date: string; _unit_id?: string }
         Returns: {
@@ -5050,6 +5363,18 @@ export type Database = {
           name: string
         }[]
       }
+      punch_clock: {
+        Args: {
+          _device?: string
+          _kind: string
+          _latitude: number
+          _longitude: number
+          _photo_url: string
+          _reason?: string
+          _unit_id?: string
+        }
+        Returns: Json
+      }
       purge_old_notifications: { Args: never; Returns: undefined }
       ranking_scores: {
         Args: { _from?: string; _unit_id?: string }
@@ -5080,6 +5405,11 @@ export type Database = {
         }
         Returns: Json
       }
+      schedule_copy_previous: {
+        Args: { _from_date: string; _to_date: string; _unit_id: string }
+        Returns: Json
+      }
+      schedule_publish: { Args: { _ids: string[] }; Returns: Json }
       set_attendance: {
         Args: { _booking_id: string; _status: string }
         Returns: Json
@@ -5114,7 +5444,57 @@ export type Database = {
           total: number
         }[]
       }
+      swap_decide: {
+        Args: { _approve: boolean; _id: string; _note?: string }
+        Returns: Json
+      }
+      swap_request: {
+        Args: { _reason: string; _schedule_id: string; _target_id: string }
+        Returns: Json
+      }
+      swap_respond: { Args: { _accept: boolean; _id: string }; Returns: Json }
       sync_achievements: { Args: never; Returns: Json }
+      time_entry_adjust: {
+        Args: {
+          _approve?: boolean
+          _id: string
+          _kind: string
+          _reason: string
+          _recorded_at: string
+        }
+        Returns: Json
+      }
+      timeclock_report: {
+        Args: {
+          _collaborator_id?: string
+          _from: string
+          _to: string
+          _unit_id: string
+        }
+        Returns: {
+          adjust_reason: string
+          adjusted_at: string
+          collaborator_id: string
+          collaborator_name: string
+          device: string
+          distance_m: number
+          entry_date: string
+          expected_end: string
+          expected_start: string
+          id: string
+          kind: string
+          latitude: number
+          longitude: number
+          photo_url: string
+          radius_m: number
+          recorded_at: string
+          request_reason: string
+          status: string
+          unit_id: string
+          unit_name: string
+          within_radius: boolean
+        }[]
+      }
       unassign_professor: { Args: { _booking_id: string }; Returns: Json }
       update_limitations: {
         Args: { _client_id: number; _limitations: string }
