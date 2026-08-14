@@ -442,6 +442,7 @@ const TreinoTab = () => {
   const [videoTarget, setVideoTarget] = useState<{ url: string; name: string } | null>(null);
   const [openNotes, setOpenNotes] = useState<Record<string, boolean>>({});
   const [showXpModal, setShowXpModal] = useState(false);
+  const [showPostWorkout, setShowPostWorkout] = useState(false);
   const [saving, setSaving] = useState(false);
   const finishRef = useRef<(auto?: boolean) => void>(() => {});
 
@@ -534,9 +535,17 @@ const TreinoTab = () => {
             prescribedSets: s.sets ?? null,
             prescribedReps: reps,
             prescribedLoad: s.load ?? null,
+            prescribedTime: s.time_seconds ?? null,
+            prescribedIncline: s.incline ?? null,
             performedSets: null,
             performedReps: null,
             performedLoad: null,
+            performedTime: null,
+            performedDistance: null,
+            performedSpeed: null,
+            performedIncline: null,
+            performedCalories: null,
+            cardio: isCardioType(s.set_type ?? null) || !!s.incline,
             completed: false,
             lastExecution: s.id ? lastBySet.get(s.id) ?? null : null,
           } as Serie;
@@ -569,7 +578,7 @@ const TreinoTab = () => {
           setStartedAt(start);
           const { data: logSets } = await supabase
             .from("workout_log_sets")
-            .select("session_exercise_id, prescribed_set_id, performed_sets, performed_reps, performed_load, completed")
+            .select("session_exercise_id, prescribed_set_id, performed_sets, performed_reps, performed_load, performed_time_seconds, performed_distance_km, performed_speed, performed_incline, performed_calories, completed")
             .eq("workout_log_id", log.id);
           if (logSets?.length) {
             mapped = mapped.map((ex) => ({
@@ -582,6 +591,11 @@ const TreinoTab = () => {
                   performedSets: row.performed_sets ?? null,
                   performedReps: row.performed_reps ?? null,
                   performedLoad: row.performed_load ?? null,
+                  performedTime: row.performed_time_seconds ?? null,
+                  performedDistance: row.performed_distance_km != null ? String(row.performed_distance_km) : null,
+                  performedSpeed: row.performed_speed != null ? String(row.performed_speed) : null,
+                  performedIncline: row.performed_incline ?? null,
+                  performedCalories: row.performed_calories != null ? String(row.performed_calories) : null,
                   completed: !!row.completed,
                 };
               }),
