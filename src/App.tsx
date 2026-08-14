@@ -50,7 +50,10 @@ import Comissoes from "./pages/admin/crm/Comissoes.tsx";
 import Indicacoes from "./pages/admin/crm/Indicacoes.tsx";
 import Tarefas from "./pages/admin/crm/Tarefas.tsx";
 import Operacional from "./pages/admin/crm/Operacional.tsx";
-import Escala from "./pages/admin/crm/Escala.tsx";
+import Escala from "./pages/admin/equipe/Escala.tsx";
+import EquipePonto from "./pages/admin/equipe/Ponto.tsx";
+import EquipeDesempenho from "./pages/admin/equipe/Desempenho.tsx";
+import EquipeHistorico from "./pages/admin/equipe/Historico.tsx";
 import ValidarResgate from "./pages/admin/club/ValidarResgate";
 import Configuracoes from "./pages/admin/Configuracoes.tsx";
 import AdminComunidade from "./pages/admin/Comunidade.tsx";
@@ -119,6 +122,11 @@ const App = () => (
             <Route path="avaliacoes" element={<ModuleGuard module="avaliacao"><Avaliacoes /></ModuleGuard>} />
             <Route path="equipe" element={<ModuleGuard module="equipe"><Equipe /></ModuleGuard>} />
             <Route path="equipe/escala" element={<ModuleGuard module="equipe"><Escala /></ModuleGuard>} />
+            <Route path="equipe/ponto" element={<ModuleGuard module="equipe"><EquipePonto /></ModuleGuard>} />
+            <Route path="equipe/desempenho" element={<ModuleGuard module="equipe"><EquipeDesempenho /></ModuleGuard>} />
+            <Route path="equipe/historico" element={<ModuleGuard module="equipe"><EquipeHistorico /></ModuleGuard>} />
+            <Route path="equipe/colaboradores" element={<Navigate to="/admin/gerencial/colaboradores" replace />} />
+            <Route path="equipe/permissoes" element={<Navigate to="/admin/gerencial/permissoes" replace />} />
             <Route path="operacional" element={<ModuleGuard module="operacional"><Operacional /></ModuleGuard>} />
             <Route path="ocorrencias" element={<ModuleGuard module="ocorrencias"><Ocorrencias /></ModuleGuard>} />
 

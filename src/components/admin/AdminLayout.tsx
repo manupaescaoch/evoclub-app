@@ -64,7 +64,12 @@ const navItems: NavItem[] = [
     label: "Equipe", icon: UserCog, path: "/admin/equipe", module: "equipe",
     children: [
       { label: "Visão geral", icon: UserCog, path: "/admin/equipe" },
+      { label: "Colaboradores", icon: UserCog, path: "/admin/gerencial/colaboradores" },
       { label: "Escala", icon: CalendarClock, path: "/admin/equipe/escala" },
+      { label: "Ponto e Jornada", icon: Clock, path: "/admin/equipe/ponto" },
+      { label: "Desempenho", icon: Trophy, path: "/admin/equipe/desempenho" },
+      { label: "Permissões", icon: ShieldCheck, path: "/admin/gerencial/permissoes" },
+      { label: "Histórico", icon: History, path: "/admin/equipe/historico" },
     ],
   },
   { label: "Operacional", icon: ClipboardCheck, path: "/admin/operacional", module: "operacional" },
