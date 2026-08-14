@@ -17,7 +17,15 @@ export interface ActivePlan {
   expiresAt: string | null;
   coachName: string | null;
   sessions: PlanSession[];
-  volume: { group: string; sets: number }[];
+  volume: VolumeRow[];
+}
+
+export interface VolumeRow {
+  group: string;
+  /** Séries prescritas na semana (auxiliar conta 0,5). */
+  prescribed: number;
+  /** Séries concluídas na semana (auxiliar conta 0,5). */
+  done: number;
 }
 
 export interface ArchivedPlan {
@@ -44,6 +52,17 @@ export const swapStatus = (expiresAt: string | null): "ok" | "soon" | "late" | n
   if (d < 0) return "late";
   if (d <= 7) return "soon";
   return "ok";
+};
+
+/** Semana atual segunda→domingo no fuso de Brasília. */
+export const brazilWeekRange = () => {
+  const today = new Date(`${brazilToday()}T00:00:00`);
+  const dow = today.getDay(); // 0 = domingo
+  const diffToMonday = dow === 0 ? -6 : 1 - dow;
+  const monday = new Date(today.getTime() + diffToMonday * 86400000);
+  const sunday = new Date(monday.getTime() + 6 * 86400000);
+  const fmt = (d: Date) => d.toISOString().slice(0, 10);
+  return { from: fmt(monday), to: fmt(sunday) };
 };
 
 export const useTrainingPlan = (clientId: number | null) => {
