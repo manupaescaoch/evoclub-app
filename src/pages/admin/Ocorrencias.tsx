@@ -59,13 +59,13 @@ export default function Ocorrencias() {
 
   const load = useCallback(async () => {
     setLoading(true); setError(null);
-    const [{ data, error: err }, { data: cо }] = await Promise.all([
+    const [{ data, error: err }, { data: co }] = await Promise.all([
       supabase.rpc("occurrence_list" as any, { _unit_id: filterId, _from: from, _to: to }),
       supabase.from("collaborators").select("id,full_name").eq("status", "active").order("full_name"),
     ]);
     if (err) setError(err.message);
     setRows(((data as any[]) || []) as Row[]);
-    setCollabs(((cо as any[]) || []) as Collab[]);
+    setCollabs(((co as any[]) || []) as Collab[]);
     setLoading(false);
   }, [filterId, from, to]);
 
