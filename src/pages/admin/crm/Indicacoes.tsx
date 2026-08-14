@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import RenewalBenefitsPanel from "@/components/admin/crm/RenewalBenefitsPanel";
 import PageShell, { SummaryCard, EmptyState, LoadingState } from "@/components/admin/gerencial/PageShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -242,6 +243,8 @@ export default function Indicacoes() {
           </Table>
         )}
       </div>
+
+      <RenewalBenefitsPanel />
     </PageShell>
   );
 }

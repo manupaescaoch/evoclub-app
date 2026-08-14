@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { ChevronLeft, CreditCard, FileText, CalendarClock, CheckCircle2, Clock } from "lucide-react";
+import { ChevronLeft, CreditCard, FileText, CalendarClock, CheckCircle2, Clock, Gift, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
@@ -24,6 +24,14 @@ type Renewal = {
   created_at: string;
 };
 
+type Benefit = {
+  id: string;
+  title: string;
+  description: string | null;
+  status: string;
+  delivered_at: string | null;
+};
+
 const STATUS: Record<string, string> = {
   pending: "Em análise",
   contacted: "Equipe entrou em contato",
@@ -41,6 +49,7 @@ const PlanoTab = ({ onBack, onNavigate }: { onBack: () => void; onNavigate?: (s:
   const { plan: planState } = usePlanState();
   const [contracts, setContracts] = useState<Contract[]>([]);
   const [requests, setRequests] = useState<Renewal[]>([]);
+  const [benefits, setBenefits] = useState<Benefit[]>([]);
   const [open, setOpen] = useState(false);
   const [plan, setPlan] = useState("");
   const [payment, setPayment] = useState(PAYMENTS[0]);
@@ -49,16 +58,22 @@ const PlanoTab = ({ onBack, onNavigate }: { onBack: () => void; onNavigate?: (s:
 
   const load = useCallback(async () => {
     if (!profile) return;
-    const [c, r] = await Promise.all([
+    const [c, r, b] = await Promise.all([
       supabase.from("contracts").select("id, name, linked_plan, validity_months, renewal_rules, cancellation_rules").eq("status", "active"),
       supabase
         .from("renewal_requests")
         .select("id, desired_plan, payment_method, status, created_at")
         .eq("client_id", profile.id)
         .order("created_at", { ascending: false }),
+      supabase
+        .from("renewal_benefits")
+        .select("id, title, description, status, delivered_at")
+        .eq("client_id", profile.id)
+        .order("created_at", { ascending: false }),
     ]);
     setContracts((c.data || []) as Contract[]);
     setRequests((r.data || []) as Renewal[]);
+    setBenefits((b.data || []) as Benefit[]);
     setPlan(profile.plan || "");
   }, [profile]);
 
@@ -173,7 +188,48 @@ const PlanoTab = ({ onBack, onNavigate }: { onBack: () => void; onNavigate?: (s:
         >
           <FileText size={15} /> Meus contratos
         </button>
+
+        <button
+          onClick={() => onNavigate?.("ciclos")}
+          className="mt-2 w-full py-3 rounded-2xl bg-secondary text-foreground font-dm font-semibold text-sm flex items-center justify-center gap-2"
+        >
+          <Sparkles size={15} /> Meus Ciclos EVO
+        </button>
       </div>
+
+      {/* Benefícios de renovação */}
+      {benefits.length > 0 && (
+        <div className="rounded-2xl bg-white p-4 card-shadow mb-4">
+          <div className="flex items-center gap-2 mb-3">
+            <Gift size={16} className="text-primary" />
+            <p className="font-barlow text-[10px] tracking-[2px] uppercase text-muted font-bold">
+              BENEFÍCIOS DE RENOVAÇÃO
+            </p>
+          </div>
+          <div className="space-y-2">
+            {benefits.map((b) => (
+              <div key={b.id} className="flex items-start justify-between gap-2 p-3 rounded-xl bg-secondary">
+                <div>
+                  <p className="text-xs font-dm font-semibold text-foreground">{b.title}</p>
+                  {b.description && <p className="text-[10px] font-dm text-muted">{b.description}</p>}
+                  {b.delivered_at && (
+                    <p className="text-[10px] font-dm text-muted">
+                      Entregue em {new Date(b.delivered_at).toLocaleDateString("pt-BR")}
+                    </p>
+                  )}
+                </div>
+                <span
+                  className={`text-[10px] font-dm font-semibold px-2.5 py-1 rounded-full whitespace-nowrap ${
+                    b.status === "delivered" ? "bg-green-50 text-green-700" : "bg-primary/10 text-primary"
+                  }`}
+                >
+                  {b.status === "delivered" ? "Entregue" : "Disponível"}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Pedidos */}
       {requests.length > 0 && (
