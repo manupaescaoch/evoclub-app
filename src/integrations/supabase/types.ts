@@ -527,6 +527,8 @@ export type Database = {
       clients: {
         Row: {
           auth_user_id: string | null
+          avatar_url: string | null
+          birth_date: string | null
           contract_end: string | null
           contract_start: string | null
           cpf: string | null
@@ -547,6 +549,8 @@ export type Database = {
         }
         Insert: {
           auth_user_id?: string | null
+          avatar_url?: string | null
+          birth_date?: string | null
           contract_end?: string | null
           contract_start?: string | null
           cpf?: string | null
@@ -567,6 +571,8 @@ export type Database = {
         }
         Update: {
           auth_user_id?: string | null
+          avatar_url?: string | null
+          birth_date?: string | null
           contract_end?: string | null
           contract_start?: string | null
           cpf?: string | null
@@ -2269,6 +2275,50 @@ export type Database = {
           },
         ]
       }
+      renewal_requests: {
+        Row: {
+          client_id: number
+          created_at: string
+          desired_plan: string | null
+          id: string
+          notes: string | null
+          payment_method: string | null
+          status: string
+          unit_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          client_id: number
+          created_at?: string
+          desired_plan?: string | null
+          id?: string
+          notes?: string | null
+          payment_method?: string | null
+          status?: string
+          unit_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          client_id?: number
+          created_at?: string
+          desired_plan?: string | null
+          id?: string
+          notes?: string | null
+          payment_method?: string | null
+          status?: string
+          unit_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "renewal_requests_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sales: {
         Row: {
           client_id: number | null
@@ -3486,6 +3536,10 @@ export type Database = {
           my_waitlist_position: number
           waiting: number
         }[]
+      }
+      create_indication: {
+        Args: { _name: string; _phone: string }
+        Returns: Json
       }
       current_client_id: { Args: never; Returns: number }
       has_role: {
