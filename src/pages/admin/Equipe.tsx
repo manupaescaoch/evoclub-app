@@ -4,12 +4,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { useUnit } from "@/contexts/UnitContext";
 import PageShell, { SummaryCard, EmptyState, LoadingState, StatusBadge } from "@/components/admin/gerencial/PageShell";
 import { Button } from "@/components/ui/button";
-import { CalendarClock, Clock, Trophy, ShieldCheck, UserCog } from "lucide-react";
+import { CalendarClock, Clock, Trophy, ShieldCheck, UserCog, History } from "lucide-react";
 
 type Row = {
   id: string; full_name: string; role_title: string | null; email: string | null;
   phone: string | null; unit_id: string | null; status: string | null;
   allow_consolidated: boolean | null; financial_release: boolean | null;
+  supervisor_id: string | null; shift_start: string | null; shift_end: string | null;
 };
 
 export default function Equipe() {
@@ -35,6 +36,7 @@ export default function Equipe() {
   }, [filterId]);
 
   const unitName = (id: string | null) => units.find(u => u.id === id)?.name || "—";
+  const collabName = (id: string | null) => rows.find(r => r.id === id)?.full_name || "—";
   const list = useMemo(() => {
     const s = search.trim().toLowerCase();
     return s ? rows.filter(r => r.full_name.toLowerCase().includes(s) || (r.role_title || "").toLowerCase().includes(s)) : rows;
@@ -67,21 +69,20 @@ export default function Equipe() {
       }
     >
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-        <Link to="/admin/equipe/escala" className="bg-card border border-border rounded-xl p-4 hover:border-primary transition-colors">
-          <CalendarClock size={18} className="text-primary" />
-          <p className="font-barlow font-bold text-base mt-2">Escala</p>
-          <p className="text-xs text-muted-foreground font-dm">Sábados, domingos e feriados.</p>
-        </Link>
-        <div className="bg-card border border-border rounded-xl p-4 opacity-70">
-          <Clock size={18} className="text-muted-foreground" />
-          <p className="font-barlow font-bold text-base mt-2">Ponto e Jornada</p>
-          <p className="text-xs text-muted-foreground font-dm">Entra no bloco de Equipe (foto, geolocalização e raio da unidade).</p>
-        </div>
-        <div className="bg-card border border-border rounded-xl p-4 opacity-70">
-          <Trophy size={18} className="text-muted-foreground" />
-          <p className="font-barlow font-bold text-base mt-2">Desempenho</p>
-          <p className="text-xs text-muted-foreground font-dm">Score 0–100 e ranking de destaque entram no bloco de Equipe.</p>
-        </div>
+        {[
+          { to: "/admin/gerencial/colaboradores", icon: UserCog, title: "Colaboradores", desc: "Cadastro, unidade, turno fixo e supervisor." },
+          { to: "/admin/equipe/escala", icon: CalendarClock, title: "Escala", desc: "Sábados, domingos, feriados e trocas de turno." },
+          { to: "/admin/equipe/ponto", icon: Clock, title: "Ponto e Jornada", desc: "Foto, geolocalização e raio da unidade." },
+          { to: "/admin/equipe/desempenho", icon: Trophy, title: "Desempenho", desc: "Score 0–100 e ranking de destaque." },
+          { to: "/admin/gerencial/permissoes", icon: ShieldCheck, title: "Permissões", desc: "Perfis de acesso por módulo e ação." },
+          { to: "/admin/equipe/historico", icon: History, title: "Histórico", desc: "Auditoria de colaboradores, ponto e escala." },
+        ].map(c => (
+          <Link key={c.to} to={c.to} className="bg-card border border-border rounded-xl p-4 hover:border-primary transition-colors">
+            <c.icon size={18} className="text-primary" />
+            <p className="font-barlow font-bold text-base mt-2">{c.title}</p>
+            <p className="text-xs text-muted-foreground font-dm">{c.desc}</p>
+          </Link>
+        ))}
       </div>
 
       {error && (
@@ -101,6 +102,8 @@ export default function Equipe() {
                   <th className="px-4 py-3">Colaborador</th>
                   <th className="px-4 py-3">Cargo</th>
                   <th className="px-4 py-3">Unidade</th>
+                  <th className="px-4 py-3">Turno fixo</th>
+                  <th className="px-4 py-3">Supervisor</th>
                   <th className="px-4 py-3">Contato</th>
                   <th className="px-4 py-3">Permissões</th>
                   <th className="px-4 py-3">Status</th>
@@ -112,6 +115,10 @@ export default function Equipe() {
                     <td className="px-4 py-3 font-medium">{r.full_name}</td>
                     <td className="px-4 py-3">{r.role_title || "—"}</td>
                     <td className="px-4 py-3">{unitName(r.unit_id)}</td>
+                    <td className="px-4 py-3 text-xs text-muted-foreground">
+                      {r.shift_start ? `${r.shift_start.slice(0, 5)} – ${(r.shift_end || "").slice(0, 5)}` : "—"}
+                    </td>
+                    <td className="px-4 py-3 text-xs text-muted-foreground">{r.supervisor_id ? collabName(r.supervisor_id) : "—"}</td>
                     <td className="px-4 py-3 text-xs text-muted-foreground">{r.phone || r.email || "—"}</td>
                     <td className="px-4 py-3">
                       <div className="flex gap-1 flex-wrap">
