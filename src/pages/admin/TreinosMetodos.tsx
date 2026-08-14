@@ -14,6 +14,7 @@ type Method = {
   name: string;
   description: string | null;
   is_global: boolean;
+  created_by: string | null;
 };
 
 const TreinosMetodos = () => {
@@ -23,14 +24,20 @@ const TreinosMetodos = () => {
   const [editing, setEditing] = useState<Method | null>(null);
   const [form, setForm] = useState({ name: "", description: "" });
   const [loading, setLoading] = useState(true);
+  const [userId, setUserId] = useState<string | null>(null);
 
   const fetchMethods = async () => {
     const { data } = await supabase.from("training_methods").select("*").order("name");
-    setMethods(data || []);
+    setMethods((data as Method[]) || []);
     setLoading(false);
   };
 
-  useEffect(() => { fetchMethods(); }, []);
+  useEffect(() => {
+    fetchMethods();
+    supabase.auth.getUser().then(({ data }) => setUserId(data.user?.id ?? null));
+  }, []);
+
+  const isOwner = (m: Method) => !m.is_global && !!m.created_by && m.created_by === userId;
 
   const filtered = methods.filter(m =>
     !search || m.name.toLowerCase().includes(search.toLowerCase()) || m.description?.toLowerCase().includes(search.toLowerCase())
@@ -54,7 +61,12 @@ const TreinosMetodos = () => {
       await supabase.from("training_methods").update({ name: form.name, description: form.description || null }).eq("id", editing.id);
       toast.success("Método atualizado");
     } else {
-      await supabase.from("training_methods").insert({ name: form.name, description: form.description || null, is_global: false });
+      await supabase.from("training_methods").insert({
+        name: form.name,
+        description: form.description || null,
+        is_global: false,
+        created_by: userId,
+      });
       toast.success("Método criado");
     }
     setDialogOpen(false);
@@ -62,6 +74,7 @@ const TreinosMetodos = () => {
   };
 
   const handleDelete = async (id: string) => {
+    if (!confirm("Excluir este método? Os treinos já prescritos continuam iguais.")) return;
     await supabase.from("training_methods").delete().eq("id", id);
     toast.success("Método removido");
     fetchMethods();
@@ -91,12 +104,17 @@ const TreinosMetodos = () => {
               <div className="flex items-center gap-2 mb-1">
                 <span className="font-barlow font-bold text-sm uppercase tracking-wide text-foreground">{m.name}</span>
                 {m.is_global && <Badge variant="secondary" className="text-[10px] font-dm">Global</Badge>}
+                {isOwner(m) && <Badge variant="outline" className="text-[10px] font-dm">Meu método</Badge>}
               </div>
               {m.description && <p className="text-sm font-dm text-muted-foreground leading-snug">{m.description}</p>}
             </div>
             <div className="flex gap-1 shrink-0">
-              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openEdit(m)}><Pencil className="w-3.5 h-3.5" /></Button>
-              {!m.is_global && <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => handleDelete(m.id)}><Trash2 className="w-3.5 h-3.5" /></Button>}
+              {isOwner(m) && (
+                <>
+                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openEdit(m)}><Pencil className="w-3.5 h-3.5" /></Button>
+                  <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => handleDelete(m.id)}><Trash2 className="w-3.5 h-3.5" /></Button>
+                </>
+              )}
             </div>
           </div>
         ))}
