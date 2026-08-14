@@ -167,6 +167,13 @@ export type Database = {
             foreignKeyName: "anamnesis_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
+            referencedRelation: "client_overview"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "anamnesis_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
             referencedRelation: "clients"
             referencedColumns: ["id"]
           },
@@ -400,6 +407,13 @@ export type Database = {
             foreignKeyName: "cancellations_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
+            referencedRelation: "client_overview"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cancellations_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
             referencedRelation: "clients"
             referencedColumns: ["id"]
           },
@@ -429,6 +443,13 @@ export type Database = {
           id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "check_ins_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "client_overview"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "check_ins_client_id_fkey"
             columns: ["client_id"]
@@ -490,6 +511,13 @@ export type Database = {
             foreignKeyName: "class_bookings_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
+            referencedRelation: "client_overview"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "class_bookings_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
             referencedRelation: "clients"
             referencedColumns: ["id"]
           },
@@ -532,6 +560,13 @@ export type Database = {
             columns: ["class_id"]
             isOneToOne: false
             referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "class_waitlist_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "client_overview"
             referencedColumns: ["id"]
           },
           {
@@ -621,6 +656,13 @@ export type Database = {
             foreignKeyName: "client_achievements_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
+            referencedRelation: "client_overview"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_achievements_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
             referencedRelation: "clients"
             referencedColumns: ["id"]
           },
@@ -689,6 +731,13 @@ export type Database = {
             foreignKeyName: "client_contracts_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
+            referencedRelation: "client_overview"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_contracts_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
             referencedRelation: "clients"
             referencedColumns: ["id"]
           },
@@ -713,7 +762,9 @@ export type Database = {
           email: string | null
           gender: string | null
           id: number
+          limitations: string | null
           name: string
+          objective: string | null
           observations: string | null
           onboarding_completed: boolean
           phone: string | null
@@ -723,6 +774,7 @@ export type Database = {
           status: string | null
           unit_id: string | null
           visit_type: string | null
+          weekly_goal: number | null
         }
         Insert: {
           auth_user_id?: string | null
@@ -735,7 +787,9 @@ export type Database = {
           email?: string | null
           gender?: string | null
           id?: number
+          limitations?: string | null
           name: string
+          objective?: string | null
           observations?: string | null
           onboarding_completed?: boolean
           phone?: string | null
@@ -745,6 +799,7 @@ export type Database = {
           status?: string | null
           unit_id?: string | null
           visit_type?: string | null
+          weekly_goal?: number | null
         }
         Update: {
           auth_user_id?: string | null
@@ -757,7 +812,9 @@ export type Database = {
           email?: string | null
           gender?: string | null
           id?: number
+          limitations?: string | null
           name?: string
+          objective?: string | null
           observations?: string | null
           onboarding_completed?: boolean
           phone?: string | null
@@ -767,6 +824,7 @@ export type Database = {
           status?: string | null
           unit_id?: string | null
           visit_type?: string | null
+          weekly_goal?: number | null
         }
         Relationships: [
           {
@@ -1019,6 +1077,13 @@ export type Database = {
             foreignKeyName: "community_post_likes_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
+            referencedRelation: "client_overview"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "community_post_likes_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
             referencedRelation: "clients"
             referencedColumns: ["id"]
           },
@@ -1076,6 +1141,13 @@ export type Database = {
             foreignKeyName: "community_posts_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
+            referencedRelation: "client_overview"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "community_posts_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
             referencedRelation: "clients"
             referencedColumns: ["id"]
           },
@@ -1104,6 +1176,13 @@ export type Database = {
           reason?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "community_reports_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "client_overview"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "community_reports_client_id_fkey"
             columns: ["client_id"]
@@ -1152,6 +1231,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "connected_devices_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "client_overview"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "connected_devices_client_id_fkey"
             columns: ["client_id"]
@@ -1208,6 +1294,67 @@ export type Database = {
           validity_months?: number | null
         }
         Relationships: []
+      }
+      crm_attendance_alerts: {
+        Row: {
+          client_id: number
+          created_at: string
+          days_without: number
+          id: string
+          last_activity: string | null
+          notes: string | null
+          resolved_at: string | null
+          status: string
+          unit_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          client_id: number
+          created_at?: string
+          days_without?: number
+          id?: string
+          last_activity?: string | null
+          notes?: string | null
+          resolved_at?: string | null
+          status?: string
+          unit_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          client_id?: number
+          created_at?: string
+          days_without?: number
+          id?: string
+          last_activity?: string | null
+          notes?: string | null
+          resolved_at?: string | null
+          status?: string
+          unit_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crm_attendance_alerts_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "client_overview"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_attendance_alerts_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_attendance_alerts_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "units"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       crm_indications: {
         Row: {
@@ -1417,6 +1564,13 @@ export type Database = {
             foreignKeyName: "daily_checkin_skips_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
+            referencedRelation: "client_overview"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "daily_checkin_skips_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
             referencedRelation: "clients"
             referencedColumns: ["id"]
           },
@@ -1463,6 +1617,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "daily_checkins_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "client_overview"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "daily_checkins_client_id_fkey"
             columns: ["client_id"]
@@ -1576,6 +1737,13 @@ export type Database = {
             foreignKeyName: "evo_cycles_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
+            referencedRelation: "client_overview"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "evo_cycles_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
             referencedRelation: "clients"
             referencedColumns: ["id"]
           },
@@ -1607,6 +1775,13 @@ export type Database = {
           taken_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "evolution_photos_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "client_overview"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "evolution_photos_client_id_fkey"
             columns: ["client_id"]
@@ -1816,6 +1991,13 @@ export type Database = {
             foreignKeyName: "health_blood_pressure_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
+            referencedRelation: "client_overview"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "health_blood_pressure_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
             referencedRelation: "clients"
             referencedColumns: ["id"]
           },
@@ -1850,6 +2032,13 @@ export type Database = {
           value?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "health_metrics_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "client_overview"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "health_metrics_client_id_fkey"
             columns: ["client_id"]
@@ -1933,6 +2122,13 @@ export type Database = {
             foreignKeyName: "health_weights_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
+            referencedRelation: "client_overview"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "health_weights_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
             referencedRelation: "clients"
             referencedColumns: ["id"]
           },
@@ -1970,6 +2166,13 @@ export type Database = {
           url?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "notifications_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "client_overview"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "notifications_client_id_fkey"
             columns: ["client_id"]
@@ -2166,6 +2369,13 @@ export type Database = {
           workout_log_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "pain_reports_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "client_overview"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "pain_reports_client_id_fkey"
             columns: ["client_id"]
@@ -2457,6 +2667,13 @@ export type Database = {
             foreignKeyName: "physical_assessments_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
+            referencedRelation: "client_overview"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "physical_assessments_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
             referencedRelation: "clients"
             referencedColumns: ["id"]
           },
@@ -2520,6 +2737,13 @@ export type Database = {
             foreignKeyName: "push_notifications_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
+            referencedRelation: "client_overview"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "push_notifications_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
             referencedRelation: "clients"
             referencedColumns: ["id"]
           },
@@ -2574,6 +2798,13 @@ export type Database = {
             foreignKeyName: "push_subscriptions_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
+            referencedRelation: "client_overview"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "push_subscriptions_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
             referencedRelation: "clients"
             referencedColumns: ["id"]
           },
@@ -2618,6 +2849,13 @@ export type Database = {
             foreignKeyName: "renewal_benefits_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
+            referencedRelation: "client_overview"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "renewal_benefits_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
             referencedRelation: "clients"
             referencedColumns: ["id"]
           },
@@ -2646,6 +2884,13 @@ export type Database = {
           milestone?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "renewal_reminders_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "client_overview"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "renewal_reminders_client_id_fkey"
             columns: ["client_id"]
@@ -2694,6 +2939,13 @@ export type Database = {
             foreignKeyName: "renewal_requests_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
+            referencedRelation: "client_overview"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "renewal_requests_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
             referencedRelation: "clients"
             referencedColumns: ["id"]
           },
@@ -2731,6 +2983,13 @@ export type Database = {
           value?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "sales_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "client_overview"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "sales_client_id_fkey"
             columns: ["client_id"]
@@ -2884,6 +3143,13 @@ export type Database = {
           value?: Json
         }
         Relationships: [
+          {
+            foreignKeyName: "student_preferences_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "client_overview"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "student_preferences_client_id_fkey"
             columns: ["client_id"]
@@ -3435,6 +3701,7 @@ export type Database = {
           cnpj: string | null
           created_at: string | null
           default_capacity: number
+          default_weekly_goal: number
           email: string | null
           fiscal_address: string | null
           id: string
@@ -3455,6 +3722,7 @@ export type Database = {
           cnpj?: string | null
           created_at?: string | null
           default_capacity?: number
+          default_weekly_goal?: number
           email?: string | null
           fiscal_address?: string | null
           id?: string
@@ -3475,6 +3743,7 @@ export type Database = {
           cnpj?: string | null
           created_at?: string | null
           default_capacity?: number
+          default_weekly_goal?: number
           email?: string | null
           fiscal_address?: string | null
           id?: string
@@ -3542,6 +3811,13 @@ export type Database = {
           target?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "weight_goals_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "client_overview"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "weight_goals_client_id_fkey"
             columns: ["client_id"]
@@ -3768,6 +4044,13 @@ export type Database = {
             foreignKeyName: "workout_logs_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
+            referencedRelation: "client_overview"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workout_logs_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
             referencedRelation: "clients"
             referencedColumns: ["id"]
           },
@@ -3894,6 +4177,13 @@ export type Database = {
             foreignKeyName: "workouts_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
+            referencedRelation: "client_overview"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workouts_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
             referencedRelation: "clients"
             referencedColumns: ["id"]
           },
@@ -3931,7 +4221,48 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      client_overview: {
+        Row: {
+          assessment_overdue: boolean | null
+          auth_user_id: string | null
+          avatar_url: string | null
+          contract_end: string | null
+          contract_start: string | null
+          cpf: string | null
+          created_at: string | null
+          days_since_activity: number | null
+          email: string | null
+          financial_state: string | null
+          id: number | null
+          last_activity: string | null
+          last_assessment: string | null
+          limitations: string | null
+          name: string | null
+          objective: string | null
+          open_alerts: number | null
+          open_occurrences: number | null
+          pending_renewals: number | null
+          phone: string | null
+          plan: string | null
+          plan_expires_at: string | null
+          plan_value: number | null
+          status: string | null
+          training_overdue: boolean | null
+          unit_id: string | null
+          visit_type: string | null
+          weekly_goal: number | null
+          workouts_30d: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clients_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "units"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       allowed_unit_ids: { Args: { _user_id: string }; Returns: string[] }
@@ -3963,6 +4294,22 @@ export type Database = {
           my_muscle_group: string
           my_waitlist_position: number
           waiting: number
+        }[]
+      }
+      client_attendance_stats: { Args: { _client_id: number }; Returns: Json }
+      client_timeline: {
+        Args: {
+          _client_id: number
+          _kinds?: string[]
+          _limit?: number
+          _offset?: number
+        }
+        Returns: {
+          detail: string
+          kind: string
+          meta: Json
+          occurred_at: string
+          title: string
         }[]
       }
       complete_evo_cycle: { Args: { _stats?: Json }; Returns: Json }
@@ -4021,6 +4368,7 @@ export type Database = {
           workouts: number
         }[]
       }
+      refresh_attendance_alerts: { Args: never; Returns: number }
       sign_contract: {
         Args: { _contract: string; _cpf: string; _name: string }
         Returns: Json
