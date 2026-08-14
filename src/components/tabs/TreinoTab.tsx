@@ -276,6 +276,99 @@ const VideoModal = ({ url, name, onClose }: { url: string; name: string; onClose
   );
 };
 
+export interface PostWorkoutAnswers {
+  rpe: number;
+  stars: number;
+  note: string;
+  pain: boolean;
+  painNote: string;
+}
+
+const RPE_FACES = [
+  { v: 1, emoji: "😄", label: "Leve" },
+  { v: 2, emoji: "🙂", label: "Tranquilo" },
+  { v: 3, emoji: "😐", label: "Moderado" },
+  { v: 4, emoji: "😥", label: "Difícil" },
+  { v: 5, emoji: "🥵", label: "Máximo" },
+];
+
+const PostWorkoutModal = ({
+  onSubmit, saving,
+}: {
+  onSubmit: (a: PostWorkoutAnswers) => void;
+  saving: boolean;
+}) => {
+  const [rpe, setRpe] = useState(0);
+  const [stars, setStars] = useState(0);
+  const [note, setNote] = useState("");
+  const [pain, setPain] = useState<boolean | null>(null);
+  const [painNote, setPainNote] = useState("");
+  const needsNote = stars > 0 && stars <= 2;
+  const valid = rpe > 0 && stars > 0 && pain !== null && (!pain || painNote.trim().length > 2);
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center px-5">
+      <div className="absolute inset-0 bg-black/50" />
+      <div className="relative w-full max-w-[350px] max-h-[88vh] overflow-y-auto bg-card rounded-3xl p-5">
+        <h2 className="font-barlow font-bold text-lg text-foreground">COMO FOI O TREINO?</h2>
+        <p className="text-[12px] font-dm text-muted mb-4">Leva menos de 30 segundos.</p>
+
+        <p className="text-[10px] font-barlow tracking-[1px] uppercase text-muted mb-2">Esforço percebido</p>
+        <div className="flex gap-1.5 mb-4">
+          {RPE_FACES.map((f) => (
+            <button key={f.v} onClick={() => setRpe(f.v)}
+              className={`flex-1 rounded-2xl py-2 flex flex-col items-center transition-colors ${rpe === f.v ? "bg-primary/10 ring-2 ring-primary" : "bg-secondary"}`}>
+              <span className="text-xl leading-none">{f.emoji}</span>
+              <span className="text-[9px] font-dm text-muted mt-1">{f.label}</span>
+            </button>
+          ))}
+        </div>
+
+        <p className="text-[10px] font-barlow tracking-[1px] uppercase text-muted mb-2">Acompanhamento do professor</p>
+        <div className="flex gap-1.5 mb-2">
+          {[1, 2, 3, 4, 5].map((s) => (
+            <button key={s} onClick={() => setStars(s)}
+              className={`flex-1 h-11 rounded-2xl font-barlow font-bold text-lg transition-colors ${stars >= s ? "bg-primary/10 text-primary" : "bg-secondary text-muted"}`}>
+              ★
+            </button>
+          ))}
+        </div>
+        {needsNote && (
+          <textarea value={note} onChange={(e) => setNote(e.target.value)}
+            placeholder="Conta pra gente o que pode melhorar"
+            className="w-full min-h-[70px] rounded-2xl bg-secondary p-3 text-[13px] font-dm text-foreground border border-muted/20 outline-none focus:ring-2 focus:ring-primary/30 mb-3" />
+        )}
+
+        <p className="text-[10px] font-barlow tracking-[1px] uppercase text-muted mb-2 mt-2">Sentiu alguma dor?</p>
+        <div className="flex gap-2 mb-3">
+          <button onClick={() => setPain(false)}
+            className={`flex-1 py-3 rounded-2xl font-dm font-semibold text-sm ${pain === false ? "bg-primary text-primary-foreground" : "bg-secondary text-foreground"}`}>
+            Não
+          </button>
+          <button onClick={() => setPain(true)}
+            className={`flex-1 py-3 rounded-2xl font-dm font-semibold text-sm ${pain === true ? "bg-primary text-primary-foreground" : "bg-secondary text-foreground"}`}>
+            Sim
+          </button>
+        </div>
+        {pain && (
+          <textarea value={painNote} onChange={(e) => setPainNote(e.target.value)}
+            placeholder="Onde doeu e em qual exercício?"
+            className="w-full min-h-[80px] rounded-2xl bg-secondary p-3 text-[13px] font-dm text-foreground border border-muted/20 outline-none focus:ring-2 focus:ring-primary/30 mb-3" />
+        )}
+
+        <button
+          disabled={!valid || saving}
+          onClick={() => onSubmit({ rpe, stars, note, pain: !!pain, painNote })}
+          className="w-full py-3.5 rounded-2xl bg-primary text-primary-foreground font-barlow font-bold text-base active:scale-[0.98] transition-transform disabled:opacity-50"
+          style={{ boxShadow: "0 3px 10px #1400FF44" }}
+        >
+          {saving ? "SALVANDO..." : "ENVIAR E FINALIZAR"}
+        </button>
+      </div>
+    </div>
+  );
+};
+
 const XpCompletionModal = ({
   xpBreakdown, onClose,
 }: {
