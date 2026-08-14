@@ -1393,6 +1393,47 @@ export type Database = {
           },
         ]
       }
+      evo_cycles: {
+        Row: {
+          client_id: number
+          completed_at: string | null
+          created_at: string
+          cycle_end: string
+          cycle_start: string | null
+          id: string
+          stats: Json
+          updated_at: string
+        }
+        Insert: {
+          client_id: number
+          completed_at?: string | null
+          created_at?: string
+          cycle_end: string
+          cycle_start?: string | null
+          id?: string
+          stats?: Json
+          updated_at?: string
+        }
+        Update: {
+          client_id?: number
+          completed_at?: string | null
+          created_at?: string
+          cycle_end?: string
+          cycle_start?: string | null
+          id?: string
+          stats?: Json
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "evo_cycles_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       evolution_photos: {
         Row: {
           client_id: number
@@ -2343,6 +2384,82 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "push_subscriptions_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      renewal_benefits: {
+        Row: {
+          client_id: number
+          created_at: string
+          delivered_at: string | null
+          description: string | null
+          id: string
+          notes: string | null
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          client_id: number
+          created_at?: string
+          delivered_at?: string | null
+          description?: string | null
+          id?: string
+          notes?: string | null
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          client_id?: number
+          created_at?: string
+          delivered_at?: string | null
+          description?: string | null
+          id?: string
+          notes?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "renewal_benefits_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      renewal_reminders: {
+        Row: {
+          client_id: number
+          created_at: string
+          cycle_end: string
+          id: string
+          milestone: number
+        }
+        Insert: {
+          client_id: number
+          created_at?: string
+          cycle_end: string
+          id?: string
+          milestone: number
+        }
+        Update: {
+          client_id?: number
+          created_at?: string
+          cycle_end?: string
+          id?: string
+          milestone?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "renewal_reminders_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
@@ -3612,11 +3729,13 @@ export type Database = {
           waiting: number
         }[]
       }
+      complete_evo_cycle: { Args: { _stats?: Json }; Returns: Json }
       create_indication: {
         Args: { _name: string; _phone: string }
         Returns: Json
       }
       current_client_id: { Args: never; Returns: number }
+      evo_cycle_state: { Args: never; Returns: Json }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
