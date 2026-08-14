@@ -956,3 +956,67 @@ export function OcorrenciasTab({ c }: { c: OverviewRow }) {
     </div>
   );
 }
+
+/* ---------------- anamnese ---------------- */
+
+export function AnamneseTab({ c }: { c: OverviewRow }) {
+  const a = useClientRows("anamnesis", c.id, "client_id", "created_at");
+  const [sending, setSending] = useState(false);
+
+  const sendLink = async () => {
+    setSending(true);
+    const { data, error } = await supabase.from("form_links").insert({
+      kind: "anamnese", client_id: c.id, lead_name: c.name,
+      phone: (c as any).phone || null, unit_id: c.unit_id || null,
+    }).select().single();
+    setSending(false);
+    if (error) return toast.error(error.message);
+    const row = data as any;
+    await logAudit({
+      action: "create", entity: "form_links", entity_id: row.id, module: "clientes",
+      description: `Link de anamnese enviado para ${c.name}`,
+    });
+    const url = `${window.location.origin}/f/${row.token}`;
+    if (row.phone) {
+      window.open(`https://wa.me/${String(row.phone).replace(/\D/g, "")}?text=${encodeURIComponent(
+        `Olá ${c.name}! Preencha sua anamnese da EVO TRAINING CLUB: ${url}`
+      )}`, "_blank");
+    } else {
+      await navigator.clipboard.writeText(url);
+      toast.success("Sem telefone cadastrado — link copiado.");
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex justify-end">
+        <Button size="sm" onClick={sendLink} disabled={sending}>
+          {sending ? "Gerando..." : "Enviar anamnese por WhatsApp"}
+        </Button>
+      </div>
+      <Section title="Anamneses recebidas">
+        <ListShell {...a} empty="Nenhuma anamnese registrada para este aluno.">
+          <div className="space-y-3">
+            {a.rows.map(r => (
+              <div key={r.id} className="border-b border-border pb-3 last:border-0">
+                <p className="text-[11px] font-dm text-muted-foreground">{fmtDateTime(r.created_at)}</p>
+                <div className="grid grid-cols-2 gap-2 mt-1">
+                  <Field label="Objetivo" value={r.objective || "—"} />
+                  <Field label="Histórico de treino" value={r.training_history || "—"} />
+                  <Field label="Lesões" value={r.injuries || "—"} />
+                  <Field label="Dores" value={r.pain || "—"} />
+                  <Field label="Limitações" value={r.limitations || "—"} />
+                  <Field label="Restrições" value={r.restrictions || "—"} />
+                  <Field label="Sono" value={r.sleep || "—"} />
+                  <Field label="Estresse" value={r.stress || "—"} />
+                  <div className="col-span-2"><Field label="Rotina" value={r.routine || "—"} /></div>
+                  {r.content && <div className="col-span-2"><Field label="Observações" value={r.content} /></div>}
+                </div>
+              </div>
+            ))}
+          </div>
+        </ListShell>
+      </Section>
+    </div>
+  );
+}

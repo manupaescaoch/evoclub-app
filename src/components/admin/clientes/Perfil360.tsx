@@ -4,13 +4,14 @@ import { OverviewRow } from "@/hooks/useClient360";
 import {
   ResumoTab, DadosTab, FrequenciaTab, HistoricoTab, TreinosTab, SaudeTab,
   AvaliacoesTab, FinanceiroTab, ContratosTab, RenovacaoTab, IndicacoesTab, OcorrenciasTab,
-  fmtDate,
+  AnamneseTab, fmtDate,
 } from "./Perfil360Tabs";
 
 const TABS = [
   { key: "resumo", label: "Resumo" },
   { key: "dados", label: "Dados" },
   { key: "frequencia", label: "Frequência" },
+  { key: "anamnese", label: "Anamnese" },
   { key: "treinos", label: "Treinos" },
   { key: "saude", label: "Saúde" },
   { key: "avaliacoes", label: "Avaliações" },
@@ -62,6 +63,7 @@ export default function Perfil360({ client, onClose, onSaved }: {
           {tab === "resumo" && <ResumoTab c={client} onGoTab={setTab} />}
           {tab === "dados" && <DadosTab c={client} onSaved={onSaved} />}
           {tab === "frequencia" && <FrequenciaTab c={client} />}
+          {tab === "anamnese" && <AnamneseTab c={client} />}
           {tab === "treinos" && <TreinosTab c={client} />}
           {tab === "saude" && <SaudeTab c={client} />}
           {tab === "avaliacoes" && <AvaliacoesTab c={client} />}

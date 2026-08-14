@@ -8,7 +8,7 @@ import {
   Search, Bell, ChevronDown, ClipboardList, Library, Wrench, Menu, X, ClipboardEdit,
   FileSignature, CalendarRange, UserCog, Truck, ShieldCheck, Tag, Ticket, TrendingUp,
   Gift, ListTodo, ClipboardCheck, CalendarClock, HeartPulse, AlertTriangle,
-  Clock, Trophy, History,
+  Clock, Trophy, History, Inbox, Workflow,
 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { logAudit } from "@/lib/audit";
@@ -73,7 +73,18 @@ const navItems: NavItem[] = [
       { label: "Histórico", icon: History, path: "/admin/equipe/historico" },
     ],
   },
-  { label: "Operacional", icon: ClipboardCheck, path: "/admin/operacional", module: "operacional" },
+  {
+    label: "Operacional", icon: ClipboardCheck, path: "/admin/operacional", module: "operacional",
+    children: [
+      { label: "Dashboard", icon: LayoutDashboard, path: "/admin/operacional" },
+      { label: "Calendário", icon: CalendarDays, path: "/admin/operacional/calendario" },
+      { label: "Tarefas", icon: ListTodo, path: "/admin/crm/tarefas" },
+      { label: "Formulários", icon: ClipboardList, path: "/admin/operacional/formularios" },
+      { label: "Encerramento de Turno", icon: ClipboardCheck, path: "/admin/operacional/encerramento" },
+      { label: "Respostas e Pendências", icon: Inbox, path: "/admin/operacional/respostas" },
+      { label: "Automações", icon: Workflow, path: "/admin/operacional/automacoes" },
+    ],
+  },
   { label: "Ocorrências", icon: AlertTriangle, path: "/admin/ocorrencias", module: "ocorrencias" },
   {
     label: "EVO Club", icon: Ticket, path: "/admin/club", module: "club",

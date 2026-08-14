@@ -50,6 +50,12 @@ import Comissoes from "./pages/admin/crm/Comissoes.tsx";
 import Indicacoes from "./pages/admin/crm/Indicacoes.tsx";
 import Tarefas from "./pages/admin/crm/Tarefas.tsx";
 import Operacional from "./pages/admin/crm/Operacional.tsx";
+import OperacionalIndex from "./pages/admin/operacional/OperacionalIndex.tsx";
+import OperacionalCalendario from "./pages/admin/operacional/Calendario.tsx";
+import OperacionalFormularios from "./pages/admin/operacional/Formularios.tsx";
+import OperacionalEncerramento from "./pages/admin/operacional/Encerramento.tsx";
+import OperacionalRespostas from "./pages/admin/operacional/Respostas.tsx";
+import FormLink from "./pages/public/FormLink.tsx";
 import Escala from "./pages/admin/equipe/Escala.tsx";
 import EquipePonto from "./pages/admin/equipe/Ponto.tsx";
 import EquipeDesempenho from "./pages/admin/equipe/Desempenho.tsx";
@@ -107,6 +113,8 @@ const App = () => (
 
           {/* Admin */}
           <Route path="/admin/login" element={<Login />} />
+          {/* Formulário público por link rastreável */}
+          <Route path="/f/:token" element={<FormLink />} />
           <Route path="/admin" element={<AdminLayout />}>
             <Route index element={<ModuleGuard module="dashboard"><Dashboard /></ModuleGuard>} />
             <Route path="clientes" element={<ModuleGuard module="clientes"><Clientes /></ModuleGuard>} />
@@ -127,7 +135,13 @@ const App = () => (
             <Route path="equipe/historico" element={<ModuleGuard module="equipe"><EquipeHistorico /></ModuleGuard>} />
             <Route path="equipe/colaboradores" element={<Navigate to="/admin/gerencial/colaboradores" replace />} />
             <Route path="equipe/permissoes" element={<Navigate to="/admin/gerencial/permissoes" replace />} />
-            <Route path="operacional" element={<ModuleGuard module="operacional"><Operacional /></ModuleGuard>} />
+            <Route path="operacional" element={<ModuleGuard module="operacional"><OperacionalIndex /></ModuleGuard>} />
+            <Route path="operacional/calendario" element={<ModuleGuard module="operacional"><OperacionalCalendario /></ModuleGuard>} />
+            <Route path="operacional/formularios" element={<ModuleGuard module="operacional"><OperacionalFormularios /></ModuleGuard>} />
+            <Route path="operacional/encerramento" element={<ModuleGuard module="operacional"><OperacionalEncerramento /></ModuleGuard>} />
+            <Route path="operacional/respostas" element={<ModuleGuard module="operacional"><OperacionalRespostas /></ModuleGuard>} />
+            <Route path="operacional/automacoes" element={<ModuleGuard module="operacional"><Operacional /></ModuleGuard>} />
+            <Route path="operacional/tarefas" element={<Navigate to="/admin/crm/tarefas" replace />} />
             <Route path="ocorrencias" element={<ModuleGuard module="ocorrencias"><Ocorrencias /></ModuleGuard>} />
 
             <Route path="financeiro" element={<ModuleGuard module="financeiro"><FinanceiroLayout /></ModuleGuard>}>
