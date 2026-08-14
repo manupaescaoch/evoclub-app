@@ -57,7 +57,7 @@ export default function Avaliacoes() {
       const cq = supabase.from("clients").select("id,name,unit_id").order("name");
       const [cRes, colRes] = await Promise.all([
         filterId ? cq.eq("unit_id", filterId) : cq,
-        supabase.from("collaborators").select("id, full_name").eq("status", "ativo").order("full_name"),
+        supabase.from("collaborators").select("id, full_name").eq("status", "active").order("full_name"),
       ]);
       if (!alive) return;
       setClients(((cRes.data as any[]) || []) as ClientLite[]);
