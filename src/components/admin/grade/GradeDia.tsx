@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { ChevronLeft, ChevronRight, Lock, Settings2, Users, AlertTriangle } from "lucide-react";
+import { ChevronLeft, ChevronRight, Lock, Settings2, Users, AlertTriangle, UserCheck } from "lucide-react";
 import { useAccess } from "@/contexts/AccessContext";
 import { logSensitive } from "@/lib/audit";
 import {
@@ -60,6 +60,20 @@ export default function GradeDia({ unitId }: { unitId: string | null }) {
       before: { attendance_status: s.attendance_status }, after: { attendance_status: status },
     });
     toast.success(`${s.student_name}: ${STATUS_LABEL[status]}`);
+    reload();
+  };
+
+  const confirmWaitlist = async (s: GradeStudent, slot: GradeSlot) => {
+    const { data, error: err } = await supabase.rpc("confirm_waitlist" as any, { _waitlist_id: s.booking_id });
+    if (err) { toast.error(err.message); return; }
+    const res = (data || {}) as { ok?: boolean; reason?: string };
+    if (!res.ok) { toast.error(RPC_REASONS[res.reason || ""] || "Não foi possível confirmar."); return; }
+    await logSensitive({
+      entity: "class_waitlist", entity_id: s.booking_id, module: "grade", unit_id: slot.unit_id,
+      description: `${s.student_name} confirmado da lista de espera no horário ${slot.start_time.slice(0, 5)} (${dateISO})`,
+      before: { status: "waiting" }, after: { status: "confirmed" },
+    });
+    toast.success(`${s.student_name} confirmado na aula.`);
     reload();
   };
 
@@ -199,7 +213,16 @@ export default function GradeDia({ unitId }: { unitId: string | null }) {
                     {waiting.map(s => (
                       <div key={s.booking_id} className="flex items-center justify-between gap-2 px-2 py-1">
                         <span className="text-[11px] font-dm truncate">{s.waitlist_position}º · {s.student_name}</span>
-                        <span className="text-[10px] font-dm px-1.5 rounded bg-amber-50 text-amber-700">Aguardando</span>
+                        {canManage ? (
+                          <Button size="sm" variant="outline" className="h-6 gap-1 text-[10px] shrink-0"
+                            disabled={slot.blocked || full}
+                            title={slot.blocked ? "Horário bloqueado" : full ? "Aula lotada — ajuste as vagas" : "Confirmar aluno na aula"}
+                            onClick={() => confirmWaitlist(s, slot)}>
+                            <UserCheck size={11} /> Confirmar
+                          </Button>
+                        ) : (
+                          <span className="text-[10px] font-dm px-1.5 rounded bg-amber-50 text-amber-700">Aguardando</span>
+                        )}
                       </div>
                     ))}
                   </div>
