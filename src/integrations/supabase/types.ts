@@ -5761,6 +5761,15 @@ export type Database = {
         Args: { p_cpf?: string; p_name: string; p_token: string }
         Returns: Json
       }
+      contract_sign_public: {
+        Args: {
+          p_agent?: string
+          p_cpf?: string
+          p_name: string
+          p_token: string
+        }
+        Returns: Json
+      }
       contracts_expire_overdue: { Args: never; Returns: number }
       create_indication: {
         Args: { _name: string; _phone: string }
