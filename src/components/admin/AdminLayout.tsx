@@ -7,36 +7,37 @@ import {
   BarChart3, Dumbbell, Settings, Sparkles, HelpCircle, LogOut,
   Search, Bell, ChevronDown, ClipboardList, Library, Wrench, Menu, X, ClipboardEdit,
   FileSignature, CalendarRange, UserCog, Truck, ShieldCheck, Tag, Ticket, TrendingUp,
-  Gift, ListTodo, ClipboardCheck, CalendarClock,
+  Gift, ListTodo, ClipboardCheck, CalendarClock, HeartPulse, AlertTriangle,
 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { logAudit } from "@/lib/audit";
+import { useAccess, ModuleKey } from "@/contexts/AccessContext";
+import { UnitSelect, PeriodSelect } from "@/components/admin/ScopeSelectors";
 
 type NavItem = {
   label: string;
   icon: React.ElementType;
   path: string;
+  module: ModuleKey;
   children?: { label: string; icon: React.ElementType; path: string }[];
 };
 
 const navItems: NavItem[] = [
-  { label: "Dashboard", icon: LayoutDashboard, path: "/admin" },
-  { label: "Clientes", icon: Users, path: "/admin/clientes" },
-  { label: "Grade", icon: CalendarDays, path: "/admin/grade" },
+  { label: "Dashboard", icon: LayoutDashboard, path: "/admin", module: "dashboard" },
+  { label: "Clientes", icon: Users, path: "/admin/clientes", module: "clientes" },
+  { label: "Grade", icon: CalendarDays, path: "/admin/grade", module: "grade" },
   {
-    label: "CRM", icon: Megaphone, path: "/admin/crm",
+    label: "CRM", icon: Megaphone, path: "/admin/crm", module: "crm",
     children: [
       { label: "Dashboard", icon: LayoutDashboard, path: "/admin/crm" },
       { label: "Comissões", icon: DollarSign, path: "/admin/crm/comissoes" },
       { label: "Indicações", icon: Gift, path: "/admin/crm/indicacoes" },
       { label: "Tarefas", icon: ListTodo, path: "/admin/crm/tarefas" },
-      { label: "Operacional", icon: ClipboardCheck, path: "/admin/crm/operacional" },
-      { label: "Escala", icon: CalendarClock, path: "/admin/crm/escala" },
     ],
   },
-  { label: "Financeiro", icon: DollarSign, path: "/admin/financeiro" },
+  { label: "Financeiro", icon: DollarSign, path: "/admin/financeiro", module: "financeiro" },
   {
-    label: "Gerencial", icon: BarChart3, path: "/admin/gerencial",
+    label: "Gerencial", icon: BarChart3, path: "/admin/gerencial", module: "gerencial",
     children: [
       { label: "Contratos", icon: FileSignature, path: "/admin/gerencial/contratos" },
       { label: "Atividades na Grade", icon: CalendarRange, path: "/admin/gerencial/atividades" },
@@ -49,7 +50,7 @@ const navItems: NavItem[] = [
     ],
   },
   {
-    label: "Treinos", icon: Dumbbell, path: "/admin/treinos",
+    label: "Treinos", icon: Dumbbell, path: "/admin/treinos", module: "treinos",
     children: [
       { label: "Dashboard", icon: LayoutDashboard, path: "/admin/treinos" },
       { label: "Prescrever Treino", icon: ClipboardEdit, path: "/admin/treinos/prescrever" },
@@ -58,17 +59,31 @@ const navItems: NavItem[] = [
       { label: "Métodos de Treino", icon: Wrench, path: "/admin/treinos/metodos" },
     ],
   },
-  { label: "Validar Resgate (Club)", icon: Ticket, path: "/admin/club/validar" },
-  { label: "Comunidade", icon: Megaphone, path: "/admin/comunidade" },
-  { label: "Configurações", icon: Settings, path: "/admin/configuracoes" },
-  { label: "Novidades", icon: Sparkles, path: "/admin/novidades" },
-  { label: "Central de Ajuda", icon: HelpCircle, path: "/admin/ajuda" },
+  { label: "Avaliações", icon: HeartPulse, path: "/admin/avaliacoes", module: "avaliacao" },
+  {
+    label: "Equipe", icon: UserCog, path: "/admin/equipe", module: "equipe",
+    children: [
+      { label: "Visão geral", icon: UserCog, path: "/admin/equipe" },
+      { label: "Escala", icon: CalendarClock, path: "/admin/equipe/escala" },
+    ],
+  },
+  { label: "Operacional", icon: ClipboardCheck, path: "/admin/operacional", module: "operacional" },
+  { label: "Ocorrências", icon: AlertTriangle, path: "/admin/ocorrencias", module: "ocorrencias" },
+  {
+    label: "EVO Club", icon: Ticket, path: "/admin/club", module: "club",
+    children: [
+      { label: "Validar Resgate", icon: Ticket, path: "/admin/club/validar" },
+    ],
+  },
+  { label: "Comunidade", icon: Megaphone, path: "/admin/comunidade", module: "comunidade" },
+  { label: "Configurações", icon: Settings, path: "/admin/configuracoes", module: "configuracoes" },
 ];
 
 const AdminLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const isMobile = useIsMobile();
+  const { can, loading: accessLoading } = useAccess();
   const [userName, setUserName] = useState("Admin");
   const [userEmail, setUserEmail] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -105,6 +120,8 @@ const AdminLayout = () => {
 
   const initials = userName.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2);
 
+  const visibleItems = accessLoading ? navItems : navItems.filter(i => can(i.module, "view"));
+
   const sidebarContent = (
     <>
       {/* Logo */}
@@ -125,7 +142,7 @@ const AdminLayout = () => {
 
       {/* Nav */}
       <nav className="flex-1 px-3 mt-2 space-y-0.5 overflow-y-auto">
-        {navItems.map((item) => {
+        {visibleItems.map((item) => {
           const hasChildren = !!item.children;
           const isTreinosSection = location.pathname.startsWith("/admin/treinos");
           const active = location.pathname === item.path || (item.path !== "/admin" && location.pathname.startsWith(item.path));
@@ -138,7 +155,9 @@ const AdminLayout = () => {
             const expanded =
               (item.path === "/admin/treinos" && isTreinosSection) ||
               (item.path === "/admin/gerencial" && isGerencialSection) ||
-              (item.path === "/admin/crm" && isCrmSection);
+              (item.path === "/admin/crm" && isCrmSection) ||
+              (item.path === "/admin/equipe" && location.pathname.startsWith("/admin/equipe")) ||
+              (item.path === "/admin/club" && location.pathname.startsWith("/admin/club"));
             return (
               <div key={item.path}>
                 <Link
@@ -250,9 +269,8 @@ const AdminLayout = () => {
                 <Menu size={22} />
               </button>
             )}
-            <button className="text-sm font-dm text-foreground flex items-center gap-1">
-              Unidade atual <span className="text-muted-foreground">▾</span>
-            </button>
+            <UnitSelect />
+            <PeriodSelect />
           </div>
           <div className="flex items-center gap-3">
             {!isMobile && (
