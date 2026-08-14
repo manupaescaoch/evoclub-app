@@ -11,12 +11,20 @@ import NotificacoesTab from "../tabs/NotificacoesTab";
 import SaudeEvolucaoTab from "../tabs/SaudeEvolucaoTab";
 import PlanoTab from "../tabs/PlanoTab";
 import IndicacoesTab from "../tabs/IndicacoesTab";
+import AjudaTab from "../tabs/AjudaTab";
+import PrivacidadeTab from "../tabs/PrivacidadeTab";
+import HistoricoTab from "../tabs/HistoricoTab";
+import AvaliacoesTab from "../tabs/AvaliacoesTab";
+import FotosEvolucaoTab from "../tabs/FotosEvolucaoTab";
 import DailyCheckinDialog from "../tabs/DailyCheckinDialog";
 import OnboardingDialog from "../tabs/OnboardingDialog";
 import { useStudent } from "@/contexts/StudentContext";
 
 const mainTabs = ["inicio", "grade", "treino", "comunidade", "ranking", "club"] as const;
-const screens = ["perfil", "notificacoes", "saude", "plano", "indicacoes"] as const;
+const screens = [
+  "perfil", "notificacoes", "saude", "plano", "indicacoes",
+  "ajuda", "privacidade", "historico", "avaliacoes", "fotos",
+] as const;
 type Tab = (typeof mainTabs)[number] | (typeof screens)[number];
 
 const AppShell = () => {
@@ -44,6 +52,11 @@ const AppShell = () => {
         {activeTab === "saude" && <SaudeEvolucaoTab onBack={() => setActiveTab("inicio")} />}
         {activeTab === "plano" && <PlanoTab onBack={() => setActiveTab("perfil")} />}
         {activeTab === "indicacoes" && <IndicacoesTab onBack={() => setActiveTab("perfil")} />}
+        {activeTab === "ajuda" && <AjudaTab onBack={() => setActiveTab("perfil")} />}
+        {activeTab === "privacidade" && <PrivacidadeTab onBack={() => setActiveTab("perfil")} />}
+        {activeTab === "historico" && <HistoricoTab onBack={() => setActiveTab("perfil")} />}
+        {activeTab === "avaliacoes" && <AvaliacoesTab onBack={() => setActiveTab("perfil")} />}
+        {activeTab === "fotos" && <FotosEvolucaoTab onBack={() => setActiveTab("perfil")} />}
       </div>
       {!isScreen && <BottomNav activeTab={activeTab} onTabChange={go} />}
     </div>
