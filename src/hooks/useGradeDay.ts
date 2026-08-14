@@ -106,4 +106,7 @@ export const RPC_REASONS: Record<string, string> = {
   invalid_status: "Status inválido.",
   not_found: "Registro não encontrado.",
   slot_blocked: "Horário bloqueado.",
+  already_handled: "Este registro já foi tratado.",
+  class_full: "A aula está lotada — ajuste as vagas antes de confirmar.",
+  coordination_only: "Ocorrências de dor só podem ser resolvidas pela coordenação.",
 };

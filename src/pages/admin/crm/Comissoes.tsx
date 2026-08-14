@@ -15,8 +15,8 @@ type Entry = {
 
 const ROLE_LABEL: Record<string, string> = {
   professor: "Professor da experimental",
-  registrar: "Cadastrador",
-  seller: "Vendedor",
+  cadastrador: "Cadastrador",
+  vendedor: "Vendedor",
 };
 
 export default function Comissoes() {
@@ -53,8 +53,8 @@ export default function Comissoes() {
     return s + Number(e?.base_value || 0);
   }, 0);
   const ticket = totalMatriculas ? baseTotal / totalMatriculas : 0;
-  const cad = sum(byRole("registrar"));
-  const fec = sum(byRole("seller"));
+  const cad = sum(byRole("cadastrador"));
+  const fec = sum(byRole("vendedor"));
   const bonus = sum(byRole("professor"));
   const total = cad + fec + bonus;
 
@@ -115,10 +115,10 @@ export default function Comissoes() {
         <SummaryCard label="Total Comissões" value={fmtBRL(total)} accent="green" />
       </div>
 
-      {(["registrar", "seller", "professor"] as const).map(role => (
+      {(["cadastrador", "vendedor", "professor"] as const).map(role => (
         <section key={role} className="rounded-xl border bg-card overflow-hidden">
           <div className="px-4 py-3 border-b font-barlow font-bold text-foreground">
-            {role === "registrar" ? "Comissão do Cadastrador (3%)" : role === "seller" ? "Comissão do Vendedor (2%)" : "Bônus do Professor da Experimental (R$ 20,00)"}
+            {role === "cadastrador" ? "Comissão do Cadastrador (3%)" : role === "vendedor" ? "Comissão do Vendedor (2%)" : "Bônus do Professor da Experimental (R$ 20,00)"}
           </div>
           <Table>
             <TableHeader><TableRow><TableHead>Responsável</TableHead><TableHead>Conversões</TableHead><TableHead className="text-right">Total</TableHead></TableRow></TableHeader>
