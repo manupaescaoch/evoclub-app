@@ -882,60 +882,90 @@ export type Database = {
       client_contracts: {
         Row: {
           body: string | null
+          channel: string | null
           client_id: number
           contract_id: string | null
           created_at: string
           ends_at: string | null
+          evidence: Json
+          expires_at: string | null
           id: string
           plan: string | null
           plan_value: number | null
+          renewal_id: string | null
+          sent_at: string | null
+          sent_by: string | null
+          sent_by_name: string | null
           signature_cpf: string | null
           signature_hash: string | null
           signature_name: string | null
           signed_at: string | null
           starts_at: string | null
           status: string
+          supersedes_id: string | null
           title: string
           unit_id: string | null
           updated_at: string
+          version: number
+          viewed_at: string | null
         }
         Insert: {
           body?: string | null
+          channel?: string | null
           client_id: number
           contract_id?: string | null
           created_at?: string
           ends_at?: string | null
+          evidence?: Json
+          expires_at?: string | null
           id?: string
           plan?: string | null
           plan_value?: number | null
+          renewal_id?: string | null
+          sent_at?: string | null
+          sent_by?: string | null
+          sent_by_name?: string | null
           signature_cpf?: string | null
           signature_hash?: string | null
           signature_name?: string | null
           signed_at?: string | null
           starts_at?: string | null
           status?: string
+          supersedes_id?: string | null
           title: string
           unit_id?: string | null
           updated_at?: string
+          version?: number
+          viewed_at?: string | null
         }
         Update: {
           body?: string | null
+          channel?: string | null
           client_id?: number
           contract_id?: string | null
           created_at?: string
           ends_at?: string | null
+          evidence?: Json
+          expires_at?: string | null
           id?: string
           plan?: string | null
           plan_value?: number | null
+          renewal_id?: string | null
+          sent_at?: string | null
+          sent_by?: string | null
+          sent_by_name?: string | null
           signature_cpf?: string | null
           signature_hash?: string | null
           signature_name?: string | null
           signed_at?: string | null
           starts_at?: string | null
           status?: string
+          supersedes_id?: string | null
           title?: string
           unit_id?: string | null
           updated_at?: string
+          version?: number
+          viewed_at?: string | null
         }
         Relationships: [
           {
@@ -957,6 +987,20 @@ export type Database = {
             columns: ["contract_id"]
             isOneToOne: false
             referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_contracts_renewal_id_fkey"
+            columns: ["renewal_id"]
+            isOneToOne: false
+            referencedRelation: "renewal_requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_contracts_supersedes_id_fkey"
+            columns: ["supersedes_id"]
+            isOneToOne: false
+            referencedRelation: "client_contracts"
             referencedColumns: ["id"]
           },
         ]
@@ -2347,6 +2391,7 @@ export type Database = {
         Row: {
           answered_at: string | null
           client_id: number | null
+          contract_id: string | null
           created_at: string
           created_by: string | null
           form_id: string | null
@@ -2354,6 +2399,7 @@ export type Database = {
           kind: string
           lead_name: string | null
           phone: string | null
+          renewal_id: string | null
           response: Json | null
           sent_at: string
           status: string
@@ -2365,6 +2411,7 @@ export type Database = {
         Insert: {
           answered_at?: string | null
           client_id?: number | null
+          contract_id?: string | null
           created_at?: string
           created_by?: string | null
           form_id?: string | null
@@ -2372,6 +2419,7 @@ export type Database = {
           kind?: string
           lead_name?: string | null
           phone?: string | null
+          renewal_id?: string | null
           response?: Json | null
           sent_at?: string
           status?: string
@@ -2383,6 +2431,7 @@ export type Database = {
         Update: {
           answered_at?: string | null
           client_id?: number | null
+          contract_id?: string | null
           created_at?: string
           created_by?: string | null
           form_id?: string | null
@@ -2390,6 +2439,7 @@ export type Database = {
           kind?: string
           lead_name?: string | null
           phone?: string | null
+          renewal_id?: string | null
           response?: Json | null
           sent_at?: string
           status?: string
@@ -2414,10 +2464,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "form_links_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "client_contracts"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "form_links_form_id_fkey"
             columns: ["form_id"]
             isOneToOne: false
             referencedRelation: "operational_forms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "form_links_renewal_id_fkey"
+            columns: ["renewal_id"]
+            isOneToOne: false
+            referencedRelation: "renewal_requests"
             referencedColumns: ["id"]
           },
           {
@@ -3632,6 +3696,44 @@ export type Database = {
           },
         ]
       }
+      renewal_events: {
+        Row: {
+          actor_id: string | null
+          actor_name: string | null
+          created_at: string
+          id: string
+          note: string | null
+          renewal_id: string
+          status: string | null
+        }
+        Insert: {
+          actor_id?: string | null
+          actor_name?: string | null
+          created_at?: string
+          id?: string
+          note?: string | null
+          renewal_id: string
+          status?: string | null
+        }
+        Update: {
+          actor_id?: string | null
+          actor_name?: string | null
+          created_at?: string
+          id?: string
+          note?: string | null
+          renewal_id?: string
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "renewal_events_renewal_id_fkey"
+            columns: ["renewal_id"]
+            isOneToOne: false
+            referencedRelation: "renewal_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       renewal_reminders: {
         Row: {
           client_id: number
@@ -3673,39 +3775,85 @@ export type Database = {
       }
       renewal_requests: {
         Row: {
+          assigned_to: string | null
           client_id: number
+          closed_at: string | null
+          contract_id: string | null
           created_at: string
+          current_plan: string | null
+          current_value: number | null
+          cycle_end: string | null
           desired_plan: string | null
+          first_action_at: string | null
           id: string
+          next_cycle_end: string | null
+          next_cycle_start: string | null
           notes: string | null
           payment_method: string | null
+          proposal_link_id: string | null
+          proposal_plan: string | null
+          proposal_value: number | null
+          retro_link_id: string | null
           status: string
           unit_id: string | null
           updated_at: string
         }
         Insert: {
+          assigned_to?: string | null
           client_id: number
+          closed_at?: string | null
+          contract_id?: string | null
           created_at?: string
+          current_plan?: string | null
+          current_value?: number | null
+          cycle_end?: string | null
           desired_plan?: string | null
+          first_action_at?: string | null
           id?: string
+          next_cycle_end?: string | null
+          next_cycle_start?: string | null
           notes?: string | null
           payment_method?: string | null
+          proposal_link_id?: string | null
+          proposal_plan?: string | null
+          proposal_value?: number | null
+          retro_link_id?: string | null
           status?: string
           unit_id?: string | null
           updated_at?: string
         }
         Update: {
+          assigned_to?: string | null
           client_id?: number
+          closed_at?: string | null
+          contract_id?: string | null
           created_at?: string
+          current_plan?: string | null
+          current_value?: number | null
+          cycle_end?: string | null
           desired_plan?: string | null
+          first_action_at?: string | null
           id?: string
+          next_cycle_end?: string | null
+          next_cycle_start?: string | null
           notes?: string | null
           payment_method?: string | null
+          proposal_link_id?: string | null
+          proposal_plan?: string | null
+          proposal_value?: number | null
+          retro_link_id?: string | null
           status?: string
           unit_id?: string | null
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "renewal_requests_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "collaborators"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "renewal_requests_client_id_fkey"
             columns: ["client_id"]
@@ -3718,6 +3866,27 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "renewal_requests_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "client_contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "renewal_requests_proposal_link_id_fkey"
+            columns: ["proposal_link_id"]
+            isOneToOne: false
+            referencedRelation: "form_links"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "renewal_requests_retro_link_id_fkey"
+            columns: ["retro_link_id"]
+            isOneToOne: false
+            referencedRelation: "form_links"
             referencedColumns: ["id"]
           },
         ]
@@ -5580,6 +5749,19 @@ export type Database = {
       }
       complete_evo_cycle: { Args: { _stats?: Json }; Returns: Json }
       confirm_waitlist: { Args: { _waitlist_id: string }; Returns: Json }
+      contract_new_version: {
+        Args: { _body?: string; _contract: string; _title?: string }
+        Returns: string
+      }
+      contract_send_link: {
+        Args: { _channel?: string; _contract: string; _days?: number }
+        Returns: Json
+      }
+      contract_sign_link: {
+        Args: { p_cpf?: string; p_name: string; p_token: string }
+        Returns: Json
+      }
+      contracts_expire_overdue: { Args: never; Returns: number }
       create_indication: {
         Args: { _name: string; _phone: string }
         Returns: Json
@@ -5773,6 +5955,21 @@ export type Database = {
           _trial_professor_id?: string
           _unit_id?: string
         }
+        Returns: Json
+      }
+      renewal_assign: {
+        Args: { _collaborator: string; _id: string; _note?: string }
+        Returns: Json
+      }
+      renewal_dashboard: {
+        Args: { _from?: string; _to?: string; _unit?: string }
+        Returns: Json
+      }
+      renewal_link: { Args: { _id: string; _kind: string }; Returns: Json }
+      renewal_link_open: { Args: { p_token: string }; Returns: Json }
+      renewal_ruler: { Args: never; Returns: Json }
+      renewal_set_status: {
+        Args: { _id: string; _note?: string; _status: string }
         Returns: Json
       }
       schedule_copy_previous: {
