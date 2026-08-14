@@ -849,16 +849,34 @@ export function ContratosTab({ c }: { c: OverviewRow }) {
       <ListShell {...ct} empty="Nenhum contrato emitido.">
         <div className="space-y-2">
           {ct.rows.map(r => (
-            <div key={r.id} className="flex items-center justify-between border-b border-border pb-2 last:border-0">
+            <div key={r.id} className="flex items-start justify-between gap-2 border-b border-border pb-2 last:border-0">
               <div>
-                <p className="text-sm font-dm text-foreground">{r.title}</p>
-                <p className="text-[11px] font-dm text-muted-foreground">
-                  {fmtDate(r.starts_at)} → {fmtDate(r.ends_at)} {r.signed_at ? `· assinado ${fmtDate(r.signed_at)}` : ""}
+                <p className="text-sm font-dm text-foreground">
+                  {r.title} <span className="text-muted-foreground">v{r.version ?? 1}</span>
+                  {r.renewal_id ? <span className="text-muted-foreground"> · renovação</span> : null}
                 </p>
+                <p className="text-[11px] font-dm text-muted-foreground">
+                  {fmtDate(r.starts_at)} → {fmtDate(r.ends_at)}
+                  {r.sent_at ? ` · enviado ${fmtDate(r.sent_at)}${r.channel ? ` (${r.channel})` : ""}${r.sent_by_name ? ` por ${r.sent_by_name}` : ""}` : ""}
+                  {r.viewed_at ? ` · visualizado ${fmtDate(r.viewed_at)}` : ""}
+                </p>
+                {r.signed_at && (
+                  <p className="text-[11px] font-dm text-muted-foreground">
+                    Assinado {new Date(r.signed_at).toLocaleString("pt-BR")} por {r.signature_name}
+                    {r.signature_cpf ? ` · CPF ${r.signature_cpf}` : ""}
+                    {r.signature_hash ? ` · cód. ${String(r.signature_hash).slice(0, 16)}` : ""}
+                  </p>
+                )}
               </div>
-              <span className={`text-[10px] font-dm px-2 py-0.5 rounded-full ${r.status === "signed" ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"}`}>
-                {r.status === "signed" ? "Assinado" : "Pendente"}
-              </span>
+              <div className="flex items-center gap-2 shrink-0">
+                <span className={`text-[10px] font-dm px-2 py-0.5 rounded-full ${contractStatusClass(r.status)}`}>
+                  {CONTRACT_STATUS_LABEL[r.status] || r.status}
+                </span>
+                <Button size="icon" variant="ghost" title="Baixar PDF"
+                  onClick={() => { if (!printContract(r, c.name)) toast.error("Libere pop-ups para baixar o PDF"); }}>
+                  <Download size={14} />
+                </Button>
+              </div>
             </div>
           ))}
         </div>
