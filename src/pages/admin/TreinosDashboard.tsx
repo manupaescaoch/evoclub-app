@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { AlertTriangle, Dumbbell, Clock, MessageSquare, UserX } from "lucide-react";
+import PainReportsPanel from "@/components/admin/treinos/PainReportsPanel";
 
 type ClientRisk = {
   id: number;
@@ -124,6 +125,8 @@ const TreinosDashboard = () => {
     <div>
       <h1 className="font-barlow font-bold text-2xl text-foreground mb-1">TREINOS</h1>
       <p className="text-sm text-muted-foreground font-dm mb-6">Dashboard de treinos e acompanhamento</p>
+
+      <PainReportsPanel />
 
       {/* Alert Cards */}
       <h2 className="font-barlow font-bold text-sm text-muted-foreground tracking-wider mb-3">ALERTAS CRÍTICOS</h2>
