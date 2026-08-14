@@ -381,6 +381,7 @@ const Grade = () => {
           </table>
         )}
       </div>
+      </>)}
 
       <Dialog open={bulkOpen} onOpenChange={setBulkOpen}>
         <DialogContent className="max-w-lg">
