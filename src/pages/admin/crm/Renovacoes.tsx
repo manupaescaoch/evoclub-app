@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { RefreshCw, MessageCircle, Copy, FileSignature, History } from "lucide-react";
+import { RefreshCw, MessageCircle, FileSignature, History } from "lucide-react";
 import { toast } from "sonner";
 import { openWhatsApp } from "@/lib/whatsapp";
 import { useUnit } from "@/contexts/UnitContext";
@@ -38,9 +38,9 @@ type Row = {
   assigned_to: string | null; contract_id: string | null; created_at: string; closed_at: string | null;
   notes: string | null;
   client: { name: string; phone: string | null } | null;
-  collaborator: { name: string } | null;
+  collaborator: { full_name: string } | null;
 };
-type Collab = { id: string; name: string; role: string | null };
+type Collab = { id: string; full_name: string; role_title: string | null };
 type Event = { id: string; status: string | null; actor_name: string | null; note: string | null; created_at: string };
 type Model = { id: string; name: string; body: string | null; renewal_rules: string | null; cancellation_rules: string | null };
 
@@ -80,12 +80,12 @@ export default function Renovacoes() {
   const load = async () => {
     setLoading(true);
     let q = supabase.from("renewal_requests")
-      .select("*, client:clients(name, phone), collaborator:collaborators(name)")
+      .select("*, client:clients(name, phone), collaborator:collaborators(full_name)")
       .order("cycle_end", { ascending: true, nullsFirst: false });
     if (filterId) q = q.eq("unit_id", filterId);
     const [r, c, m, d] = await Promise.all([
       q,
-      supabase.from("collaborators").select("id, name, role").order("name"),
+      supabase.from("collaborators").select("id, full_name, role_title").order("full_name"),
       supabase.from("contracts").select("id, name, body, renewal_rules, cancellation_rules").eq("status", "active").order("name"),
       supabase.rpc("renewal_dashboard", { _unit: filterId, _from: from, _to: to }),
     ]);
@@ -186,7 +186,7 @@ export default function Renovacoes() {
     const { error } = await supabase.rpc("renewal_assign", { _id: active.id, _collaborator: collaborator, _note: null });
     if (error) return toast.error("Erro ao reatribuir: " + error.message);
     await logAudit({ action: "update", entity: "renewal_requests", entity_id: active.id, module: "crm", unit_id: filterId,
-      description: `Renovação reatribuída para ${collabs.find(c => c.id === collaborator)?.name || collaborator}` });
+      description: `Renovação reatribuída para ${collabs.find(c => c.id === collaborator)?.full_name || collaborator}` });
     toast.success("Responsável atualizado");
     load();
     openRow({ ...active, assigned_to: collaborator });
@@ -300,7 +300,7 @@ export default function Renovacoes() {
                               {STATUS_LABEL[r.status] || r.status}
                             </span>
                           </TableCell>
-                          <TableCell>{r.collaborator?.name || "—"}</TableCell>
+                          <TableCell>{r.collaborator?.full_name || "—"}</TableCell>
                           <TableCell className="text-right">
                             <Button size="sm" variant="outline" onClick={() => openRow(r)}>Tratar</Button>
                           </TableCell>
@@ -396,7 +396,7 @@ export default function Renovacoes() {
               <Select value={active?.assigned_to || ""} onValueChange={assign}>
                 <SelectTrigger className="h-9"><SelectValue placeholder="Selecione" /></SelectTrigger>
                 <SelectContent className="max-h-72">
-                  {collabs.map(c => <SelectItem key={c.id} value={c.id}>{c.name}{c.role ? ` — ${c.role}` : ""}</SelectItem>)}
+                  {collabs.map(c => <SelectItem key={c.id} value={c.id}>{c.full_name}{c.role_title ? ` — ${c.role_title}` : ""}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
