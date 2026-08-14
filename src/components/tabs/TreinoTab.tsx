@@ -876,7 +876,9 @@ const TreinoTab = () => {
                           <button onClick={() => setEditTarget({ ex: i, s: si })}
                             className="flex items-center gap-1 text-primary min-h-[32px] px-1">
                             <span className="text-[11px] font-dm font-semibold">
-                              {s.performedLoad || s.prescribedLoad || "0"}kg
+                              {s.cardio
+                                ? `${Math.round((s.performedTime ?? s.prescribedTime ?? 0) / 60)} min`
+                                : `${s.performedLoad || s.prescribedLoad || "0"}kg`}
                             </span>
                             <Pencil size={10} />
                           </button>
@@ -904,6 +906,9 @@ const TreinoTab = () => {
         )}
         {restSeconds !== null && <RestTimer seconds={restSeconds} onClose={() => setRestSeconds(null)} />}
         {videoTarget && <VideoModal url={videoTarget.url} name={videoTarget.name} onClose={() => setVideoTarget(null)} />}
+        {showPostWorkout && (
+          <PostWorkoutModal saving={saving} onSubmit={(a) => finishWorkout(false, a)} />
+        )}
         {showXpModal && (
           <XpCompletionModal
             xpBreakdown={{ loads: loadAnnotations, start: true, complete: true }}
