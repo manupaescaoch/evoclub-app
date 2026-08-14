@@ -3504,6 +3504,13 @@ export type Database = {
         Returns: Json
       }
       link_client_by_email: { Args: { _email: string }; Returns: Json }
+      post_likers: {
+        Args: { _post_id: string }
+        Returns: {
+          client_id: number
+          name: string
+        }[]
+      }
       purge_old_notifications: { Args: never; Returns: undefined }
       ranking_scores: {
         Args: { _from?: string; _unit_id?: string }
