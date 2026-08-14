@@ -11,6 +11,24 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Plus, Gift } from "lucide-react";
 import { toast } from "sonner";
 
+type RenewalRequest = {
+  id: string;
+  client_id: number;
+  desired_plan: string | null;
+  payment_method: string | null;
+  notes: string | null;
+  status: string;
+  created_at: string;
+  clients?: { name: string; phone: string | null } | null;
+};
+
+const RENEWAL_STATUSES = [
+  { value: "pending", label: "Em análise" },
+  { value: "contacted", label: "Contato feito" },
+  { value: "done", label: "Renovado" },
+  { value: "cancelled", label: "Cancelado" },
+];
+
 type Indication = {
   id: string;
   indicator_name: string;
@@ -42,6 +60,22 @@ export default function Indicacoes() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({ indicator_name: "", indicated_name: "", indicated_phone: "", origin: "", notes: "" });
+  const [renewals, setRenewals] = useState<RenewalRequest[]>([]);
+
+  const loadRenewals = async () => {
+    const { data } = await supabase
+      .from("renewal_requests")
+      .select("id, client_id, desired_plan, payment_method, notes, status, created_at, clients(name, phone)")
+      .order("created_at", { ascending: false });
+    setRenewals((data as RenewalRequest[]) || []);
+  };
+
+  const updateRenewal = async (id: string, status: string) => {
+    const { error } = await supabase.from("renewal_requests").update({ status }).eq("id", id);
+    if (error) return toast.error(error.message);
+    toast.success("Pedido atualizado");
+    loadRenewals();
+  };
 
   const load = async () => {
     setLoading(true);
@@ -49,7 +83,7 @@ export default function Indicacoes() {
     setItems((data as Indication[]) || []);
     setLoading(false);
   };
-  useEffect(() => { load(); }, []);
+  useEffect(() => { load(); loadRenewals(); }, []);
 
   const filtered = items.filter(i =>
     (statusFilter === "all" || i.status === statusFilter) &&
@@ -169,6 +203,38 @@ export default function Indicacoes() {
                     <Button size="sm" variant="outline" className="gap-1" onClick={() => applyDiscount(i)}>
                       <Gift size={12} /> Aplicar 5%
                     </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        )}
+      </div>
+
+      <div className="mt-6 rounded-xl border bg-card overflow-hidden">
+        <div className="px-4 py-3 border-b">
+          <p className="text-sm font-semibold">Pedidos de renovação (app do aluno)</p>
+          <p className="text-xs text-muted-foreground">Solicitações enviadas pelos alunos no app.</p>
+        </div>
+        {renewals.length === 0 ? <EmptyState message="Nenhum pedido de renovação." /> : (
+          <Table>
+            <TableHeader><TableRow>
+              <TableHead>Aluno</TableHead><TableHead>Telefone</TableHead><TableHead>Plano desejado</TableHead>
+              <TableHead>Pagamento</TableHead><TableHead>Data</TableHead><TableHead>Status</TableHead>
+            </TableRow></TableHeader>
+            <TableBody>
+              {renewals.map(r => (
+                <TableRow key={r.id}>
+                  <TableCell className="font-medium">{r.clients?.name || `#${r.client_id}`}</TableCell>
+                  <TableCell>{r.clients?.phone || "—"}</TableCell>
+                  <TableCell>{r.desired_plan || "—"}</TableCell>
+                  <TableCell>{r.payment_method || "—"}</TableCell>
+                  <TableCell>{new Date(r.created_at).toLocaleDateString("pt-BR")}</TableCell>
+                  <TableCell>
+                    <Select value={r.status} onValueChange={v => updateRenewal(r.id, v)}>
+                      <SelectTrigger className="h-7 w-[160px] text-xs"><SelectValue /></SelectTrigger>
+                      <SelectContent>{RENEWAL_STATUSES.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent>
+                    </Select>
                   </TableCell>
                 </TableRow>
               ))}
