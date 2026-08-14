@@ -876,6 +876,7 @@ export type Database = {
           contract_start: string | null
           cpf: string | null
           created_at: string | null
+          crm_owner_id: string | null
           email: string | null
           gender: string | null
           id: number
@@ -901,6 +902,7 @@ export type Database = {
           contract_start?: string | null
           cpf?: string | null
           created_at?: string | null
+          crm_owner_id?: string | null
           email?: string | null
           gender?: string | null
           id?: number
@@ -926,6 +928,7 @@ export type Database = {
           contract_start?: string | null
           cpf?: string | null
           created_at?: string | null
+          crm_owner_id?: string | null
           email?: string | null
           gender?: string | null
           id?: number
@@ -944,6 +947,13 @@ export type Database = {
           weekly_goal?: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "clients_crm_owner_id_fkey"
+            columns: ["crm_owner_id"]
+            isOneToOne: false
+            referencedRelation: "collaborators"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "clients_unit_id_fkey"
             columns: ["unit_id"]
@@ -2507,6 +2517,88 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      occurrences: {
+        Row: {
+          client_id: number | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          owner_id: string | null
+          resolution_note: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          severity: string
+          source_id: string | null
+          source_table: string | null
+          status: string
+          title: string
+          type: string
+          unit_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          client_id?: number | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          owner_id?: string | null
+          resolution_note?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity?: string
+          source_id?: string | null
+          source_table?: string | null
+          status?: string
+          title: string
+          type?: string
+          unit_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          client_id?: number | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          owner_id?: string | null
+          resolution_note?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity?: string
+          source_id?: string | null
+          source_table?: string | null
+          status?: string
+          title?: string
+          type?: string
+          unit_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "occurrences_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "client_overview"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "occurrences_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "occurrences_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "collaborators"
             referencedColumns: ["id"]
           },
         ]
@@ -4559,6 +4651,8 @@ export type Database = {
           contract_start: string | null
           cpf: string | null
           created_at: string | null
+          crm_owner_id: string | null
+          crm_owner_name: string | null
           days_since_activity: number | null
           email: string | null
           financial_state: string | null
@@ -4583,6 +4677,13 @@ export type Database = {
           workouts_30d: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "clients_crm_owner_id_fkey"
+            columns: ["crm_owner_id"]
+            isOneToOne: false
+            referencedRelation: "collaborators"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "clients_unit_id_fkey"
             columns: ["unit_id"]
@@ -4668,6 +4769,7 @@ export type Database = {
         }[]
       }
       complete_evo_cycle: { Args: { _stats?: Json }; Returns: Json }
+      confirm_waitlist: { Args: { _waitlist_id: string }; Returns: Json }
       create_indication: {
         Args: { _name: string; _phone: string }
         Returns: Json
@@ -4743,6 +4845,34 @@ export type Database = {
         Returns: string[]
       }
       my_admin_access: { Args: never; Returns: Json }
+      occurrence_assign: {
+        Args: { _collaborator_id: string; _id: string }
+        Returns: Json
+      }
+      occurrence_list: {
+        Args: { _from?: string; _to?: string; _unit_id?: string }
+        Returns: {
+          client_id: number
+          client_name: string
+          created_at: string
+          description: string
+          id: string
+          owner_id: string
+          owner_name: string
+          resolution_note: string
+          resolved_at: string
+          severity: string
+          source_table: string
+          status: string
+          title: string
+          type: string
+          unit_id: string
+        }[]
+      }
+      occurrence_set_status: {
+        Args: { _id: string; _note?: string; _status: string }
+        Returns: Json
+      }
       plan_blocked: { Args: { _client: number }; Returns: boolean }
       plan_state: { Args: never; Returns: Json }
       post_likers: {
