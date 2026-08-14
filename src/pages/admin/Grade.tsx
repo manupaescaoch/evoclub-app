@@ -6,6 +6,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import GradeDia from "@/components/admin/grade/GradeDia";
+import { useUnit } from "@/contexts/UnitContext";
 
 const dayLabels = ["DOM", "SEG", "TER", "QUA", "QUI", "SEX", "SÁB"];
 const hours = Array.from({ length: 18 }, (_, i) => i + 5);
@@ -35,6 +37,7 @@ const getWeekDates = (offset: number) => {
 };
 
 const Grade = () => {
+  const { filterId } = useUnit();
   const [classes, setClasses] = useState<ClassData[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<"todos" | "manha" | "tarde" | "noite">("todos");
@@ -204,6 +207,27 @@ const Grade = () => {
         </div>
       </div>
 
+      {/* Alternador de visão */}
+      <div className="flex items-center justify-end mb-4">
+        <div className="flex rounded overflow-hidden border border-border">
+          <button
+            onClick={() => setViewMode("dia")}
+            className={`px-3 py-1 text-xs font-dm font-bold ${viewMode === "dia" ? "bg-primary text-white" : "bg-card text-muted-foreground"}`}
+          >
+            DIA
+          </button>
+          <button
+            onClick={() => setViewMode("semana")}
+            className={`px-3 py-1 text-xs font-dm font-bold ${viewMode === "semana" ? "bg-primary text-white" : "bg-card text-muted-foreground"}`}
+          >
+            SEMANA
+          </button>
+        </div>
+      </div>
+
+      {viewMode === "dia" && <GradeDia unitId={filterId} />}
+
+      {viewMode === "semana" && (<>
       {/* Filters row */}
       <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
         <div className="flex gap-2">
@@ -238,20 +262,6 @@ const Grade = () => {
           <label className="flex items-center gap-1.5 text-xs font-dm text-muted-foreground cursor-pointer">
             <Eye size={14} /> Ver status
           </label>
-          <div className="flex rounded overflow-hidden border border-border">
-            <button
-              onClick={() => setViewMode("dia")}
-              className={`px-3 py-1 text-xs font-dm font-bold ${viewMode === "dia" ? "bg-muted text-foreground" : "bg-card text-muted-foreground"}`}
-            >
-              DIA
-            </button>
-            <button
-              onClick={() => setViewMode("semana")}
-              className={`px-3 py-1 text-xs font-dm font-bold ${viewMode === "semana" ? "bg-primary text-white" : "bg-card text-muted-foreground"}`}
-            >
-              SEMANA
-            </button>
-          </div>
         </div>
       </div>
 
