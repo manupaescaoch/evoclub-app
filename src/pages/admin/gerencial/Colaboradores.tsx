@@ -23,12 +23,15 @@ type Collaborator = {
   internal_notes: string | null; status: string;
   auth_user_id: string | null; financial_release: boolean | null; allow_consolidated: boolean | null;
   unit_id: string | null;
+  supervisor_id: string | null; shift_start: string | null; shift_end: string | null;
+  shift_break_minutes: number | null; shift_weekdays: number[] | null;
 };
 
 const empty: Partial<Collaborator> = {
   full_name: "", email: "", phone: "", cpf: "", role_title: "", permission_profile_id: null,
   hired_at: "", internal_notes: "", status: "active",
   financial_release: false, allow_consolidated: false, unit_id: null,
+  supervisor_id: null, shift_start: "", shift_end: "", shift_break_minutes: 60, shift_weekdays: [1, 2, 3, 4, 5],
 };
 
 export default function Colaboradores() {
@@ -69,6 +72,10 @@ export default function Colaboradores() {
     if (!payload.hired_at) payload.hired_at = null;
     if (!payload.permission_profile_id) payload.permission_profile_id = null;
     if (!payload.unit_id) payload.unit_id = null;
+    if (!payload.supervisor_id) payload.supervisor_id = null;
+    if (!payload.shift_start) payload.shift_start = null;
+    if (!payload.shift_end) payload.shift_end = null;
+    if (payload.shift_break_minutes === "" || payload.shift_break_minutes === undefined) payload.shift_break_minutes = null;
     const previous = form.id ? rows.find(r => r.id === form.id) : null;
     const res: any = form.id
       ? await supabase.from("collaborators").update(payload).eq("id", form.id)
@@ -90,11 +97,13 @@ export default function Colaboradores() {
         before: previous ? {
           permission_profile_id: previous.permission_profile_id, status: previous.status,
           financial_release: previous.financial_release, allow_consolidated: previous.allow_consolidated,
+          supervisor_id: previous.supervisor_id, shift_start: previous.shift_start, shift_end: previous.shift_end,
           auth_user_id: previous.auth_user_id, units: links.filter(l => l.collaborator_id === form.id).map(l => l.unit_id),
         } : null,
         after: {
           permission_profile_id: payload.permission_profile_id, status: payload.status,
           financial_release: payload.financial_release, allow_consolidated: payload.allow_consolidated,
+          supervisor_id: payload.supervisor_id, shift_start: payload.shift_start, shift_end: payload.shift_end,
           auth_user_id: payload.auth_user_id, units: formUnits,
         },
       });
@@ -197,6 +206,39 @@ export default function Colaboradores() {
               </Select>
             </div>
             <div className="md:col-span-2"><Label>Foto (URL)</Label><Input value={form.photo_url || ""} onChange={e => setForm({ ...form, photo_url: e.target.value })} /></div>
+            <div><Label>Supervisor</Label>
+              <Select value={form.supervisor_id || ""} onValueChange={v => setForm({ ...form, supervisor_id: v })}>
+                <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                <SelectContent>
+                  {rows.filter(r => r.id !== form.id).map(r => <SelectItem key={r.id} value={r.id}>{r.full_name}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+              <div><Label className="text-xs">Turno entrada</Label><Input type="time" value={(form.shift_start || "").slice(0, 5)} onChange={e => setForm({ ...form, shift_start: e.target.value })} /></div>
+              <div><Label className="text-xs">Turno saída</Label><Input type="time" value={(form.shift_end || "").slice(0, 5)} onChange={e => setForm({ ...form, shift_end: e.target.value })} /></div>
+              <div><Label className="text-xs">Intervalo (min)</Label><Input type="number" min={0} value={form.shift_break_minutes ?? 60} onChange={e => setForm({ ...form, shift_break_minutes: Number(e.target.value) })} /></div>
+            </div>
+            <div className="md:col-span-2">
+              <Label>Dias do turno fixo</Label>
+              <div className="flex flex-wrap gap-3 mt-1.5">
+                {[["1","Seg"],["2","Ter"],["3","Qua"],["4","Qui"],["5","Sex"],["6","Sáb"],["0","Dom"]].map(([v, l]) => {
+                  const n = Number(v);
+                  const on = (form.shift_weekdays || []).includes(n);
+                  return (
+                    <label key={v} className="flex items-center gap-1.5 text-sm font-dm">
+                      <Checkbox checked={on} onCheckedChange={() => setForm({
+                        ...form,
+                        shift_weekdays: on
+                          ? (form.shift_weekdays || []).filter(x => x !== n)
+                          : [...(form.shift_weekdays || []), n],
+                      })} /> {l}
+                    </label>
+                  );
+                })}
+              </div>
+              <p className="text-xs text-muted-foreground font-dm mt-1">De segunda a sexta vale este turno fixo; sábados, domingos e feriados usam a Escala.</p>
+            </div>
             <div className="md:col-span-2"><Label>ID de acesso (auth user id)</Label>
               <Input placeholder="uuid do login do colaborador" value={form.auth_user_id || ""} onChange={e => setForm({ ...form, auth_user_id: e.target.value || null })} />
               <p className="text-xs text-muted-foreground font-dm mt-1">Vincula o login ao colaborador para aplicar permissões e escopo de unidades.</p>
