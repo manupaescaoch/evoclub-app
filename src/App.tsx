@@ -50,6 +50,7 @@ import Comissoes from "./pages/admin/crm/Comissoes.tsx";
 import Indicacoes from "./pages/admin/crm/Indicacoes.tsx";
 import Tarefas from "./pages/admin/crm/Tarefas.tsx";
 import Operacional from "./pages/admin/crm/Operacional.tsx";
+import Renovacoes from "./pages/admin/crm/Renovacoes.tsx";
 import OperacionalIndex from "./pages/admin/operacional/OperacionalIndex.tsx";
 import OperacionalCalendario from "./pages/admin/operacional/Calendario.tsx";
 import OperacionalFormularios from "./pages/admin/operacional/Formularios.tsx";
@@ -155,6 +156,7 @@ const App = () => (
               <Route path="relatorios" element={<Relatorios />} />
               <Route path="configuracoes" element={<FinConfiguracoes />} />
             </Route>
+            <Route path="crm/renovacoes" element={<ModuleGuard module="crm"><Renovacoes /></ModuleGuard>} />
             <Route path="gerencial" element={<ModuleGuard module="gerencial"><GerencialIndex /></ModuleGuard>} />
             <Route path="gerencial/contratos" element={<ModuleGuard module="gerencial"><Contratos /></ModuleGuard>} />
             <Route path="gerencial/atividades" element={<ModuleGuard module="gerencial"><Atividades /></ModuleGuard>} />
