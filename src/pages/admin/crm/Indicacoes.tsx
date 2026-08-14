@@ -242,6 +242,8 @@ export default function Indicacoes() {
           </Table>
         )}
       </div>
+
+      <RenewalBenefitsPanel />
     </PageShell>
   );
 }
