@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -23,6 +23,12 @@ import DRE from "./pages/admin/financeiro/DRE.tsx";
 import Relatorios from "./pages/admin/financeiro/Relatorios.tsx";
 import FinConfiguracoes from "./pages/admin/financeiro/Configuracoes.tsx";
 import { UnitProvider } from "./contexts/UnitContext.tsx";
+import { AccessProvider } from "./contexts/AccessContext.tsx";
+import { PeriodProvider } from "./contexts/PeriodContext.tsx";
+import ModuleGuard from "./components/admin/ModuleGuard.tsx";
+import Avaliacoes from "./pages/admin/Avaliacoes.tsx";
+import Equipe from "./pages/admin/Equipe.tsx";
+import Ocorrencias from "./pages/admin/Ocorrencias.tsx";
 import Placeholder from "./pages/admin/Placeholder.tsx";
 import Treinos from "./pages/admin/Treinos.tsx";
 import TreinosDashboard from "./pages/admin/TreinosDashboard.tsx";
@@ -61,6 +67,8 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
+       <AccessProvider>
+       <PeriodProvider>
        <UnitProvider>
         <Routes>
           {/* Role selection (landing) */}
@@ -97,16 +105,24 @@ const App = () => (
           {/* Admin */}
           <Route path="/admin/login" element={<Login />} />
           <Route path="/admin" element={<AdminLayout />}>
-            <Route index element={<Dashboard />} />
-            <Route path="clientes" element={<Clientes />} />
-            <Route path="grade" element={<Grade />} />
-            <Route path="crm" element={<CRM />} />
-            <Route path="crm/comissoes" element={<Comissoes />} />
-            <Route path="crm/indicacoes" element={<Indicacoes />} />
-            <Route path="crm/tarefas" element={<Tarefas />} />
-            <Route path="crm/operacional" element={<Operacional />} />
-            <Route path="crm/escala" element={<Escala />} />
-            <Route path="financeiro" element={<FinanceiroLayout />}>
+            <Route index element={<ModuleGuard module="dashboard"><Dashboard /></ModuleGuard>} />
+            <Route path="clientes" element={<ModuleGuard module="clientes"><Clientes /></ModuleGuard>} />
+            <Route path="grade" element={<ModuleGuard module="grade"><Grade /></ModuleGuard>} />
+            <Route path="crm" element={<ModuleGuard module="crm"><CRM /></ModuleGuard>} />
+            <Route path="crm/comissoes" element={<ModuleGuard module="crm"><Comissoes /></ModuleGuard>} />
+            <Route path="crm/indicacoes" element={<ModuleGuard module="crm"><Indicacoes /></ModuleGuard>} />
+            <Route path="crm/tarefas" element={<ModuleGuard module="crm"><Tarefas /></ModuleGuard>} />
+            {/* rotas antigas mantidas com redirect */}
+            <Route path="crm/operacional" element={<Navigate to="/admin/operacional" replace />} />
+            <Route path="crm/escala" element={<Navigate to="/admin/equipe/escala" replace />} />
+
+            <Route path="avaliacoes" element={<ModuleGuard module="avaliacao"><Avaliacoes /></ModuleGuard>} />
+            <Route path="equipe" element={<ModuleGuard module="equipe"><Equipe /></ModuleGuard>} />
+            <Route path="equipe/escala" element={<ModuleGuard module="equipe"><Escala /></ModuleGuard>} />
+            <Route path="operacional" element={<ModuleGuard module="operacional"><Operacional /></ModuleGuard>} />
+            <Route path="ocorrencias" element={<ModuleGuard module="ocorrencias"><Ocorrencias /></ModuleGuard>} />
+
+            <Route path="financeiro" element={<ModuleGuard module="financeiro"><FinanceiroLayout /></ModuleGuard>}>
               <Route index element={<FinDashboard />} />
               <Route path="fluxo" element={<FluxoCaixa />} />
               <Route path="recebimentos" element={<Recebimentos />} />
@@ -117,16 +133,16 @@ const App = () => (
               <Route path="relatorios" element={<Relatorios />} />
               <Route path="configuracoes" element={<FinConfiguracoes />} />
             </Route>
-            <Route path="gerencial" element={<GerencialIndex />} />
-            <Route path="gerencial/contratos" element={<Contratos />} />
-            <Route path="gerencial/atividades" element={<Atividades />} />
-            <Route path="gerencial/colaboradores" element={<Colaboradores />} />
-            <Route path="gerencial/fornecedores" element={<Fornecedores />} />
-            <Route path="gerencial/permissoes" element={<Permissoes />} />
-            <Route path="gerencial/servicos" element={<Servicos />} />
-            <Route path="gerencial/cupons" element={<Cupons />} />
-            <Route path="gerencial/crescimento" element={<Crescimento />} />
-            <Route path="treinos" element={<Treinos />}>
+            <Route path="gerencial" element={<ModuleGuard module="gerencial"><GerencialIndex /></ModuleGuard>} />
+            <Route path="gerencial/contratos" element={<ModuleGuard module="gerencial"><Contratos /></ModuleGuard>} />
+            <Route path="gerencial/atividades" element={<ModuleGuard module="gerencial"><Atividades /></ModuleGuard>} />
+            <Route path="gerencial/colaboradores" element={<ModuleGuard module="gerencial"><Colaboradores /></ModuleGuard>} />
+            <Route path="gerencial/fornecedores" element={<ModuleGuard module="gerencial"><Fornecedores /></ModuleGuard>} />
+            <Route path="gerencial/permissoes" element={<ModuleGuard module="gerencial" action="sensitive"><Permissoes /></ModuleGuard>} />
+            <Route path="gerencial/servicos" element={<ModuleGuard module="gerencial"><Servicos /></ModuleGuard>} />
+            <Route path="gerencial/cupons" element={<ModuleGuard module="gerencial"><Cupons /></ModuleGuard>} />
+            <Route path="gerencial/crescimento" element={<ModuleGuard module="gerencial"><Crescimento /></ModuleGuard>} />
+            <Route path="treinos" element={<ModuleGuard module="treinos"><Treinos /></ModuleGuard>}>
               <Route index element={<TreinosDashboard />} />
               <Route path="prescrever" element={<PrescreverTreino />} />
               <Route path="prescrever/:clientId" element={<PrescreverEditor />} />
@@ -135,9 +151,10 @@ const App = () => (
               <Route path="biblioteca" element={<TreinosBiblioteca />} />
               <Route path="metodos" element={<TreinosMetodos />} />
             </Route>
-            <Route path="club/validar" element={<ValidarResgate />} />
-            <Route path="comunidade" element={<AdminComunidade />} />
-            <Route path="configuracoes" element={<Configuracoes />} />
+            <Route path="club" element={<Navigate to="/admin/club/validar" replace />} />
+            <Route path="club/validar" element={<ModuleGuard module="club"><ValidarResgate /></ModuleGuard>} />
+            <Route path="comunidade" element={<ModuleGuard module="comunidade"><AdminComunidade /></ModuleGuard>} />
+            <Route path="configuracoes" element={<ModuleGuard module="configuracoes"><Configuracoes /></ModuleGuard>} />
             <Route path="novidades" element={<Placeholder />} />
             <Route path="ajuda" element={<Placeholder />} />
           </Route>
@@ -145,6 +162,8 @@ const App = () => (
           <Route path="*" element={<NotFound />} />
         </Routes>
        </UnitProvider>
+       </PeriodProvider>
+       </AccessProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

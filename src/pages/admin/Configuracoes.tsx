@@ -6,13 +6,15 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { Building2, Sliders, Plug, User, KeyRound, LogOut, Save, ScrollText } from "lucide-react";
+import { Building2, Sliders, Plug, User, KeyRound, LogOut, Save, ScrollText, MapPin } from "lucide-react";
 import AuditLogTab from "@/components/admin/AuditLogTab";
+import UnidadesTab from "@/pages/admin/configuracoes/UnidadesTab";
 
-type TabKey = "empresa" | "sistema" | "integracoes" | "conta" | "auditoria";
+type TabKey = "empresa" | "unidades" | "sistema" | "integracoes" | "conta" | "auditoria";
 
 const TABS: { key: TabKey; label: string; icon: any }[] = [
   { key: "empresa", label: "Dados da empresa", icon: Building2 },
+  { key: "unidades", label: "Unidades", icon: MapPin },
   { key: "sistema", label: "Preferências do sistema", icon: Sliders },
   { key: "integracoes", label: "Integrações", icon: Plug },
   { key: "conta", label: "Conta e segurança", icon: User },
@@ -308,6 +310,8 @@ const Configuracoes = () => {
       )}
 
       {tab === "auditoria" && <AuditLogTab />}
+
+      {tab === "unidades" && <UnidadesTab />}
     </div>
   );
 };

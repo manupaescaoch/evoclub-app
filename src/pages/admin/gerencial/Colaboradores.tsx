@@ -9,6 +9,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import { logCreate, logSensitive } from "@/lib/audit";
+import { useUnit } from "@/contexts/UnitContext";
 
 const ROLES = ["Admin","Coordenador","Treinador","Estagiário","Recepção","Comercial","Financeiro","Limpeza","Marketing","Nutricionista","Outro"];
 
@@ -18,16 +21,22 @@ type Collaborator = {
   phone: string | null; cpf: string | null; role_title: string | null;
   permission_profile_id: string | null; hired_at: string | null;
   internal_notes: string | null; status: string;
+  auth_user_id: string | null; financial_release: boolean | null; allow_consolidated: boolean | null;
+  unit_id: string | null;
 };
 
 const empty: Partial<Collaborator> = {
   full_name: "", email: "", phone: "", cpf: "", role_title: "", permission_profile_id: null,
   hired_at: "", internal_notes: "", status: "active",
+  financial_release: false, allow_consolidated: false, unit_id: null,
 };
 
 export default function Colaboradores() {
+  const { units } = useUnit();
   const [rows, setRows] = useState<Collaborator[]>([]);
   const [profiles, setProfiles] = useState<Profile[]>([]);
+  const [links, setLinks] = useState<{ collaborator_id: string; unit_id: string }[]>([]);
+  const [formUnits, setFormUnits] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
@@ -38,11 +47,12 @@ export default function Colaboradores() {
 
   const load = async () => {
     setLoading(true);
-    const [{ data: c }, { data: p }] = await Promise.all([
+    const [{ data: c }, { data: p }, { data: l }] = await Promise.all([
       supabase.from("collaborators").select("*").order("full_name"),
       supabase.from("permission_profiles").select("id,name").order("name"),
+      supabase.from("collaborator_units").select("collaborator_id, unit_id"),
     ]);
-    setRows(c || []); setProfiles(p || []); setLoading(false);
+    setRows((c || []) as any); setProfiles(p || []); setLinks((l || []) as any); setLoading(false);
   };
   useEffect(() => { load(); }, []);
 
@@ -55,28 +65,71 @@ export default function Colaboradores() {
 
   const save = async () => {
     if (!form.full_name) { toast.error("Nome é obrigatório"); return; }
-    const payload: any = { ...form }; delete payload.id;
+    const payload: any = { ...form }; delete payload.id; delete payload.created_at; delete payload.updated_at;
     if (!payload.hired_at) payload.hired_at = null;
     if (!payload.permission_profile_id) payload.permission_profile_id = null;
-    const res = form.id
+    if (!payload.unit_id) payload.unit_id = null;
+    const previous = form.id ? rows.find(r => r.id === form.id) : null;
+    const res: any = form.id
       ? await supabase.from("collaborators").update(payload).eq("id", form.id)
-      : await supabase.from("collaborators").insert(payload);
+      : await supabase.from("collaborators").insert(payload).select("id").maybeSingle();
     if (res.error) { toast.error(res.error.message); return; }
+    const savedId = form.id || res.data?.id;
+
+    if (savedId) {
+      await supabase.from("collaborator_units").delete().eq("collaborator_id", savedId);
+      if (formUnits.length) {
+        await supabase.from("collaborator_units").insert(formUnits.map(u => ({ collaborator_id: savedId, unit_id: u })));
+      }
+    }
+
+    if (form.id) {
+      logSensitive({
+        entity: "collaborator", entity_id: form.id, module: "gerencial",
+        description: `Alterou o colaborador ${form.full_name}`,
+        before: previous ? {
+          permission_profile_id: previous.permission_profile_id, status: previous.status,
+          financial_release: previous.financial_release, allow_consolidated: previous.allow_consolidated,
+          auth_user_id: previous.auth_user_id, units: links.filter(l => l.collaborator_id === form.id).map(l => l.unit_id),
+        } : null,
+        after: {
+          permission_profile_id: payload.permission_profile_id, status: payload.status,
+          financial_release: payload.financial_release, allow_consolidated: payload.allow_consolidated,
+          auth_user_id: payload.auth_user_id, units: formUnits,
+        },
+      });
+    } else {
+      logCreate("collaborator", savedId, `Cadastrou o colaborador ${form.full_name}`, { role_title: payload.role_title, units: formUnits }, null, "gerencial");
+    }
     toast.success("Salvo!"); setOpen(false); setForm(empty); load();
   };
   const toggleStatus = async (r: Collaborator) => {
     if (!confirm(`${r.status === "active" ? "Inativar" : "Ativar"} "${r.full_name}"?`)) return;
-    await supabase.from("collaborators").update({ status: r.status === "active" ? "inactive" : "active" }).eq("id", r.id);
+    const next = r.status === "active" ? "inactive" : "active";
+    await supabase.from("collaborators").update({ status: next }).eq("id", r.id);
+    logSensitive({
+      entity: "collaborator", entity_id: r.id, module: "gerencial",
+      description: `${next === "active" ? "Ativou" : "Inativou"} o colaborador ${r.full_name}`,
+      before: { status: r.status }, after: { status: next },
+    });
     load();
   };
 
   const profileName = (id: string | null) => profiles.find(p => p.id === id)?.name || "—";
+  const openNew = () => { setForm(empty); setFormUnits([]); setOpen(true); };
+  const openEdit = (r: Collaborator) => {
+    setForm(r);
+    setFormUnits(links.filter(l => l.collaborator_id === r.id).map(l => l.unit_id));
+    setOpen(true);
+  };
+  const toggleFormUnit = (id: string) =>
+    setFormUnits(u => u.includes(id) ? u.filter(x => x !== id) : [...u, id]);
 
   return (
     <PageShell
       title="Colaboradores"
       description="Gestão da equipe da academia."
-      primaryAction={<Button onClick={() => { setForm(empty); setOpen(true); }} className="gap-2"><Plus size={16} />Novo colaborador</Button>}
+      primaryAction={<Button onClick={openNew} className="gap-2"><Plus size={16} />Novo colaborador</Button>}
       search={{ value: search, onChange: setSearch, placeholder: "Buscar por nome..." }}
       filters={
         <>
@@ -111,7 +164,7 @@ export default function Colaboradores() {
                     <td className="px-4 py-3 text-muted-foreground text-xs">{r.email || r.phone || "—"}</td>
                     <td className="px-4 py-3"><StatusBadge status={r.status} /></td>
                     <td className="px-4 py-3"><div className="flex gap-1 justify-end">
-                      <Button size="icon" variant="ghost" onClick={() => { setForm(r); setOpen(true); }}><Pencil size={14} /></Button>
+                      <Button size="icon" variant="ghost" onClick={() => openEdit(r)}><Pencil size={14} /></Button>
                       <Button size="icon" variant="ghost" onClick={() => toggleStatus(r)}><Power size={14} /></Button>
                     </div></td>
                   </tr>
@@ -144,6 +197,31 @@ export default function Colaboradores() {
               </Select>
             </div>
             <div className="md:col-span-2"><Label>Foto (URL)</Label><Input value={form.photo_url || ""} onChange={e => setForm({ ...form, photo_url: e.target.value })} /></div>
+            <div className="md:col-span-2"><Label>ID de acesso (auth user id)</Label>
+              <Input placeholder="uuid do login do colaborador" value={form.auth_user_id || ""} onChange={e => setForm({ ...form, auth_user_id: e.target.value || null })} />
+              <p className="text-xs text-muted-foreground font-dm mt-1">Vincula o login ao colaborador para aplicar permissões e escopo de unidades.</p>
+            </div>
+            <div className="md:col-span-2">
+              <Label>Unidades vinculadas</Label>
+              <div className="flex flex-wrap gap-3 mt-1.5">
+                {units.map(u => (
+                  <label key={u.id} className="flex items-center gap-1.5 text-sm font-dm">
+                    <Checkbox checked={formUnits.includes(u.id)} onCheckedChange={() => toggleFormUnit(u.id)} /> {u.name}
+                  </label>
+                ))}
+              </div>
+              <p className="text-xs text-muted-foreground font-dm mt-1">Sem unidades selecionadas, o colaborador vê todas as unidades permitidas pelo perfil.</p>
+            </div>
+            <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-3">
+              <label className="flex items-center gap-2 text-sm font-dm border border-border rounded-lg px-3 py-2">
+                <Checkbox checked={!!form.financial_release} onCheckedChange={v => setForm({ ...form, financial_release: !!v })} />
+                Liberação financeira
+              </label>
+              <label className="flex items-center gap-2 text-sm font-dm border border-border rounded-lg px-3 py-2">
+                <Checkbox checked={!!form.allow_consolidated} onCheckedChange={v => setForm({ ...form, allow_consolidated: !!v })} />
+                Pode ver dados consolidados
+              </label>
+            </div>
             <div className="md:col-span-2"><Label>Observações internas</Label><Textarea rows={2} value={form.internal_notes || ""} onChange={e => setForm({ ...form, internal_notes: e.target.value })} /></div>
           </div>
           <DialogFooter>

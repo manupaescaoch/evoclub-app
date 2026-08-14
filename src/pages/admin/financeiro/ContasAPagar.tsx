@@ -9,6 +9,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { logCreate, logDelete, logSensitive } from "@/lib/audit";
+import { useAccess } from "@/contexts/AccessContext";
 
 type Bill = {
   id?: string; unit_id?: string | null; supplier_name?: string | null; description?: string | null;
@@ -20,6 +22,8 @@ const empty: Bill = { amount: 0, due_date: todayISO(), priority: "medium", statu
 
 const ContasAPagar = () => {
   const { filterId, units } = useUnit();
+  const { financialRelease, isAdmin } = useAccess();
+  const canRelease = isAdmin || financialRelease;
   const [rows, setRows] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
@@ -51,24 +55,56 @@ const ContasAPagar = () => {
     if (!form.amount || !form.due_date) { toast.error("Valor e vencimento são obrigatórios"); return; }
     const payload: any = { ...form, unit_id: filterId || form.unit_id || null };
     if (form.id) {
+      const previous = rows.find(r => r.id === form.id);
       const { error } = await supabase.from("accounts_payable").update(payload).eq("id", form.id);
-      if (error) toast.error(error.message); else toast.success("Atualizado");
+      if (error) { toast.error(error.message); }
+      else {
+        toast.success("Atualizado");
+        logSensitive({
+          entity: "accounts_payable", entity_id: form.id, module: "financeiro", unit_id: payload.unit_id,
+          description: `Alterou a conta a pagar "${payload.description || payload.supplier_name || form.id}"`,
+          before: previous || null, after: payload,
+        });
+      }
     } else {
       const { error } = await supabase.from("accounts_payable").insert(payload);
-      if (error) toast.error(error.message); else toast.success("Conta criada");
+      if (error) { toast.error(error.message); }
+      else {
+        toast.success("Conta criada");
+        logCreate("accounts_payable", null, `Criou conta a pagar de ${fmtBRL(Number(payload.amount))}`, payload, payload.unit_id, "financeiro");
+      }
     }
     setOpen(false); setForm(empty); load();
   };
 
   const remove = async (id: string) => {
+    if (!canRelease) { toast.error("Você não tem liberação financeira para excluir contas."); return; }
     if (!confirm("Excluir esta conta?")) return;
+    const previous = rows.find(r => r.id === id);
     const { error } = await supabase.from("accounts_payable").delete().eq("id", id);
-    if (error) toast.error(error.message); else { toast.success("Excluída"); load(); }
+    if (error) toast.error(error.message);
+    else {
+      toast.success("Excluída");
+      logDelete("accounts_payable", id, `Excluiu a conta a pagar "${previous?.description || id}"`, previous, previous?.unit_id ?? null, "financeiro");
+      load();
+    }
   };
 
   const markPaid = async (id: string) => {
+    if (!canRelease) { toast.error("Você não tem liberação financeira para dar baixa."); return; }
+    const previous = rows.find(r => r.id === id);
     const { error } = await supabase.from("accounts_payable").update({ status: "paid", paid_at: todayISO() }).eq("id", id);
-    if (error) toast.error(error.message); else { toast.success("Marcada como paga"); load(); }
+    if (error) toast.error(error.message);
+    else {
+      toast.success("Marcada como paga");
+      logSensitive({
+        entity: "accounts_payable", entity_id: id, module: "financeiro", unit_id: previous?.unit_id ?? null,
+        description: `Deu baixa na conta "${previous?.description || id}" (${fmtBRL(Number(previous?.amount || 0))})`,
+        before: { status: previous?.status, paid_at: previous?.paid_at ?? null },
+        after: { status: "paid", paid_at: todayISO() },
+      });
+      load();
+    }
   };
 
   return (

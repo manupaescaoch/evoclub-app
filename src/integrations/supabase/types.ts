@@ -281,13 +281,17 @@ export type Database = {
       audit_logs: {
         Row: {
           action: string
+          after_data: Json | null
+          before_data: Json | null
           created_at: string
           description: string
+          device: string | null
           entity: string
           entity_id: string | null
           id: string
           ip: string | null
           metadata: Json
+          module: string | null
           unit_id: string | null
           user_agent: string | null
           user_email: string | null
@@ -296,13 +300,17 @@ export type Database = {
         }
         Insert: {
           action: string
+          after_data?: Json | null
+          before_data?: Json | null
           created_at?: string
           description: string
+          device?: string | null
           entity: string
           entity_id?: string | null
           id?: string
           ip?: string | null
           metadata?: Json
+          module?: string | null
           unit_id?: string | null
           user_agent?: string | null
           user_email?: string | null
@@ -311,13 +319,17 @@ export type Database = {
         }
         Update: {
           action?: string
+          after_data?: Json | null
+          before_data?: Json | null
           created_at?: string
           description?: string
+          device?: string | null
           entity?: string
           entity_id?: string | null
           id?: string
           ip?: string | null
           metadata?: Json
+          module?: string | null
           unit_id?: string | null
           user_agent?: string | null
           user_email?: string | null
@@ -843,11 +855,50 @@ export type Database = {
           },
         ]
       }
+      collaborator_units: {
+        Row: {
+          collaborator_id: string
+          created_at: string
+          id: string
+          unit_id: string
+        }
+        Insert: {
+          collaborator_id: string
+          created_at?: string
+          id?: string
+          unit_id: string
+        }
+        Update: {
+          collaborator_id?: string
+          created_at?: string
+          id?: string
+          unit_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "collaborator_units_collaborator_id_fkey"
+            columns: ["collaborator_id"]
+            isOneToOne: false
+            referencedRelation: "collaborators"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "collaborator_units_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "units"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       collaborators: {
         Row: {
+          allow_consolidated: boolean
+          auth_user_id: string | null
           cpf: string | null
           created_at: string
           email: string | null
+          financial_release: boolean
           full_name: string
           hired_at: string | null
           id: string
@@ -861,9 +912,12 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          allow_consolidated?: boolean
+          auth_user_id?: string | null
           cpf?: string | null
           created_at?: string
           email?: string | null
+          financial_release?: boolean
           full_name: string
           hired_at?: string | null
           id?: string
@@ -877,9 +931,12 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          allow_consolidated?: boolean
+          auth_user_id?: string | null
           cpf?: string | null
           created_at?: string
           email?: string | null
+          financial_release?: boolean
           full_name?: string
           hired_at?: string | null
           id?: string
@@ -2290,6 +2347,47 @@ export type Database = {
         }
         Relationships: []
       }
+      permission_overrides: {
+        Row: {
+          actions: string[]
+          collaborator_id: string
+          created_at: string
+          id: string
+          mode: string
+          module: string
+          notes: string | null
+          updated_at: string
+        }
+        Insert: {
+          actions?: string[]
+          collaborator_id: string
+          created_at?: string
+          id?: string
+          mode?: string
+          module: string
+          notes?: string | null
+          updated_at?: string
+        }
+        Update: {
+          actions?: string[]
+          collaborator_id?: string
+          created_at?: string
+          id?: string
+          mode?: string
+          module?: string
+          notes?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "permission_overrides_collaborator_id_fkey"
+            columns: ["collaborator_id"]
+            isOneToOne: false
+            referencedRelation: "collaborators"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       permission_profiles: {
         Row: {
           created_at: string
@@ -3334,21 +3432,63 @@ export type Database = {
       units: {
         Row: {
           address: string | null
+          cnpj: string | null
           created_at: string | null
+          default_capacity: number
+          email: string | null
+          fiscal_address: string | null
           id: string
+          latitude: number | null
+          legal_name: string | null
+          longitude: number | null
+          municipal_registration: string | null
           name: string
+          opening_hours: Json
+          phone: string | null
+          state_registration: string | null
+          status: string
+          timeclock_radius_m: number
+          updated_at: string
         }
         Insert: {
           address?: string | null
+          cnpj?: string | null
           created_at?: string | null
+          default_capacity?: number
+          email?: string | null
+          fiscal_address?: string | null
           id?: string
+          latitude?: number | null
+          legal_name?: string | null
+          longitude?: number | null
+          municipal_registration?: string | null
           name: string
+          opening_hours?: Json
+          phone?: string | null
+          state_registration?: string | null
+          status?: string
+          timeclock_radius_m?: number
+          updated_at?: string
         }
         Update: {
           address?: string | null
+          cnpj?: string | null
           created_at?: string | null
+          default_capacity?: number
+          email?: string | null
+          fiscal_address?: string | null
           id?: string
+          latitude?: number | null
+          legal_name?: string | null
+          longitude?: number | null
+          municipal_registration?: string | null
           name?: string
+          opening_hours?: Json
+          phone?: string | null
+          state_registration?: string | null
+          status?: string
+          timeclock_radius_m?: number
+          updated_at?: string
         }
         Relationships: []
       }
@@ -3794,12 +3934,18 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      allowed_unit_ids: { Args: { _user_id: string }; Returns: string[] }
       book_class: {
         Args: { _class_date: string; _class_id: string; _muscle_group: string }
         Returns: Json
       }
       br_now: { Args: never; Returns: string }
+      can_consolidated: { Args: { _user_id: string }; Returns: boolean }
       can_manage_training: { Args: { _user_id: string }; Returns: boolean }
+      can_module: {
+        Args: { _action: string; _module: string; _user_id: string }
+        Returns: boolean
+      }
       cancel_booking: { Args: { _booking_id: string }; Returns: Json }
       class_booking_counts: {
         Args: { _day: number }
@@ -3825,8 +3971,10 @@ export type Database = {
         Returns: Json
       }
       current_client_id: { Args: never; Returns: number }
+      current_collaborator_id: { Args: never; Returns: string }
       evo_cycle_state: { Args: never; Returns: Json }
       gamification_state: { Args: never; Returns: Json }
+      has_financial_release: { Args: { _user_id: string }; Returns: boolean }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -3834,6 +3982,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_staff: { Args: { _user_id: string }; Returns: boolean }
       join_waitlist: {
         Args: { _class_date: string; _class_id: string; _muscle_group: string }
         Returns: Json
@@ -3843,6 +3992,11 @@ export type Database = {
         Returns: Json
       }
       link_client_by_email: { Args: { _email: string }; Returns: Json }
+      module_actions: {
+        Args: { _module: string; _user_id: string }
+        Returns: string[]
+      }
+      my_admin_access: { Args: never; Returns: Json }
       plan_blocked: { Args: { _client: number }; Returns: boolean }
       plan_state: { Args: never; Returns: Json }
       post_likers: {
