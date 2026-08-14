@@ -10,6 +10,7 @@ import {
   Camera, ChevronRight, ChevronLeft, Calendar, HeartPulse, CreditCard,
   Shield, LogOut, Trophy, Flame, Gift, Dumbbell, Zap, Edit2, Loader2,
   History, HelpCircle, Bell, Ticket, ClipboardList, Camera as CameraIcon, Users,
+  FileText,
 } from "lucide-react";
 
 interface PerfilTabProps {
@@ -102,6 +103,7 @@ const PerfilTab = ({ onBack, onNavigate }: PerfilTabProps) => {
 
   const menu = [
     { label: "Meu plano e contrato", icon: CreditCard, screen: "plano", hint: left != null ? `${left} dia(s)` : undefined },
+    { label: "Meus contratos", icon: FileText, screen: "contratos" },
     { label: "Saúde & Evolução", icon: HeartPulse, screen: "saude" },
     { label: "Avaliações físicas", icon: ClipboardList, screen: "avaliacoes" },
     { label: "Fotos de evolução", icon: CameraIcon, screen: "fotos" },

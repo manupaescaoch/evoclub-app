@@ -524,6 +524,81 @@ export type Database = {
           },
         ]
       }
+      client_contracts: {
+        Row: {
+          body: string | null
+          client_id: number
+          contract_id: string | null
+          created_at: string
+          ends_at: string | null
+          id: string
+          plan: string | null
+          plan_value: number | null
+          signature_cpf: string | null
+          signature_hash: string | null
+          signature_name: string | null
+          signed_at: string | null
+          starts_at: string | null
+          status: string
+          title: string
+          unit_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          body?: string | null
+          client_id: number
+          contract_id?: string | null
+          created_at?: string
+          ends_at?: string | null
+          id?: string
+          plan?: string | null
+          plan_value?: number | null
+          signature_cpf?: string | null
+          signature_hash?: string | null
+          signature_name?: string | null
+          signed_at?: string | null
+          starts_at?: string | null
+          status?: string
+          title: string
+          unit_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          body?: string | null
+          client_id?: number
+          contract_id?: string | null
+          created_at?: string
+          ends_at?: string | null
+          id?: string
+          plan?: string | null
+          plan_value?: number | null
+          signature_cpf?: string | null
+          signature_hash?: string | null
+          signature_name?: string | null
+          signed_at?: string | null
+          starts_at?: string | null
+          status?: string
+          title?: string
+          unit_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_contracts_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_contracts_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clients: {
         Row: {
           auth_user_id: string | null
@@ -3558,6 +3633,8 @@ export type Database = {
         Returns: Json
       }
       link_client_by_email: { Args: { _email: string }; Returns: Json }
+      plan_blocked: { Args: { _client: number }; Returns: boolean }
+      plan_state: { Args: never; Returns: Json }
       post_likers: {
         Args: { _post_id: string }
         Returns: {
@@ -3579,6 +3656,10 @@ export type Database = {
           unit_id: string
           workouts: number
         }[]
+      }
+      sign_contract: {
+        Args: { _contract: string; _cpf: string; _name: string }
+        Returns: Json
       }
       student_xp: {
         Args: { _client_id: number; _from?: string; _to?: string }
