@@ -18,16 +18,18 @@ import AvaliacoesTab from "../tabs/AvaliacoesTab";
 import FotosEvolucaoTab from "../tabs/FotosEvolucaoTab";
 import ContratosTab from "../tabs/ContratosTab";
 import CiclosEvoTab from "../tabs/CiclosEvoTab";
+import ConquistasTab from "../tabs/ConquistasTab";
 import DailyCheckinDialog from "../tabs/DailyCheckinDialog";
 import CicloEvoDialog from "../tabs/CicloEvoDialog";
 import OnboardingDialog from "../tabs/OnboardingDialog";
+import AchievementUnlockDialog from "../gamification/AchievementUnlockDialog";
 import { useStudent } from "@/contexts/StudentContext";
 
 const mainTabs = ["inicio", "grade", "treino", "comunidade", "ranking", "club"] as const;
 const screens = [
   "perfil", "notificacoes", "saude", "plano", "indicacoes",
   "ajuda", "privacidade", "historico", "avaliacoes", "fotos",
-  "contratos", "ciclos",
+  "contratos", "ciclos", "conquistas",
 ] as const;
 type Tab = (typeof mainTabs)[number] | (typeof screens)[number];
 
@@ -43,6 +45,7 @@ const AppShell = () => {
       <OnboardingDialog />
       {onboarded && !isScreen && <DailyCheckinDialog />}
       {onboarded && !isScreen && <CicloEvoDialog onNavigate={go} />}
+      {onboarded && <AchievementUnlockDialog />}
       <div className="pb-24 overflow-y-auto min-h-screen">
         {activeTab === "inicio" && <InicioTab onTabChange={go} />}
         {activeTab === "grade" && <GradeTab />}
@@ -58,6 +61,7 @@ const AppShell = () => {
         {activeTab === "plano" && <PlanoTab onBack={() => setActiveTab("perfil")} onNavigate={go} />}
         {activeTab === "contratos" && <ContratosTab onBack={() => setActiveTab("perfil")} />}
         {activeTab === "ciclos" && <CiclosEvoTab onBack={() => setActiveTab("perfil")} />}
+        {activeTab === "conquistas" && <ConquistasTab onBack={() => setActiveTab("perfil")} />}
         {activeTab === "indicacoes" && <IndicacoesTab onBack={() => setActiveTab("perfil")} />}
         {activeTab === "ajuda" && <AjudaTab onBack={() => setActiveTab("perfil")} />}
         {activeTab === "privacidade" && <PrivacidadeTab onBack={() => setActiveTab("perfil")} />}

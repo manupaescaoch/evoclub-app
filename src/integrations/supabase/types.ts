@@ -92,6 +92,54 @@ export type Database = {
           },
         ]
       }
+      achievements: {
+        Row: {
+          active: boolean
+          category: string
+          code: string
+          created_at: string
+          description: string | null
+          icon: string
+          id: string
+          metric: string
+          name: string
+          sort_order: number
+          threshold: number
+          updated_at: string
+          xp_bonus: number
+        }
+        Insert: {
+          active?: boolean
+          category?: string
+          code: string
+          created_at?: string
+          description?: string | null
+          icon?: string
+          id?: string
+          metric: string
+          name: string
+          sort_order?: number
+          threshold?: number
+          updated_at?: string
+          xp_bonus?: number
+        }
+        Update: {
+          active?: boolean
+          category?: string
+          code?: string
+          created_at?: string
+          description?: string | null
+          icon?: string
+          id?: string
+          metric?: string
+          name?: string
+          sort_order?: number
+          threshold?: number
+          updated_at?: string
+          xp_bonus?: number
+        }
+        Relationships: []
+      }
       anamnesis: {
         Row: {
           client_id: number
@@ -520,6 +568,48 @@ export type Database = {
             columns: ["unit_id"]
             isOneToOne: false
             referencedRelation: "units"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      client_achievements: {
+        Row: {
+          achievement_code: string
+          client_id: number
+          created_at: string
+          id: string
+          seen: boolean
+          unlocked_at: string
+        }
+        Insert: {
+          achievement_code: string
+          client_id: number
+          created_at?: string
+          id?: string
+          seen?: boolean
+          unlocked_at?: string
+        }
+        Update: {
+          achievement_code?: string
+          client_id?: number
+          created_at?: string
+          id?: string
+          seen?: boolean
+          unlocked_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_achievements_achievement_code_fkey"
+            columns: ["achievement_code"]
+            isOneToOne: false
+            referencedRelation: "achievements"
+            referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "client_achievements_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
             referencedColumns: ["id"]
           },
         ]
@@ -3736,6 +3826,7 @@ export type Database = {
       }
       current_client_id: { Args: never; Returns: number }
       evo_cycle_state: { Args: never; Returns: Json }
+      gamification_state: { Args: never; Returns: Json }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -3790,6 +3881,7 @@ export type Database = {
           total: number
         }[]
       }
+      sync_achievements: { Args: never; Returns: Json }
     }
     Enums: {
       app_role: "admin" | "coach" | "coordinator" | "student" | "viewer"

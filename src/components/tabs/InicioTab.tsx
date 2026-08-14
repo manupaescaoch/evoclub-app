@@ -1,9 +1,10 @@
-import { Bell, Zap, ChevronRight, Check, HeartPulse } from "lucide-react";
+import { Bell, Zap, ChevronRight, Check, HeartPulse, Trophy } from "lucide-react";
 import logoAsset from "@/assets/logo-evo.png.asset.json";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useStudentStats } from "@/hooks/useStudentStats";
 import { useStudentName } from "@/hooks/useStudentName";
 import { useLatestWeight } from "@/hooks/useHealth";
+import { useGamification, levelTitle } from "@/hooks/useGamification";
 
 const days = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"];
 
@@ -29,6 +30,7 @@ const InicioTab = ({ onTabChange }: InicioTabProps) => {
   const { name } = useStudentName();
   const stats = useStudentStats();
   const { weight } = useLatestWeight();
+  const gam = useGamification();
 
   const todayIdx = (() => {
     const d = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Sao_Paulo" })).getDay();
@@ -98,6 +100,27 @@ const InicioTab = ({ onTabChange }: InicioTabProps) => {
       </div>
 
       {/* Semana Ativa */}
+      <button
+        onClick={() => onTabChange?.("conquistas")}
+        className="w-full rounded-2xl p-4 bg-card border border-border mb-4 flex items-center gap-3 text-left"
+      >
+        <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+          <Trophy size={20} />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="font-barlow font-bold text-sm text-foreground">
+            Nível {gam.level} · {levelTitle(gam.level)}
+          </p>
+          <div className="h-1.5 rounded-full bg-muted/15 mt-2 overflow-hidden">
+            <div className="h-full bg-primary rounded-full transition-all" style={{ width: `${gam.levelPct}%` }} />
+          </div>
+          <p className="text-muted text-[11px] font-dm mt-1">
+            {gam.unlockedCount} conquistas · faltam {gam.xpToNext} XP
+          </p>
+        </div>
+        <ChevronRight size={18} className="text-muted shrink-0" />
+      </button>
+
       <div className="rounded-2xl bg-white p-4 card-shadow mb-4">
         <div className="flex items-center justify-between mb-3">
           <p className="font-barlow text-[10px] tracking-[2px] uppercase text-muted font-bold">SEMANA ATUAL</p>
