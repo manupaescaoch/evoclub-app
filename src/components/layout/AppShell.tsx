@@ -9,12 +9,14 @@ import ClubTab from "../tabs/ClubTab";
 import PerfilTab from "../tabs/PerfilTab";
 import NotificacoesTab from "../tabs/NotificacoesTab";
 import SaudeEvolucaoTab from "../tabs/SaudeEvolucaoTab";
+import PlanoTab from "../tabs/PlanoTab";
+import IndicacoesTab from "../tabs/IndicacoesTab";
 import DailyCheckinDialog from "../tabs/DailyCheckinDialog";
 import OnboardingDialog from "../tabs/OnboardingDialog";
 import { useStudent } from "@/contexts/StudentContext";
 
 const mainTabs = ["inicio", "grade", "treino", "comunidade", "ranking", "club"] as const;
-const screens = ["perfil", "notificacoes", "saude"] as const;
+const screens = ["perfil", "notificacoes", "saude", "plano", "indicacoes"] as const;
 type Tab = (typeof mainTabs)[number] | (typeof screens)[number];
 
 const AppShell = () => {
@@ -40,6 +42,8 @@ const AppShell = () => {
           <NotificacoesTab onBack={() => setActiveTab("inicio")} onNavigate={go} />
         )}
         {activeTab === "saude" && <SaudeEvolucaoTab onBack={() => setActiveTab("inicio")} />}
+        {activeTab === "plano" && <PlanoTab onBack={() => setActiveTab("perfil")} />}
+        {activeTab === "indicacoes" && <IndicacoesTab onBack={() => setActiveTab("perfil")} />}
       </div>
       {!isScreen && <BottomNav activeTab={activeTab} onTabChange={go} />}
     </div>
