@@ -9,10 +9,12 @@ type Props = {
   onOpenChange: (v: boolean) => void;
   classInfo: { name: string; trainer?: string | null; start_time: string; end_time: string } | null;
   defaultName?: string;
+  title?: string;
+  confirmLabel?: string;
   onConfirm: (data: { studentName: string; muscleGroup: "inferior" | "superior" }) => void | Promise<void>;
 };
 
-const CheckInDialog = ({ open, onOpenChange, classInfo, defaultName = "", onConfirm }: Props) => {
+const CheckInDialog = ({ open, onOpenChange, classInfo, defaultName = "", title = "CONFIRMAR CHECK-IN", confirmLabel = "Confirmar", onConfirm }: Props) => {
   const [group, setGroup] = useState<"inferior" | "superior" | null>(null);
   const [name, setName] = useState(defaultName);
   const [saving, setSaving] = useState(false);
@@ -40,7 +42,7 @@ const CheckInDialog = ({ open, onOpenChange, classInfo, defaultName = "", onConf
     <Dialog open={open} onOpenChange={(v) => { if (!v) reset(); onOpenChange(v); }}>
       <DialogContent className="max-w-sm">
         <DialogHeader>
-          <DialogTitle className="font-barlow">CONFIRMAR CHECK-IN</DialogTitle>
+          <DialogTitle className="font-barlow">{title}</DialogTitle>
         </DialogHeader>
 
         {classInfo && (
@@ -90,7 +92,7 @@ const CheckInDialog = ({ open, onOpenChange, classInfo, defaultName = "", onConf
             Cancelar
           </Button>
           <Button onClick={handleConfirm} disabled={!group || !name.trim() || saving}>
-            {saving ? "Salvando..." : "Confirmar"}
+            {saving ? "Salvando..." : confirmLabel}
           </Button>
         </DialogFooter>
       </DialogContent>
