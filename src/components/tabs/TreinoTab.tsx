@@ -1,107 +1,93 @@
-import { useState, useEffect, useCallback } from "react";
-import { ArrowLeft, Check, Play, Clock, X, Pause, RotateCcw, Dumbbell, PersonStanding, ChevronRight, Pencil, Zap, Trophy } from "lucide-react";
+import { useState, useEffect, useCallback, useRef } from "react";
+import {
+  ArrowLeft, Check, Play, Clock, X, Pause, RotateCcw, Pencil, Zap, Trophy,
+  ChevronRight, AlertTriangle, CalendarDays, Info, Sparkles, Archive, History,
+} from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useStudentName } from "@/hooks/useStudentName";
+import { useTrainingPlan, brazilToday, daysToSwap, swapStatus } from "@/hooks/useTrainingPlan";
 
-const DEFAULT_THUMB =
-  "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=300&h=300&fit=crop";
-
-interface ExerciseSeries {
-  reps: string;
-  load: string;
-  rest: string;
+interface Serie {
   setId: string | null;
   setType: string | null;
+  label: string;
+  rest: number;
+  methodName: string | null;
+  notes: string | null;
   prescribedSets: number | null;
   prescribedReps: string | null;
   prescribedLoad: string | null;
   performedSets: number | null;
   performedReps: string | null;
   performedLoad: string | null;
+  completed: boolean;
+  lastExecution: string | null;
 }
 
 interface Exercise {
   sessionExerciseId: string;
   name: string;
-  videoThumb: string;
-  series: ExerciseSeries[];
-  done: boolean;
+  notes: string | null;
+  videoUrl: string | null;
+  series: Serie[];
 }
 
-interface Workout {
-  id: string;
-  name: string;
-  icon: "weights" | "cardio";
-  days: { id: string; day: string; name: string; state: "done" | "today" | "upcoming" }[];
-}
-
-const dayShort = (label: string | null, index: number) =>
-  label ? label.slice(0, 3).toUpperCase() : `D${index + 1}`;
-
-const brazilToday = () =>
-  new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo" }).format(new Date());
-
-const parseRestSeconds = (rest: string): number => {
-  const match = rest.match(/(\d+)/);
-  return match ? parseInt(match[1]) : 60;
-};
-
-const formatTime = (seconds: number): string => {
+const formatTime = (seconds: number) => {
   const m = Math.floor(seconds / 60);
   const s = seconds % 60;
   return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
 };
 
+const fmtDate = (d: string | null) =>
+  d ? new Date(`${d}T00:00:00`).toLocaleDateString("pt-BR", { day: "2-digit", month: "short" }) : "—";
+
+const XP_LOAD = 5;
+const XP_START = 10;
+const XP_COMPLETE = 25;
+const AUTO_FINISH_MS = 2 * 60 * 60 * 1000;
+
+/* ---------------- Modais ---------------- */
+
 const LoadModal = ({
-  series,
-  onSave,
-  onClose,
+  serie, onSave, onClose,
 }: {
-  series: ExerciseSeries;
+  serie: Serie;
   onSave: (v: { load: string; sets: string; reps: string }) => void;
   onClose: () => void;
 }) => {
-  const initialLoad = series.performedLoad ?? (series.load === "0" ? "" : series.load);
-  const [input, setInput] = useState(initialLoad === "0" ? "" : initialLoad);
-  const [setsInput, setSetsInput] = useState(
-    String(series.performedSets ?? series.prescribedSets ?? "")
-  );
-  const [repsInput, setRepsInput] = useState(
-    series.performedReps ?? series.prescribedReps ?? ""
-  );
+  const [input, setInput] = useState(serie.performedLoad ?? serie.prescribedLoad ?? "");
+  const [setsInput, setSetsInput] = useState(String(serie.performedSets ?? serie.prescribedSets ?? ""));
+  const [repsInput, setRepsInput] = useState(serie.performedReps ?? serie.prescribedReps ?? "");
   const numVal = parseFloat(input) || 0;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center px-6" onClick={onClose}>
       <div className="absolute inset-0 bg-black/40" />
       <div className="relative w-full max-w-[340px] bg-card rounded-3xl p-5" onClick={(e) => e.stopPropagation()}>
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between mb-3">
           <p className="font-dm font-semibold text-sm text-foreground">O que você executou</p>
           <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full bg-secondary">
             <X size={16} className="text-muted" />
           </button>
         </div>
-        <p className="text-[11px] font-dm text-muted mb-3">
-          Prescrito: {series.prescribedSets ?? "-"}x{series.prescribedReps || "-"}
-          {series.prescribedLoad ? ` · ${series.prescribedLoad}kg` : ""}
+        <p className="text-[11px] font-dm text-muted mb-1">
+          Prescrito: {serie.prescribedSets ?? "-"}x{serie.prescribedReps || "-"}
+          {serie.prescribedLoad ? ` · ${serie.prescribedLoad}kg` : ""}
         </p>
+        {serie.lastExecution && (
+          <p className="text-[11px] font-dm text-primary mb-3">Última vez: {serie.lastExecution}</p>
+        )}
         <p className="text-[10px] font-barlow tracking-[1px] uppercase text-muted mb-1">Carga (kg)</p>
         <input
-          type="number"
-          inputMode="decimal"
-          value={input}
+          type="number" inputMode="decimal" value={input} autoFocus
           onChange={(e) => setInput(e.target.value)}
-          autoFocus
           className="w-full h-14 rounded-2xl bg-secondary text-center text-2xl font-barlow font-[800] text-foreground border border-muted/20 outline-none focus:ring-2 focus:ring-primary/30 mb-3"
         />
         <div className="flex gap-2 mb-4">
           {[2.5, 5, 10].map((inc) => (
-            <button
-              key={inc}
-              onClick={() => setInput(String(numVal + inc))}
-              className="flex-1 py-2.5 rounded-xl bg-secondary text-foreground font-dm font-semibold text-sm active:scale-95 transition-transform"
-            >
+            <button key={inc} onClick={() => setInput(String(numVal + inc))}
+              className="flex-1 py-2.5 rounded-xl bg-secondary text-foreground font-dm font-semibold text-sm active:scale-95 transition-transform">
               +{inc}kg
             </button>
           ))}
@@ -109,21 +95,13 @@ const LoadModal = ({
         <div className="flex gap-2 mb-4">
           <div className="flex-1">
             <p className="text-[10px] font-barlow tracking-[1px] uppercase text-muted mb-1">Séries feitas</p>
-            <input
-              type="number"
-              inputMode="numeric"
-              value={setsInput}
-              onChange={(e) => setSetsInput(e.target.value)}
-              className="w-full h-12 rounded-2xl bg-secondary text-center text-lg font-barlow font-[800] text-foreground border border-muted/20 outline-none focus:ring-2 focus:ring-primary/30"
-            />
+            <input type="number" inputMode="numeric" value={setsInput} onChange={(e) => setSetsInput(e.target.value)}
+              className="w-full h-12 rounded-2xl bg-secondary text-center text-lg font-barlow font-[800] text-foreground border border-muted/20 outline-none focus:ring-2 focus:ring-primary/30" />
           </div>
           <div className="flex-1">
             <p className="text-[10px] font-barlow tracking-[1px] uppercase text-muted mb-1">Reps feitas</p>
-            <input
-              value={repsInput}
-              onChange={(e) => setRepsInput(e.target.value)}
-              className="w-full h-12 rounded-2xl bg-secondary text-center text-lg font-barlow font-[800] text-foreground border border-muted/20 outline-none focus:ring-2 focus:ring-primary/30"
-            />
+            <input value={repsInput} onChange={(e) => setRepsInput(e.target.value)}
+              className="w-full h-12 rounded-2xl bg-secondary text-center text-lg font-barlow font-[800] text-foreground border border-muted/20 outline-none focus:ring-2 focus:ring-primary/30" />
           </div>
         </div>
         <button
@@ -131,22 +109,16 @@ const LoadModal = ({
           className="w-full py-3.5 rounded-2xl bg-primary text-primary-foreground font-barlow font-bold text-base active:scale-[0.98] transition-transform"
           style={{ boxShadow: "0 3px 10px #1400FF44" }}
         >
-          Atualizar
+          Salvar
         </button>
       </div>
     </div>
   );
 };
 
-const TimerModal = ({
-  seconds: initialSeconds,
-  onClose,
-}: {
-  seconds: number;
-  onClose: () => void;
-}) => {
-  const [timeLeft, setTimeLeft] = useState(initialSeconds);
-  const [running, setRunning] = useState(false);
+const RestTimer = ({ seconds, onClose }: { seconds: number; onClose: () => void }) => {
+  const [timeLeft, setTimeLeft] = useState(seconds);
+  const [running, setRunning] = useState(true);
 
   useEffect(() => {
     if (!running || timeLeft <= 0) return;
@@ -154,17 +126,16 @@ const TimerModal = ({
     return () => clearInterval(id);
   }, [running, timeLeft]);
 
-  const progress = 1 - timeLeft / initialSeconds;
+  const progress = 1 - timeLeft / seconds;
   const radius = 90;
   const circumference = 2 * Math.PI * radius;
-  const strokeDashoffset = circumference * (1 - progress);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center px-6" onClick={onClose}>
       <div className="absolute inset-0 bg-black/40" />
       <div className="relative w-full max-w-[320px] bg-card rounded-3xl p-5" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-3">
-          <h3 className="font-dm font-semibold text-sm text-foreground">Intervalo</h3>
+          <h3 className="font-dm font-semibold text-sm text-foreground">Descanso</h3>
           <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full bg-secondary">
             <X size={16} className="text-muted" />
           </button>
@@ -173,33 +144,60 @@ const TimerModal = ({
           <div className="relative w-44 h-44">
             <svg className="w-full h-full -rotate-90" viewBox="0 0 200 200">
               <circle cx="100" cy="100" r={radius} fill="none" stroke="hsl(var(--secondary))" strokeWidth="8" />
-              <circle cx="100" cy="100" r={radius} fill="none" stroke="hsl(var(--primary))" strokeWidth="8" strokeLinecap="round" strokeDasharray={circumference} strokeDashoffset={strokeDashoffset} className="transition-all duration-1000" />
+              <circle cx="100" cy="100" r={radius} fill="none" stroke="hsl(var(--primary))" strokeWidth="8"
+                strokeLinecap="round" strokeDasharray={circumference}
+                strokeDashoffset={circumference * (1 - progress)} className="transition-all duration-1000" />
             </svg>
             <div className="absolute inset-0 flex items-center justify-center">
-              <span className="font-barlow font-[800] text-3xl text-foreground">{formatTime(timeLeft)}</span>
+              <span className="font-barlow font-[800] text-3xl text-foreground">{formatTime(Math.max(timeLeft, 0))}</span>
             </div>
           </div>
         </div>
-        <div className="flex items-center justify-center gap-4">
-          <button onClick={() => setRunning(!running)} className="w-12 h-12 rounded-full bg-primary flex items-center justify-center active:scale-95 transition-transform" style={{ boxShadow: "0 3px 10px #1400FF44" }}>
+        <div className="flex items-center justify-center gap-4 mb-3">
+          <button onClick={() => setRunning(!running)}
+            className="w-12 h-12 rounded-full bg-primary flex items-center justify-center active:scale-95 transition-transform"
+            style={{ boxShadow: "0 3px 10px #1400FF44" }}>
             {running ? <Pause size={20} className="text-primary-foreground" /> : <Play size={20} className="text-primary-foreground fill-primary-foreground" />}
           </button>
-          <button onClick={() => { setTimeLeft(initialSeconds); setRunning(false); }} className="w-12 h-12 rounded-full bg-secondary flex items-center justify-center active:scale-95 transition-transform">
+          <button onClick={() => { setTimeLeft(seconds); setRunning(true); }}
+            className="w-12 h-12 rounded-full bg-secondary flex items-center justify-center active:scale-95 transition-transform">
             <RotateCcw size={18} className="text-muted" />
           </button>
+        </div>
+        <button onClick={onClose} className="w-full py-3 rounded-2xl bg-secondary font-dm font-semibold text-sm text-foreground">
+          Pular descanso
+        </button>
+      </div>
+    </div>
+  );
+};
+
+const VideoModal = ({ url, name, onClose }: { url: string; name: string; onClose: () => void }) => {
+  const embed = url.includes("watch?v=")
+    ? url.replace("watch?v=", "embed/")
+    : url.includes("youtu.be/")
+      ? url.replace("youtu.be/", "www.youtube.com/embed/")
+      : url;
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center px-5" onClick={onClose}>
+      <div className="absolute inset-0 bg-black/60" />
+      <div className="relative w-full max-w-[350px] bg-card rounded-3xl p-4" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between mb-3">
+          <p className="font-dm font-semibold text-sm text-foreground truncate pr-2">{name}</p>
+          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full bg-secondary shrink-0">
+            <X size={16} className="text-muted" />
+          </button>
+        </div>
+        <div className="rounded-2xl overflow-hidden bg-black aspect-video">
+          <iframe src={embed} title={name} allowFullScreen className="w-full h-full" />
         </div>
       </div>
     </div>
   );
 };
 
-const XP_LOAD = 5;
-const XP_START = 10;
-const XP_COMPLETE = 25;
-
 const XpCompletionModal = ({
-  xpBreakdown,
-  onClose,
+  xpBreakdown, onClose,
 }: {
   xpBreakdown: { loads: number; start: boolean; complete: boolean };
   onClose: () => void;
@@ -218,7 +216,6 @@ const XpCompletionModal = ({
         </div>
         <h2 className="font-barlow font-bold text-xl text-foreground mb-1">TREINO CONCLUÍDO! 🎉</h2>
         <p className="text-sm font-dm text-muted mb-5">Parabéns pela dedicação!</p>
-
         <div className="space-y-2 mb-5">
           {xpBreakdown.start && (
             <div className="flex items-center justify-between bg-secondary rounded-xl px-4 py-2.5">
@@ -239,17 +236,13 @@ const XpCompletionModal = ({
             </div>
           )}
         </div>
-
         <div className="rounded-2xl p-4 mb-5" style={{ background: "linear-gradient(135deg, #1400FF 0%, #0A00B0 100%)" }}>
           <p className="text-white/70 text-[10px] font-barlow tracking-[2px] uppercase">XP TOTAL GANHO</p>
           <p className="font-barlow font-[800] text-4xl text-white">+{total}</p>
         </div>
-
-        <button
-          onClick={onClose}
+        <button onClick={onClose}
           className="w-full py-3.5 rounded-2xl bg-primary text-primary-foreground font-barlow font-bold text-base active:scale-[0.98] transition-transform"
-          style={{ boxShadow: "0 3px 10px #1400FF44" }}
-        >
+          style={{ boxShadow: "0 3px 10px #1400FF44" }}>
           FECHAR
         </button>
       </div>
@@ -257,476 +250,561 @@ const XpCompletionModal = ({
   );
 };
 
-type Screen = "menu" | "days" | "exercises";
+/* ---------------- Tela principal ---------------- */
 
 const TreinoTab = () => {
-  const [screen, setScreen] = useState<Screen>("menu");
   const { clientId } = useStudentName();
-  const [workouts, setWorkouts] = useState<Workout[]>([]);
-  const [loadingPlan, setLoadingPlan] = useState(true);
-  const [loadingDay, setLoadingDay] = useState(false);
-  const [selectedWorkout, setSelectedWorkout] = useState<Workout | null>(null);
-  const [started, setStarted] = useState(false);
+  const { plan, archived, loading, reload } = useTrainingPlan(clientId);
+  const [screen, setScreen] = useState<"plan" | "session">("plan");
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [sessionName, setSessionName] = useState("");
   const [exercises, setExercises] = useState<Exercise[]>([]);
-  const [editTarget, setEditTarget] = useState<{ ex: number; s: number } | null>(null);
-  const [timerTarget, setTimerTarget] = useState<number | null>(null);
-  const [selectedDay, setSelectedDay] = useState<string>("");
-  const [loadAnnotations, setLoadAnnotations] = useState(0);
-  const [showXpModal, setShowXpModal] = useState(false);
+  const [loadingSession, setLoadingSession] = useState(false);
+  const [started, setStarted] = useState(false);
   const [logId, setLogId] = useState<string | null>(null);
-  const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
+  const [startedAt, setStartedAt] = useState<number | null>(null);
+  const [loadAnnotations, setLoadAnnotations] = useState(0);
+  const [editTarget, setEditTarget] = useState<{ ex: number; s: number } | null>(null);
+  const [restSeconds, setRestSeconds] = useState<number | null>(null);
+  const [videoTarget, setVideoTarget] = useState<{ url: string; name: string } | null>(null);
+  const [openNotes, setOpenNotes] = useState<Record<string, boolean>>({});
+  const [showXpModal, setShowXpModal] = useState(false);
   const [saving, setSaving] = useState(false);
+  const finishRef = useRef<(auto?: boolean) => void>(() => {});
 
-  // Carrega o plano ativo prescrito para o aluno
-  useEffect(() => {
-    if (!clientId) return;
-    let alive = true;
-    (async () => {
-      setLoadingPlan(true);
-      const { data: plans } = await supabase
-        .from("training_plans")
-        .select("id, name, goal")
-        .eq("student_id", clientId)
-        .eq("is_active", true)
-        .order("created_at", { ascending: false })
-        .limit(1);
-      const plan = plans?.[0];
-      if (!plan) {
-        if (alive) { setWorkouts([]); setLoadingPlan(false); }
-        return;
-      }
-      const { data: weeks } = await supabase
-        .from("training_weeks")
-        .select("id")
-        .eq("training_plan_id", plan.id)
-        .order("week_number")
-        .limit(1);
-      const week = weeks?.[0];
-      let days: Workout["days"] = [];
-      if (week) {
-        const { data: sessions } = await supabase
-          .from("training_sessions")
-          .select("id, name, day_of_week, order_index")
-          .eq("training_week_id", week.id)
-          .order("order_index");
-        const { data: todayLogs } = await supabase
-          .from("workout_logs")
-          .select("training_session_id, status")
-          .eq("client_id", clientId)
-          .eq("workout_date", brazilToday());
-        const doneIds = new Set(
-          (todayLogs || [])
-            .filter((l) => l.status === "completed" && l.training_session_id)
-            .map((l) => l.training_session_id as string)
-        );
-        days = (sessions || []).map((s, i) => ({
-          id: s.id,
-          day: dayShort(s.day_of_week, i),
-          name: s.name,
-          state: doneIds.has(s.id) ? ("done" as const) : ("upcoming" as const),
-        }));
-      }
-      if (!alive) return;
-      setWorkouts([{ id: plan.id, name: plan.name, icon: "weights", days }]);
-      setLoadingPlan(false);
-    })();
-    return () => { alive = false; };
-  }, [clientId]);
+  const swap = swapStatus(plan?.expiresAt ?? null);
+  const remaining = daysToSwap(plan?.expiresAt ?? null);
 
-  const openWorkout = (w: Workout) => {
-    setSelectedWorkout(w);
-    setScreen("days");
-  };
-
-  const openDay = async (day: Workout["days"][number]) => {
-    setSelectedDay(day.name);
+  const openSession = async (id: string, name: string) => {
+    setSessionId(id);
+    setSessionName(name);
+    setScreen("session");
+    setExercises([]);
     setStarted(false);
+    setLogId(null);
+    setStartedAt(null);
     setLoadAnnotations(0);
     setShowXpModal(false);
-    setExercises([]);
-    setLogId(null);
-    setCurrentSessionId(day.id);
-    setScreen("exercises");
-    setLoadingDay(true);
+    setLoadingSession(true);
+
     const { data: exs } = await supabase
       .from("training_session_exercises")
-      .select("id, exercise_name, order_index")
-      .eq("training_session_id", day.id)
+      .select("id, exercise_name, exercise_id, notes, order_index")
+      .eq("training_session_id", id)
       .order("order_index");
-    const ids = (exs || []).map((e) => e.id);
-    const { data: sets } = ids.length
+
+    const exIds = (exs || []).map((e) => e.id);
+    const { data: sets } = exIds.length
       ? await supabase
           .from("training_exercise_sets")
-          .select("id, session_exercise_id, set_type, sets, reps, load, rest_seconds, time_seconds, order_index")
-          .in("session_exercise_id", ids)
+          .select("id, session_exercise_id, set_type, sets, reps, load, rest_seconds, time_seconds, incline, cadence, notes, method_id, order_index")
+          .in("session_exercise_id", exIds)
           .order("order_index")
-      : { data: [] as never[] };
+      : { data: [] as any[] };
+
+    const methodIds = [...new Set((sets || []).map((s) => s.method_id).filter(Boolean))] as string[];
+    const { data: methods } = methodIds.length
+      ? await supabase.from("training_methods").select("id, name").in("id", methodIds)
+      : { data: [] as { id: string; name: string }[] };
+    const methodName = new Map((methods || []).map((m) => [m.id, m.name]));
+
+    const libIds = [...new Set((exs || []).map((e) => e.exercise_id).filter(Boolean))] as string[];
+    const { data: lib } = libIds.length
+      ? await supabase.from("exercise_library").select("id, video_url").in("id", libIds)
+      : { data: [] as { id: string; video_url: string | null }[] };
+    const videoById = new Map((lib || []).map((l) => [l.id, l.video_url]));
+
+    // Última execução registrada (referência)
+    const lastBySet = new Map<string, string>();
+    if (clientId) {
+      const { data: prev } = await supabase
+        .from("workout_logs")
+        .select("id, workout_date")
+        .eq("client_id", clientId)
+        .eq("training_session_id", id)
+        .eq("status", "completed")
+        .lt("workout_date", brazilToday())
+        .order("workout_date", { ascending: false })
+        .limit(1);
+      if (prev?.[0]) {
+        const { data: prevSets } = await supabase
+          .from("workout_log_sets")
+          .select("prescribed_set_id, performed_sets, performed_reps, performed_load")
+          .eq("workout_log_id", prev[0].id);
+        (prevSets || []).forEach((r) => {
+          if (!r.prescribed_set_id) return;
+          const parts = [
+            r.performed_sets ? `${r.performed_sets}x${r.performed_reps || ""}` : r.performed_reps || "",
+            r.performed_load ? `${r.performed_load}kg` : "",
+          ].filter(Boolean);
+          if (parts.length) lastBySet.set(r.prescribed_set_id, parts.join(" · "));
+        });
+      }
+    }
+
     let mapped: Exercise[] = (exs || []).map((e) => ({
       sessionExerciseId: e.id,
       name: e.exercise_name,
-      videoThumb: DEFAULT_THUMB,
-      done: false,
+      notes: e.notes ?? null,
+      videoUrl: e.exercise_id ? videoById.get(e.exercise_id) ?? null : null,
       series: (sets || [])
         .filter((s) => s.session_exercise_id === e.id)
-        .map((s) => ({
-          reps: `${s.sets || 1}x${s.reps || (s.time_seconds ? `${s.time_seconds}s` : "-")}`,
-          load: s.load || "0",
-          rest: `${s.rest_seconds ?? 60}s`,
-          setId: s.id,
-          setType: s.set_type ?? null,
-          prescribedSets: s.sets ?? null,
-          prescribedReps: s.reps ?? (s.time_seconds ? `${s.time_seconds}s` : null),
-          prescribedLoad: s.load ?? null,
-          performedSets: null,
-          performedReps: null,
-          performedLoad: null,
-        })),
+        .map((s) => {
+          const reps = s.reps || (s.time_seconds ? `${s.time_seconds}s` : "-");
+          return {
+            setId: s.id,
+            setType: s.set_type ?? null,
+            label: `${s.sets || 1}x${reps}`,
+            rest: s.rest_seconds ?? 60,
+            methodName: s.method_id ? methodName.get(s.method_id) ?? null : null,
+            notes: s.notes ?? null,
+            prescribedSets: s.sets ?? null,
+            prescribedReps: reps,
+            prescribedLoad: s.load ?? null,
+            performedSets: null,
+            performedReps: null,
+            performedLoad: null,
+            completed: false,
+            lastExecution: s.id ? lastBySet.get(s.id) ?? null : null,
+          } as Serie;
+        }),
     }));
 
-    // Retoma um registro em andamento do mesmo dia, se existir
+    // Retoma registro em andamento (ou auto-finaliza após 2h)
     if (clientId) {
       const { data: logs } = await supabase
         .from("workout_logs")
-        .select("id, status")
+        .select("id, started_at")
         .eq("client_id", clientId)
-        .eq("training_session_id", day.id)
+        .eq("training_session_id", id)
         .eq("workout_date", brazilToday())
         .eq("status", "in_progress")
         .order("started_at", { ascending: false })
         .limit(1);
       const log = logs?.[0];
       if (log) {
-        setLogId(log.id);
-        setStarted(true);
-        const { data: logSets } = await supabase
-          .from("workout_log_sets")
-          .select("session_exercise_id, prescribed_set_id, performed_sets, performed_reps, performed_load, completed")
-          .eq("workout_log_id", log.id);
-        if (logSets?.length) {
-          mapped = mapped.map((ex) => {
-            const rows = logSets.filter((r) => r.session_exercise_id === ex.sessionExerciseId);
-            if (!rows.length) return ex;
-            return {
+        const start = log.started_at ? new Date(log.started_at).getTime() : Date.now();
+        if (Date.now() - start > AUTO_FINISH_MS) {
+          await supabase
+            .from("workout_logs")
+            .update({ status: "completed", finished_at: new Date().toISOString() })
+            .eq("id", log.id);
+          toast("Treino anterior finalizado automaticamente após 2h.");
+        } else {
+          setLogId(log.id);
+          setStarted(true);
+          setStartedAt(start);
+          const { data: logSets } = await supabase
+            .from("workout_log_sets")
+            .select("session_exercise_id, prescribed_set_id, performed_sets, performed_reps, performed_load, completed")
+            .eq("workout_log_id", log.id);
+          if (logSets?.length) {
+            mapped = mapped.map((ex) => ({
               ...ex,
-              done: rows.every((r) => r.completed),
               series: ex.series.map((s) => {
-                const row = rows.find((r) => r.prescribed_set_id === s.setId);
+                const row = logSets.find((r) => r.prescribed_set_id === s.setId);
                 if (!row) return s;
                 return {
                   ...s,
-                  load: row.performed_load ?? s.load,
                   performedSets: row.performed_sets ?? null,
                   performedReps: row.performed_reps ?? null,
                   performedLoad: row.performed_load ?? null,
+                  completed: !!row.completed,
                 };
               }),
-            };
-          });
+            }));
+          }
         }
       }
     }
 
     setExercises(mapped);
-    setLoadingDay(false);
+    setLoadingSession(false);
   };
 
-  const updateLoad = (
-    exerciseIdx: number,
-    seriesIdx: number,
-    value: { load: string; sets: string; reps: string }
-  ) => {
-    setExercises(prev => {
-      const updated = [...prev];
-      const ex = { ...updated[exerciseIdx] };
-      const series = [...ex.series];
-      series[seriesIdx] = {
-        ...series[seriesIdx],
-        load: value.load || series[seriesIdx].load,
-        performedLoad: value.load || null,
-        performedSets: value.sets ? parseInt(value.sets) : null,
-        performedReps: value.reps || null,
-      };
-      ex.series = series;
-      updated[exerciseIdx] = ex;
-      return updated;
-    });
-    if (value.load && value.load !== "0") {
-      setLoadAnnotations(prev => prev + 1);
-      toast(`+${XP_LOAD} XP — Carga anotada!`, { icon: <Zap size={16} className="text-primary" /> });
-    }
-  };
+  const persistSerie = useCallback(
+    async (log: string, ex: Exercise, exIdx: number, serie: Serie, sIdx: number) => {
+      await supabase
+        .from("workout_log_sets")
+        .delete()
+        .eq("workout_log_id", log)
+        .eq("session_exercise_id", ex.sessionExerciseId)
+        .eq("order_index", sIdx);
+      if (!serie.completed) return;
+      await supabase.from("workout_log_sets").insert({
+        workout_log_id: log,
+        session_exercise_id: ex.sessionExerciseId,
+        prescribed_set_id: serie.setId,
+        exercise_name: ex.name,
+        set_type: serie.setType,
+        prescribed_sets: serie.prescribedSets,
+        prescribed_reps: serie.prescribedReps,
+        prescribed_load: serie.prescribedLoad,
+        performed_sets: serie.performedSets ?? serie.prescribedSets,
+        performed_reps: serie.performedReps ?? serie.prescribedReps,
+        performed_load: serie.performedLoad ?? serie.prescribedLoad,
+        completed: true,
+        exercise_order: exIdx,
+        order_index: sIdx,
+      });
+    },
+    []
+  );
 
-  // Grava as séries executadas de um exercício no registro do dia
-  const persistExercise = useCallback(async (log: string, ex: Exercise, exIdx: number, done: boolean) => {
-    await supabase
-      .from("workout_log_sets")
-      .delete()
-      .eq("workout_log_id", log)
-      .eq("session_exercise_id", ex.sessionExerciseId);
-    if (!done || ex.series.length === 0) return;
-    const rows = ex.series.map((s, si) => ({
-      workout_log_id: log,
-      session_exercise_id: ex.sessionExerciseId,
-      prescribed_set_id: s.setId,
-      exercise_name: ex.name,
-      set_type: s.setType,
-      prescribed_sets: s.prescribedSets,
-      prescribed_reps: s.prescribedReps,
-      prescribed_load: s.prescribedLoad,
-      performed_sets: s.performedSets ?? s.prescribedSets,
-      performed_reps: s.performedReps ?? s.prescribedReps,
-      performed_load: s.performedLoad ?? (s.load !== "0" ? s.load : s.prescribedLoad),
-      completed: true,
-      exercise_order: exIdx,
-      order_index: si,
-    }));
-    await supabase.from("workout_log_sets").insert(rows);
-  }, []);
-
-  const toggleExerciseDone = async (idx: number) => {
-    const next = !exercises[idx].done;
-    setExercises(prev => {
-      const updated = [...prev];
-      updated[idx] = { ...updated[idx], done: next };
-      return updated;
-    });
-    if (logId) {
-      await persistExercise(logId, exercises[idx], idx, next);
-    }
-  };
-
-  const handleStartWorkout = async () => {
+  const startWorkout = async () => {
     setStarted(true);
+    setStartedAt(Date.now());
     if (clientId && !logId) {
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from("workout_logs")
         .insert({
           client_id: clientId,
-          training_plan_id: selectedWorkout?.id ?? null,
-          training_session_id: currentSessionId,
-          session_name: selectedDay,
+          training_plan_id: plan?.id ?? null,
+          training_session_id: sessionId,
+          session_name: sessionName,
           workout_date: brazilToday(),
           status: "in_progress",
+          started_at: new Date().toISOString(),
         })
         .select("id")
         .single();
-      if (!error && data) setLogId(data.id);
+      if (data) setLogId(data.id);
     }
     toast(`+${XP_START} XP — Treino iniciado!`, { icon: <Zap size={16} className="text-primary" /> });
   };
 
-  const handleFinishWorkout = useCallback(async () => {
-    if (!logId) { setShowXpModal(true); return; }
-    setSaving(true);
-    // Garante que todas as séries executadas estejam gravadas
-    for (let i = 0; i < exercises.length; i++) {
-      await persistExercise(logId, exercises[i], i, exercises[i].done);
-    }
-    await supabase
-      .from("workout_logs")
-      .update({ status: "completed", finished_at: new Date().toISOString() })
-      .eq("id", logId);
-    setSaving(false);
-    setWorkouts(prev => prev.map(w => ({
-      ...w,
-      days: w.days.map(d => (d.id === currentSessionId ? { ...d, state: "done" as const } : d)),
-    })));
-    setShowXpModal(true);
-  }, [logId, exercises, persistExercise, currentSessionId]);
+  const toggleSerie = async (exIdx: number, sIdx: number) => {
+    const ex = exercises[exIdx];
+    const serie = ex.series[sIdx];
+    const next = !serie.completed;
+    const updatedSerie = { ...serie, completed: next };
+    setExercises((prev) =>
+      prev.map((e, i) =>
+        i !== exIdx ? e : { ...e, series: e.series.map((s, j) => (j !== sIdx ? s : updatedSerie)) }
+      )
+    );
+    if (logId) await persistSerie(logId, ex, exIdx, updatedSerie, sIdx);
+    if (next) setRestSeconds(serie.rest);
+  };
 
-  // Screen: Exercise detail
-  if (screen === "exercises" && selectedWorkout) {
-    const doneCount = exercises.filter(e => e.done).length;
+  const saveSerieData = async (
+    exIdx: number,
+    sIdx: number,
+    v: { load: string; sets: string; reps: string }
+  ) => {
+    const ex = exercises[exIdx];
+    const serie = ex.series[sIdx];
+    const updated: Serie = {
+      ...serie,
+      performedLoad: v.load || serie.performedLoad,
+      performedSets: v.sets ? parseInt(v.sets) : serie.performedSets,
+      performedReps: v.reps || serie.performedReps,
+    };
+    setExercises((prev) =>
+      prev.map((e, i) =>
+        i !== exIdx ? e : { ...e, series: e.series.map((s, j) => (j !== sIdx ? s : updated)) }
+      )
+    );
+    if (logId && updated.completed) await persistSerie(logId, ex, exIdx, updated, sIdx);
+    if (v.load && v.load !== "0" && !serie.performedLoad) {
+      setLoadAnnotations((n) => n + 1);
+      toast(`+${XP_LOAD} XP — Carga anotada!`, { icon: <Zap size={16} className="text-primary" /> });
+    }
+  };
+
+  const finishWorkout = useCallback(
+    async (auto = false) => {
+      if (!logId) { setShowXpModal(true); return; }
+      setSaving(true);
+      for (let i = 0; i < exercises.length; i++) {
+        for (let j = 0; j < exercises[i].series.length; j++) {
+          await persistSerie(logId, exercises[i], i, exercises[i].series[j], j);
+        }
+      }
+      await supabase
+        .from("workout_logs")
+        .update({ status: "completed", finished_at: new Date().toISOString() })
+        .eq("id", logId);
+      setSaving(false);
+      setStarted(false);
+      reload();
+      if (auto) {
+        toast("Treino finalizado automaticamente após 2h. Salvamos o que foi registrado.");
+        setScreen("plan");
+      } else {
+        setShowXpModal(true);
+      }
+    },
+    [logId, exercises, persistSerie, reload]
+  );
+
+  finishRef.current = finishWorkout;
+
+  // Auto-finalização em 2h
+  useEffect(() => {
+    if (!started || !startedAt) return;
+    const remainingMs = AUTO_FINISH_MS - (Date.now() - startedAt);
+    if (remainingMs <= 0) { finishRef.current(true); return; }
+    const id = setTimeout(() => finishRef.current(true), remainingMs);
+    return () => clearTimeout(id);
+  }, [started, startedAt]);
+
+  /* ---------- Tela de execução ---------- */
+  if (screen === "session") {
+    const allSeries = exercises.flatMap((e) => e.series);
+    const doneSeries = allSeries.filter((s) => s.completed).length;
 
     return (
       <div className="flex flex-col h-full">
-        {/* Fixed header */}
         <div className="sticky top-0 z-10 bg-background px-4 pt-4 pb-3">
-          <button onClick={() => setScreen("days")} className="flex items-center gap-1 text-primary text-sm font-dm font-semibold mb-3 min-h-[44px]">
+          <button onClick={() => { setScreen("plan"); reload(); }}
+            className="flex items-center gap-1 text-primary text-sm font-dm font-semibold mb-3 min-h-[44px]">
             <ArrowLeft size={18} /> Voltar
           </button>
-          <h1 className="font-barlow font-bold text-lg text-foreground mb-1 leading-tight">{selectedDay.toUpperCase()}</h1>
+          <h1 className="font-barlow font-bold text-lg text-foreground mb-1 leading-tight">{sessionName.toUpperCase()}</h1>
           <div className="flex items-center gap-2">
             <div className="flex-1 h-2 rounded-full bg-secondary overflow-hidden">
-              <div className="h-full rounded-full transition-all" style={{ width: `${(doneCount / exercises.length) * 100}%`, background: "linear-gradient(90deg, #1400FF, #0A00B0)" }} />
+              <div className="h-full rounded-full transition-all"
+                style={{ width: allSeries.length ? `${(doneSeries / allSeries.length) * 100}%` : "0%", background: "linear-gradient(90deg, #1400FF, #0A00B0)" }} />
             </div>
-            <span className="text-xs font-dm text-muted">{doneCount}/{exercises.length}</span>
+            <span className="text-xs font-dm text-muted">{doneSeries}/{allSeries.length} séries</span>
           </div>
         </div>
 
-        {/* Scrollable content */}
         <div className="flex-1 overflow-y-auto px-4 pb-24">
-          {loadingDay && <p className="text-xs font-dm text-muted py-4">Carregando treino...</p>}
-          {!loadingDay && exercises.length === 0 && (
-            <p className="text-xs font-dm text-muted py-4 text-center">
-              Nenhum exercício cadastrado neste dia.
-            </p>
+          {loadingSession && <p className="text-xs font-dm text-muted py-4">Carregando treino...</p>}
+          {!loadingSession && exercises.length === 0 && (
+            <p className="text-xs font-dm text-muted py-4 text-center">Nenhum exercício cadastrado neste dia.</p>
           )}
-          {!started && (
+
+          {!started && exercises.length > 0 && (
             <div className="mb-4">
-              <button onClick={handleStartWorkout} className="w-full py-3 rounded-2xl bg-primary text-primary-foreground font-barlow font-bold text-base tracking-wide active:scale-[0.98] transition-transform" style={{ boxShadow: "0 3px 10px #1400FF44" }}>
-                INICIAR
+              <button onClick={startWorkout}
+                className="w-full py-3 rounded-2xl bg-primary text-primary-foreground font-barlow font-bold text-base tracking-wide active:scale-[0.98] transition-transform"
+                style={{ boxShadow: "0 3px 10px #1400FF44" }}>
+                INICIAR TREINO
               </button>
-              <p className="text-center text-[11px] text-muted font-dm mt-2">Modo visualização. Aperte INICIAR para começar.</p>
+              <p className="text-center text-[11px] text-muted font-dm mt-2">Modo visualização. Aperte INICIAR para registrar.</p>
             </div>
           )}
 
-          {started && doneCount === exercises.length && doneCount > 0 && !showXpModal && (
+          {started && !showXpModal && (
             <div className="mb-4">
-              <button onClick={handleFinishWorkout} disabled={saving} className="w-full py-3.5 rounded-2xl font-barlow font-bold text-base tracking-wide text-white active:scale-[0.98] transition-transform disabled:opacity-60" style={{ background: "linear-gradient(135deg, #1400FF 0%, #0A00B0 100%)", boxShadow: "0 3px 14px #1400FF55" }}>
+              <button onClick={() => finishWorkout(false)} disabled={saving}
+                className="w-full py-3.5 rounded-2xl font-barlow font-bold text-base tracking-wide text-white active:scale-[0.98] transition-transform disabled:opacity-60"
+                style={{ background: "linear-gradient(135deg, #1400FF 0%, #0A00B0 100%)", boxShadow: "0 3px 14px #1400FF55" }}>
                 {saving ? "SALVANDO..." : "🏆 FINALIZAR TREINO"}
               </button>
             </div>
           )}
 
           <div className="space-y-2.5">
-            {exercises.map((ex, i) => (
-              <div key={i} className={`rounded-2xl bg-card card-shadow overflow-hidden transition-all ${ex.done ? "opacity-50" : ""}`}>
-                <div className="flex items-start gap-2.5 p-3">
-                  {/* Checkbox */}
-                  <button
-                    onClick={() => toggleExerciseDone(i)}
-                    className="w-11 h-11 rounded-full flex items-center justify-center shrink-0 mt-0.5"
-                  >
-                    <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${ex.done ? "bg-primary border-primary" : "border-muted/30"}`}>
-                      {ex.done && <Check size={12} className="text-primary-foreground" />}
+            {exercises.map((ex, i) => {
+              const exDone = ex.series.length > 0 && ex.series.every((s) => s.completed);
+              const notesOpen = !!openNotes[ex.sessionExerciseId];
+              return (
+                <div key={ex.sessionExerciseId} className={`rounded-2xl bg-card card-shadow overflow-hidden ${exDone ? "opacity-60" : ""}`}>
+                  <div className="p-3">
+                    <div className="flex items-start gap-2.5">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[10px] font-barlow tracking-[1px] uppercase text-muted">Exercício {i + 1}</p>
+                        <h3 className="font-dm font-semibold text-[13px] text-foreground leading-tight">{ex.name}</h3>
+                        {ex.notes && (
+                          <button onClick={() => setOpenNotes((p) => ({ ...p, [ex.sessionExerciseId]: !notesOpen }))}
+                            className="mt-1 inline-flex items-center gap-1 text-[11px] font-dm font-semibold text-primary">
+                            <Info size={11} /> {notesOpen ? "Ocultar observação" : "Ver observação"}
+                          </button>
+                        )}
+                        {ex.notes && notesOpen && (
+                          <p className="mt-1 text-[11px] font-dm text-muted bg-secondary rounded-xl p-2">{ex.notes}</p>
+                        )}
+                      </div>
+                      {ex.videoUrl && (
+                        <button onClick={() => setVideoTarget({ url: ex.videoUrl!, name: ex.name })}
+                          className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                          <Play size={18} className="text-primary fill-primary" />
+                        </button>
+                      )}
                     </div>
-                  </button>
 
-                  {/* Content */}
-                  <div className="flex-1 min-w-0">
-                    <h3 className={`font-dm font-semibold text-[13px] text-foreground leading-tight ${ex.done ? "line-through" : ""}`}>{ex.name}</h3>
-                    <div className="mt-2 space-y-0">
+                    <div className="mt-2">
                       {ex.series.map((s, si) => (
-                        <div key={si} className={`flex items-center gap-1 py-1.5 ${si > 0 ? "border-t border-muted/10" : ""}`}>
-                          <span className="text-[11px] font-dm text-foreground font-semibold w-[60px] shrink-0">{s.reps}</span>
-                          <button
-                            onClick={() => setEditTarget({ ex: i, s: si })}
-                            className="flex items-center gap-1 text-primary min-h-[32px] px-1"
-                          >
-                            <span className="text-[11px] font-dm font-semibold">{s.load}kg</span>
+                        <div key={si} className={`flex items-center gap-1.5 py-2 ${si > 0 ? "border-t border-muted/10" : ""}`}>
+                          <button onClick={() => toggleSerie(i, si)} disabled={!started}
+                            className="w-9 h-9 flex items-center justify-center shrink-0 disabled:opacity-40">
+                            <span className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${s.completed ? "bg-primary border-primary" : "border-muted/30"}`}>
+                              {s.completed && <Check size={12} className="text-primary-foreground" />}
+                            </span>
+                          </button>
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <span className="text-[11px] font-dm font-semibold text-foreground">{s.label}</span>
+                              {s.methodName && (
+                                <span className="text-[9px] font-barlow tracking-[1px] uppercase bg-primary/10 text-primary px-1.5 py-0.5 rounded-full">
+                                  {s.methodName}
+                                </span>
+                              )}
+                            </div>
+                            {s.lastExecution && (
+                              <span className="flex items-center gap-1 text-[10px] font-dm text-muted">
+                                <History size={9} /> {s.lastExecution}
+                              </span>
+                            )}
+                          </div>
+                          <button onClick={() => setEditTarget({ ex: i, s: si })}
+                            className="flex items-center gap-1 text-primary min-h-[32px] px-1">
+                            <span className="text-[11px] font-dm font-semibold">
+                              {s.performedLoad || s.prescribedLoad || "0"}kg
+                            </span>
                             <Pencil size={10} />
                           </button>
-                          <button
-                            onClick={() => setTimerTarget(parseRestSeconds(s.rest))}
-                            className="flex items-center gap-1 text-muted ml-auto min-h-[32px] px-1"
-                          >
+                          <button onClick={() => setRestSeconds(s.rest)}
+                            className="flex items-center gap-1 text-muted min-h-[32px] px-1">
                             <Clock size={11} />
-                            <span className="text-[11px] font-dm">{s.rest}</span>
+                            <span className="text-[11px] font-dm">{s.rest}s</span>
                           </button>
                         </div>
                       ))}
                     </div>
                   </div>
-
-                  {/* Thumbnail */}
-                  <div className="relative w-16 h-20 rounded-xl overflow-hidden shrink-0">
-                    <img src={ex.videoThumb} alt={ex.name} className="w-full h-full object-cover" />
-                    <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
-                      <Play size={16} className="text-white fill-white" />
-                    </div>
-                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 
         {editTarget && (
-          <LoadModal series={exercises[editTarget.ex].series[editTarget.s]} onSave={(v) => updateLoad(editTarget.ex, editTarget.s, v)} onClose={() => setEditTarget(null)} />
+          <LoadModal
+            serie={exercises[editTarget.ex].series[editTarget.s]}
+            onSave={(v) => saveSerieData(editTarget.ex, editTarget.s, v)}
+            onClose={() => setEditTarget(null)}
+          />
         )}
-        {timerTarget !== null && (
-          <TimerModal seconds={timerTarget} onClose={() => setTimerTarget(null)} />
-        )}
+        {restSeconds !== null && <RestTimer seconds={restSeconds} onClose={() => setRestSeconds(null)} />}
+        {videoTarget && <VideoModal url={videoTarget.url} name={videoTarget.name} onClose={() => setVideoTarget(null)} />}
         {showXpModal && (
           <XpCompletionModal
-            xpBreakdown={{ loads: loadAnnotations, start: started, complete: true }}
-            onClose={() => setShowXpModal(false)}
+            xpBreakdown={{ loads: loadAnnotations, start: true, complete: true }}
+            onClose={() => { setShowXpModal(false); setScreen("plan"); }}
           />
         )}
       </div>
     );
   }
 
-  // Screen: Days list
-  if (screen === "days" && selectedWorkout) {
-    return (
-      <div className="px-4 pt-4 pb-24">
-        <button onClick={() => setScreen("menu")} className="flex items-center gap-1 text-primary text-sm font-dm font-semibold mb-3 min-h-[44px]">
-          <ArrowLeft size={18} /> Voltar
-        </button>
-        <h1 className="font-barlow font-bold text-xl text-foreground mb-4">{selectedWorkout.name.toUpperCase()}</h1>
-
-        <div className="grid grid-cols-3 gap-2 mb-4">
-          {[
-            { label: "Concluídos", value: `${selectedWorkout.days.filter(d => d.state === "done").length}/${selectedWorkout.days.length}` },
-            { label: "Volume", value: "14.2t" },
-            { label: "Streak", value: "3 dias" },
-          ].map((s) => (
-            <div key={s.label} className="rounded-2xl bg-card p-3 card-shadow text-center">
-              <p className="font-barlow font-[800] text-lg text-foreground">{s.value}</p>
-              <p className="text-[10px] font-barlow tracking-[1px] uppercase text-muted">{s.label}</p>
-            </div>
-          ))}
-        </div>
-
-        <div className="space-y-2">
-          {selectedWorkout.days.map((w) => (
-            <button
-              key={w.id}
-              onClick={() => openDay(w)}
-              className={`w-full rounded-2xl p-4 card-shadow flex items-center gap-3 text-left min-h-[56px]
-                ${w.state === "done" ? "bg-card opacity-60" : w.state === "today" ? "bg-primary/5 border border-primary/20" : "bg-card"}`}
-            >
-              <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-barlow font-bold text-xs ${w.state === "today" ? "bg-primary text-primary-foreground" : "bg-secondary text-muted"}`}>
-                {w.day}
-              </div>
-              <div className="flex-1">
-                <p className={`font-dm font-semibold text-sm ${w.state === "done" ? "line-through text-muted" : "text-foreground"}`}>{w.name}</p>
-              </div>
-              {w.state === "today" && (
-                <span className="text-[10px] font-barlow font-bold tracking-[1px] uppercase bg-primary text-primary-foreground px-2 py-0.5 rounded-full">HOJE</span>
-              )}
-              {w.state === "done" && <Check size={16} className="text-primary" />}
-            </button>
-          ))}
-        </div>
-      </div>
-    );
-  }
-
-  // Screen: Menu
+  /* ---------- Tela do plano ativo ---------- */
   return (
     <div className="px-4 pt-4 pb-24">
-      <h1 className="font-barlow font-bold text-xl text-foreground mb-4">TREINOS</h1>
-      {loadingPlan && <p className="text-xs font-dm text-muted">Carregando seu treino...</p>}
-      {!loadingPlan && workouts.length === 0 && (
+      <h1 className="font-barlow font-bold text-xl text-foreground mb-4">TREINO</h1>
+
+      {loading && <p className="text-xs font-dm text-muted">Carregando seu treino...</p>}
+
+      {!loading && !plan && (
         <div className="rounded-2xl bg-card card-shadow p-5 text-center">
-          <p className="font-dm font-semibold text-sm text-foreground">Nenhum treino prescrito</p>
-          <p className="text-xs font-dm text-muted-foreground mt-1">
-            Fale com seu professor para receber seu plano de treino.
-          </p>
+          <p className="font-dm font-semibold text-sm text-foreground">Nenhum treino ativo</p>
+          <p className="text-xs font-dm text-muted mt-1">Fale com seu professor para receber seu plano de treino.</p>
         </div>
       )}
-      <div className="space-y-3">
-        {workouts.map((w) => (
-          <button
-            key={w.id}
-            onClick={() => openWorkout(w)}
-            className="w-full rounded-2xl bg-card card-shadow p-4 flex items-center gap-4 text-left border border-muted/10 min-h-[64px] active:scale-[0.98] transition-transform"
-          >
-            <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center shrink-0">
-              {w.icon === "weights" ? (
-                <Dumbbell size={22} className="text-primary-foreground" />
-              ) : (
-                <PersonStanding size={22} className="text-primary-foreground" />
-              )}
+
+      {plan && (
+        <>
+          {swap === "soon" && (
+            <div className="rounded-2xl bg-primary/10 border border-primary/20 p-3 mb-3 flex items-start gap-2">
+              <Sparkles size={16} className="text-primary mt-0.5 shrink-0" />
+              <p className="text-[12px] font-dm text-foreground">
+                <span className="font-semibold">Troca próxima.</span> Seu treino vence em {remaining} dia{remaining === 1 ? "" : "s"}. Fale com seu professor.
+              </p>
             </div>
-            <p className="flex-1 font-dm font-semibold text-sm text-foreground">{w.name}</p>
-            <ChevronRight size={20} className="text-muted" />
-          </button>
-        ))}
-      </div>
+          )}
+          {swap === "late" && (
+            <div className="rounded-2xl bg-secondary border border-muted/20 p-3 mb-3 flex items-start gap-2">
+              <AlertTriangle size={16} className="text-primary mt-0.5 shrink-0" />
+              <p className="text-[12px] font-dm text-foreground">
+                <span className="font-semibold">Troca vencida.</span> Você ainda pode treinar, mas já é hora de renovar seu programa.
+              </p>
+            </div>
+          )}
+
+          <div className="rounded-2xl bg-card card-shadow p-4 mb-3">
+            <p className="text-[10px] font-barlow tracking-[1px] uppercase text-muted">Treino ativo</p>
+            <h2 className="font-barlow font-bold text-lg text-foreground leading-tight">{plan.name.toUpperCase()}</h2>
+            {plan.goal && <p className="text-[12px] font-dm text-muted mt-0.5">{plan.goal}</p>}
+            <div className="grid grid-cols-3 gap-2 mt-3">
+              <div className="rounded-xl bg-secondary p-2.5">
+                <p className="text-[9px] font-barlow tracking-[1px] uppercase text-muted">Início</p>
+                <p className="font-dm font-semibold text-[12px] text-foreground">{fmtDate(plan.startsAt)}</p>
+              </div>
+              <div className="rounded-xl bg-secondary p-2.5">
+                <p className="text-[9px] font-barlow tracking-[1px] uppercase text-muted">Troca</p>
+                <p className="font-dm font-semibold text-[12px] text-foreground">{fmtDate(plan.expiresAt)}</p>
+              </div>
+              <div className="rounded-xl bg-secondary p-2.5">
+                <p className="text-[9px] font-barlow tracking-[1px] uppercase text-muted">Professor</p>
+                <p className="font-dm font-semibold text-[12px] text-foreground truncate">{plan.coachName || "—"}</p>
+              </div>
+            </div>
+          </div>
+
+          {plan.volume.length > 0 && (
+            <div className="rounded-2xl bg-card card-shadow p-4 mb-3">
+              <p className="text-[10px] font-barlow tracking-[1px] uppercase text-muted mb-2">Volume semanal prescrito</p>
+              <div className="space-y-1.5">
+                {plan.volume.slice(0, 6).map((v) => {
+                  const max = plan.volume[0].sets || 1;
+                  return (
+                    <div key={v.group} className="flex items-center gap-2">
+                      <span className="text-[11px] font-dm text-foreground w-24 truncate">{v.group}</span>
+                      <div className="flex-1 h-2 rounded-full bg-secondary overflow-hidden">
+                        <div className="h-full rounded-full bg-primary" style={{ width: `${(v.sets / max) * 100}%` }} />
+                      </div>
+                      <span className="text-[11px] font-dm font-semibold text-muted w-12 text-right">{v.sets} sér.</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          <p className="text-[10px] font-barlow tracking-[1px] uppercase text-muted mb-2">Sessões</p>
+          <div className="space-y-2">
+            {plan.sessions.length === 0 && (
+              <p className="text-xs font-dm text-muted">Nenhuma sessão cadastrada neste plano.</p>
+            )}
+            {plan.sessions.map((s) => (
+              <button key={s.id} onClick={() => openSession(s.id, s.name)}
+                className={`w-full rounded-2xl bg-card card-shadow p-4 flex items-center gap-3 text-left min-h-[56px] active:scale-[0.99] transition-transform ${s.doneToday ? "opacity-60" : ""}`}>
+                <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center font-barlow font-bold text-xs text-muted shrink-0">
+                  {s.day}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className={`font-dm font-semibold text-sm ${s.doneToday ? "line-through text-muted" : "text-foreground"}`}>{s.name}</p>
+                  <p className="text-[11px] font-dm text-muted">{s.exerciseCount} exercícios</p>
+                </div>
+                {s.doneToday ? <Check size={16} className="text-primary" /> : <ChevronRight size={20} className="text-muted" />}
+              </button>
+            ))}
+          </div>
+
+          {archived.length > 0 && (
+            <div className="mt-5">
+              <p className="text-[10px] font-barlow tracking-[1px] uppercase text-muted mb-2 flex items-center gap-1">
+                <Archive size={11} /> Treinos arquivados
+              </p>
+              <div className="space-y-2">
+                {archived.map((a) => (
+                  <div key={a.id} className="rounded-2xl bg-card card-shadow p-3 flex items-center gap-3">
+                    <CalendarDays size={16} className="text-muted shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="font-dm font-semibold text-[13px] text-foreground truncate">{a.name}</p>
+                      <p className="text-[11px] font-dm text-muted">{fmtDate(a.startsAt)} — {fmtDate(a.expiresAt)}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
 };
