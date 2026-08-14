@@ -31,6 +31,8 @@ export type OverviewRow = {
   open_occurrences: number | null;
   pending_renewals: number | null;
   open_alerts: number | null;
+  crm_owner_id: string | null;
+  crm_owner_name: string | null;
 };
 
 export type AttendanceStats = {
