@@ -74,15 +74,7 @@ export const useTrainingPlan = (clientId: number | null) => {
       return;
     }
 
-    let coachName: string | null = null;
-    if (active.coach_id) {
-      const { data: coach } = await supabase
-        .from("collaborators")
-        .select("full_name")
-        .eq("id", active.coach_id)
-        .maybeSingle();
-      coachName = coach?.full_name ?? null;
-    }
+    const coachName: string | null = active.coach_id ? "Equipe EVO" : null;
 
     const { data: weeks } = await supabase
       .from("training_weeks")
