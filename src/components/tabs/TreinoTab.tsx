@@ -64,13 +64,82 @@ const LoadModal = ({
   serie, onSave, onClose,
 }: {
   serie: Serie;
-  onSave: (v: { load: string; sets: string; reps: string }) => void;
+  onSave: (v: {
+    load: string; sets: string; reps: string;
+    time?: string; distance?: string; speed?: string; incline?: string; calories?: string;
+  }) => void;
   onClose: () => void;
 }) => {
   const [input, setInput] = useState(serie.performedLoad ?? serie.prescribedLoad ?? "");
   const [setsInput, setSetsInput] = useState(String(serie.performedSets ?? serie.prescribedSets ?? ""));
   const [repsInput, setRepsInput] = useState(serie.performedReps ?? serie.prescribedReps ?? "");
+  const [timeInput, setTimeInput] = useState(
+    String(serie.performedTime ?? serie.prescribedTime ?? "")
+  );
+  const [distanceInput, setDistanceInput] = useState(serie.performedDistance ?? "");
+  const [speedInput, setSpeedInput] = useState(serie.performedSpeed ?? "");
+  const [inclineInput, setInclineInput] = useState(serie.performedIncline ?? serie.prescribedIncline ?? "");
+  const [caloriesInput, setCaloriesInput] = useState(serie.performedCalories ?? "");
   const numVal = parseFloat(input) || 0;
+
+  const save = () =>
+    onSave({
+      load: input, sets: setsInput, reps: repsInput,
+      time: timeInput, distance: distanceInput, speed: speedInput,
+      incline: inclineInput, calories: caloriesInput,
+    });
+
+  const field = (label: string, value: string, set: (v: string) => void, numeric = true) => (
+    <div className="flex-1">
+      <p className="text-[10px] font-barlow tracking-[1px] uppercase text-muted mb-1">{label}</p>
+      <input
+        {...(numeric ? { type: "number", inputMode: "decimal" as const } : {})}
+        value={value} onChange={(e) => set(e.target.value)}
+        className="w-full h-12 rounded-2xl bg-secondary text-center text-lg font-barlow font-[800] text-foreground border border-muted/20 outline-none focus:ring-2 focus:ring-primary/30"
+      />
+    </div>
+  );
+
+  if (serie.cardio) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center px-6" onClick={onClose}>
+        <div className="absolute inset-0 bg-black/40" />
+        <div className="relative w-full max-w-[340px] bg-card rounded-3xl p-5" onClick={(e) => e.stopPropagation()}>
+          <div className="flex items-center justify-between mb-3">
+            <p className="font-dm font-semibold text-sm text-foreground">Registro do cardio</p>
+            <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full bg-secondary">
+              <X size={16} className="text-muted" />
+            </button>
+          </div>
+          <p className="text-[11px] font-dm text-muted mb-1">
+            Prescrito: {serie.prescribedTime ? `${Math.round(serie.prescribedTime / 60)} min` : serie.prescribedReps || "-"}
+            {serie.prescribedIncline ? ` · inclinação ${serie.prescribedIncline}` : ""}
+          </p>
+          {serie.lastExecution && (
+            <p className="text-[11px] font-dm text-primary mb-3">Última vez: {serie.lastExecution}</p>
+          )}
+          <div className="flex gap-2 mb-3">
+            {field("Tempo (s)", timeInput, setTimeInput)}
+            {field("Distância (km)", distanceInput, setDistanceInput)}
+          </div>
+          <div className="flex gap-2 mb-3">
+            {field("Velocidade", speedInput, setSpeedInput)}
+            {field("Inclinação", inclineInput, setInclineInput, false)}
+          </div>
+          <div className="flex gap-2 mb-4">
+            {field("Calorias", caloriesInput, setCaloriesInput)}
+          </div>
+          <button
+            onClick={() => { save(); onClose(); }}
+            className="w-full py-3.5 rounded-2xl bg-primary text-primary-foreground font-barlow font-bold text-base active:scale-[0.98] transition-transform"
+            style={{ boxShadow: "0 3px 10px #1400FF44" }}
+          >
+            Salvar
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center px-6" onClick={onClose}>
@@ -116,7 +185,7 @@ const LoadModal = ({
           </div>
         </div>
         <button
-          onClick={() => { onSave({ load: input, sets: setsInput, reps: repsInput }); onClose(); }}
+          onClick={() => { save(); onClose(); }}
           className="w-full py-3.5 rounded-2xl bg-primary text-primary-foreground font-barlow font-bold text-base active:scale-[0.98] transition-transform"
           style={{ boxShadow: "0 3px 10px #1400FF44" }}
         >
