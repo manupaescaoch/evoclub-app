@@ -18,9 +18,17 @@ interface Serie {
   prescribedSets: number | null;
   prescribedReps: string | null;
   prescribedLoad: string | null;
+  prescribedTime: number | null;
+  prescribedIncline: string | null;
   performedSets: number | null;
   performedReps: string | null;
   performedLoad: string | null;
+  performedTime: number | null;
+  performedDistance: string | null;
+  performedSpeed: string | null;
+  performedIncline: string | null;
+  performedCalories: string | null;
+  cardio: boolean;
   completed: boolean;
   lastExecution: string | null;
 }
@@ -42,6 +50,9 @@ const formatTime = (seconds: number) => {
 const fmtDate = (d: string | null) =>
   d ? new Date(`${d}T00:00:00`).toLocaleDateString("pt-BR", { day: "2-digit", month: "short" }) : "—";
 
+const isCardioType = (t: string | null) =>
+  !!t && /cardio|corrida|inclina|tempo/i.test(t);
+
 const XP_LOAD = 5;
 const XP_START = 10;
 const XP_COMPLETE = 25;
@@ -53,13 +64,82 @@ const LoadModal = ({
   serie, onSave, onClose,
 }: {
   serie: Serie;
-  onSave: (v: { load: string; sets: string; reps: string }) => void;
+  onSave: (v: {
+    load: string; sets: string; reps: string;
+    time?: string; distance?: string; speed?: string; incline?: string; calories?: string;
+  }) => void;
   onClose: () => void;
 }) => {
   const [input, setInput] = useState(serie.performedLoad ?? serie.prescribedLoad ?? "");
   const [setsInput, setSetsInput] = useState(String(serie.performedSets ?? serie.prescribedSets ?? ""));
   const [repsInput, setRepsInput] = useState(serie.performedReps ?? serie.prescribedReps ?? "");
+  const [timeInput, setTimeInput] = useState(
+    String(serie.performedTime ?? serie.prescribedTime ?? "")
+  );
+  const [distanceInput, setDistanceInput] = useState(serie.performedDistance ?? "");
+  const [speedInput, setSpeedInput] = useState(serie.performedSpeed ?? "");
+  const [inclineInput, setInclineInput] = useState(serie.performedIncline ?? serie.prescribedIncline ?? "");
+  const [caloriesInput, setCaloriesInput] = useState(serie.performedCalories ?? "");
   const numVal = parseFloat(input) || 0;
+
+  const save = () =>
+    onSave({
+      load: input, sets: setsInput, reps: repsInput,
+      time: timeInput, distance: distanceInput, speed: speedInput,
+      incline: inclineInput, calories: caloriesInput,
+    });
+
+  const field = (label: string, value: string, set: (v: string) => void, numeric = true) => (
+    <div className="flex-1">
+      <p className="text-[10px] font-barlow tracking-[1px] uppercase text-muted mb-1">{label}</p>
+      <input
+        {...(numeric ? { type: "number", inputMode: "decimal" as const } : {})}
+        value={value} onChange={(e) => set(e.target.value)}
+        className="w-full h-12 rounded-2xl bg-secondary text-center text-lg font-barlow font-[800] text-foreground border border-muted/20 outline-none focus:ring-2 focus:ring-primary/30"
+      />
+    </div>
+  );
+
+  if (serie.cardio) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center px-6" onClick={onClose}>
+        <div className="absolute inset-0 bg-black/40" />
+        <div className="relative w-full max-w-[340px] bg-card rounded-3xl p-5" onClick={(e) => e.stopPropagation()}>
+          <div className="flex items-center justify-between mb-3">
+            <p className="font-dm font-semibold text-sm text-foreground">Registro do cardio</p>
+            <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full bg-secondary">
+              <X size={16} className="text-muted" />
+            </button>
+          </div>
+          <p className="text-[11px] font-dm text-muted mb-1">
+            Prescrito: {serie.prescribedTime ? `${Math.round(serie.prescribedTime / 60)} min` : serie.prescribedReps || "-"}
+            {serie.prescribedIncline ? ` · inclinação ${serie.prescribedIncline}` : ""}
+          </p>
+          {serie.lastExecution && (
+            <p className="text-[11px] font-dm text-primary mb-3">Última vez: {serie.lastExecution}</p>
+          )}
+          <div className="flex gap-2 mb-3">
+            {field("Tempo (s)", timeInput, setTimeInput)}
+            {field("Distância (km)", distanceInput, setDistanceInput)}
+          </div>
+          <div className="flex gap-2 mb-3">
+            {field("Velocidade", speedInput, setSpeedInput)}
+            {field("Inclinação", inclineInput, setInclineInput, false)}
+          </div>
+          <div className="flex gap-2 mb-4">
+            {field("Calorias", caloriesInput, setCaloriesInput)}
+          </div>
+          <button
+            onClick={() => { save(); onClose(); }}
+            className="w-full py-3.5 rounded-2xl bg-primary text-primary-foreground font-barlow font-bold text-base active:scale-[0.98] transition-transform"
+            style={{ boxShadow: "0 3px 10px #1400FF44" }}
+          >
+            Salvar
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center px-6" onClick={onClose}>
@@ -105,7 +185,7 @@ const LoadModal = ({
           </div>
         </div>
         <button
-          onClick={() => { onSave({ load: input, sets: setsInput, reps: repsInput }); onClose(); }}
+          onClick={() => { save(); onClose(); }}
           className="w-full py-3.5 rounded-2xl bg-primary text-primary-foreground font-barlow font-bold text-base active:scale-[0.98] transition-transform"
           style={{ boxShadow: "0 3px 10px #1400FF44" }}
         >
@@ -196,6 +276,99 @@ const VideoModal = ({ url, name, onClose }: { url: string; name: string; onClose
   );
 };
 
+export interface PostWorkoutAnswers {
+  rpe: number;
+  stars: number;
+  note: string;
+  pain: boolean;
+  painNote: string;
+}
+
+const RPE_FACES = [
+  { v: 1, emoji: "😄", label: "Leve" },
+  { v: 2, emoji: "🙂", label: "Tranquilo" },
+  { v: 3, emoji: "😐", label: "Moderado" },
+  { v: 4, emoji: "😥", label: "Difícil" },
+  { v: 5, emoji: "🥵", label: "Máximo" },
+];
+
+const PostWorkoutModal = ({
+  onSubmit, saving,
+}: {
+  onSubmit: (a: PostWorkoutAnswers) => void;
+  saving: boolean;
+}) => {
+  const [rpe, setRpe] = useState(0);
+  const [stars, setStars] = useState(0);
+  const [note, setNote] = useState("");
+  const [pain, setPain] = useState<boolean | null>(null);
+  const [painNote, setPainNote] = useState("");
+  const needsNote = stars > 0 && stars <= 2;
+  const valid = rpe > 0 && stars > 0 && pain !== null && (!pain || painNote.trim().length > 2);
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center px-5">
+      <div className="absolute inset-0 bg-black/50" />
+      <div className="relative w-full max-w-[350px] max-h-[88vh] overflow-y-auto bg-card rounded-3xl p-5">
+        <h2 className="font-barlow font-bold text-lg text-foreground">COMO FOI O TREINO?</h2>
+        <p className="text-[12px] font-dm text-muted mb-4">Leva menos de 30 segundos.</p>
+
+        <p className="text-[10px] font-barlow tracking-[1px] uppercase text-muted mb-2">Esforço percebido</p>
+        <div className="flex gap-1.5 mb-4">
+          {RPE_FACES.map((f) => (
+            <button key={f.v} onClick={() => setRpe(f.v)}
+              className={`flex-1 rounded-2xl py-2 flex flex-col items-center transition-colors ${rpe === f.v ? "bg-primary/10 ring-2 ring-primary" : "bg-secondary"}`}>
+              <span className="text-xl leading-none">{f.emoji}</span>
+              <span className="text-[9px] font-dm text-muted mt-1">{f.label}</span>
+            </button>
+          ))}
+        </div>
+
+        <p className="text-[10px] font-barlow tracking-[1px] uppercase text-muted mb-2">Acompanhamento do professor</p>
+        <div className="flex gap-1.5 mb-2">
+          {[1, 2, 3, 4, 5].map((s) => (
+            <button key={s} onClick={() => setStars(s)}
+              className={`flex-1 h-11 rounded-2xl font-barlow font-bold text-lg transition-colors ${stars >= s ? "bg-primary/10 text-primary" : "bg-secondary text-muted"}`}>
+              ★
+            </button>
+          ))}
+        </div>
+        {needsNote && (
+          <textarea value={note} onChange={(e) => setNote(e.target.value)}
+            placeholder="Conta pra gente o que pode melhorar"
+            className="w-full min-h-[70px] rounded-2xl bg-secondary p-3 text-[13px] font-dm text-foreground border border-muted/20 outline-none focus:ring-2 focus:ring-primary/30 mb-3" />
+        )}
+
+        <p className="text-[10px] font-barlow tracking-[1px] uppercase text-muted mb-2 mt-2">Sentiu alguma dor?</p>
+        <div className="flex gap-2 mb-3">
+          <button onClick={() => setPain(false)}
+            className={`flex-1 py-3 rounded-2xl font-dm font-semibold text-sm ${pain === false ? "bg-primary text-primary-foreground" : "bg-secondary text-foreground"}`}>
+            Não
+          </button>
+          <button onClick={() => setPain(true)}
+            className={`flex-1 py-3 rounded-2xl font-dm font-semibold text-sm ${pain === true ? "bg-primary text-primary-foreground" : "bg-secondary text-foreground"}`}>
+            Sim
+          </button>
+        </div>
+        {pain && (
+          <textarea value={painNote} onChange={(e) => setPainNote(e.target.value)}
+            placeholder="Onde doeu e em qual exercício?"
+            className="w-full min-h-[80px] rounded-2xl bg-secondary p-3 text-[13px] font-dm text-foreground border border-muted/20 outline-none focus:ring-2 focus:ring-primary/30 mb-3" />
+        )}
+
+        <button
+          disabled={!valid || saving}
+          onClick={() => onSubmit({ rpe, stars, note, pain: !!pain, painNote })}
+          className="w-full py-3.5 rounded-2xl bg-primary text-primary-foreground font-barlow font-bold text-base active:scale-[0.98] transition-transform disabled:opacity-50"
+          style={{ boxShadow: "0 3px 10px #1400FF44" }}
+        >
+          {saving ? "SALVANDO..." : "ENVIAR E FINALIZAR"}
+        </button>
+      </div>
+    </div>
+  );
+};
+
 const XpCompletionModal = ({
   xpBreakdown, onClose,
 }: {
@@ -269,6 +442,7 @@ const TreinoTab = () => {
   const [videoTarget, setVideoTarget] = useState<{ url: string; name: string } | null>(null);
   const [openNotes, setOpenNotes] = useState<Record<string, boolean>>({});
   const [showXpModal, setShowXpModal] = useState(false);
+  const [showPostWorkout, setShowPostWorkout] = useState(false);
   const [saving, setSaving] = useState(false);
   const finishRef = useRef<(auto?: boolean) => void>(() => {});
 
@@ -361,9 +535,17 @@ const TreinoTab = () => {
             prescribedSets: s.sets ?? null,
             prescribedReps: reps,
             prescribedLoad: s.load ?? null,
+            prescribedTime: s.time_seconds ?? null,
+            prescribedIncline: s.incline ?? null,
             performedSets: null,
             performedReps: null,
             performedLoad: null,
+            performedTime: null,
+            performedDistance: null,
+            performedSpeed: null,
+            performedIncline: null,
+            performedCalories: null,
+            cardio: isCardioType(s.set_type ?? null) || !!s.incline,
             completed: false,
             lastExecution: s.id ? lastBySet.get(s.id) ?? null : null,
           } as Serie;
@@ -396,7 +578,7 @@ const TreinoTab = () => {
           setStartedAt(start);
           const { data: logSets } = await supabase
             .from("workout_log_sets")
-            .select("session_exercise_id, prescribed_set_id, performed_sets, performed_reps, performed_load, completed")
+            .select("session_exercise_id, prescribed_set_id, performed_sets, performed_reps, performed_load, performed_time_seconds, performed_distance_km, performed_speed, performed_incline, performed_calories, completed")
             .eq("workout_log_id", log.id);
           if (logSets?.length) {
             mapped = mapped.map((ex) => ({
@@ -409,6 +591,11 @@ const TreinoTab = () => {
                   performedSets: row.performed_sets ?? null,
                   performedReps: row.performed_reps ?? null,
                   performedLoad: row.performed_load ?? null,
+                  performedTime: row.performed_time_seconds ?? null,
+                  performedDistance: row.performed_distance_km != null ? String(row.performed_distance_km) : null,
+                  performedSpeed: row.performed_speed != null ? String(row.performed_speed) : null,
+                  performedIncline: row.performed_incline ?? null,
+                  performedCalories: row.performed_calories != null ? String(row.performed_calories) : null,
                   completed: !!row.completed,
                 };
               }),
@@ -443,6 +630,11 @@ const TreinoTab = () => {
         performed_sets: serie.performedSets ?? serie.prescribedSets,
         performed_reps: serie.performedReps ?? serie.prescribedReps,
         performed_load: serie.performedLoad ?? serie.prescribedLoad,
+        performed_time_seconds: serie.performedTime ?? serie.prescribedTime,
+        performed_distance_km: serie.performedDistance ? Number(serie.performedDistance) : null,
+        performed_speed: serie.performedSpeed ? Number(serie.performedSpeed) : null,
+        performed_incline: serie.performedIncline ?? serie.prescribedIncline,
+        performed_calories: serie.performedCalories ? parseInt(serie.performedCalories) : null,
         completed: true,
         exercise_order: exIdx,
         order_index: sIdx,
@@ -490,7 +682,10 @@ const TreinoTab = () => {
   const saveSerieData = async (
     exIdx: number,
     sIdx: number,
-    v: { load: string; sets: string; reps: string }
+    v: {
+      load: string; sets: string; reps: string;
+      time?: string; distance?: string; speed?: string; incline?: string; calories?: string;
+    }
   ) => {
     const ex = exercises[exIdx];
     const serie = ex.series[sIdx];
@@ -499,6 +694,11 @@ const TreinoTab = () => {
       performedLoad: v.load || serie.performedLoad,
       performedSets: v.sets ? parseInt(v.sets) : serie.performedSets,
       performedReps: v.reps || serie.performedReps,
+      performedTime: v.time ? parseInt(v.time) : serie.performedTime,
+      performedDistance: v.distance || serie.performedDistance,
+      performedSpeed: v.speed || serie.performedSpeed,
+      performedIncline: v.incline || serie.performedIncline,
+      performedCalories: v.calories || serie.performedCalories,
     };
     setExercises((prev) =>
       prev.map((e, i) =>
@@ -513,8 +713,9 @@ const TreinoTab = () => {
   };
 
   const finishWorkout = useCallback(
-    async (auto = false) => {
+    async (auto = false, answers?: PostWorkoutAnswers) => {
       if (!logId) { setShowXpModal(true); return; }
+      if (!auto && !answers) { setShowPostWorkout(true); return; }
       setSaving(true);
       for (let i = 0; i < exercises.length; i++) {
         for (let j = 0; j < exercises[i].series.length; j++) {
@@ -523,9 +724,30 @@ const TreinoTab = () => {
       }
       await supabase
         .from("workout_logs")
-        .update({ status: "completed", finished_at: new Date().toISOString() })
+        .update({
+          status: "completed",
+          finished_at: new Date().toISOString(),
+          ...(answers
+            ? {
+                rpe: answers.rpe,
+                followup_stars: answers.stars,
+                followup_note: answers.note || null,
+                pain: answers.pain,
+                pain_note: answers.pain ? answers.painNote : null,
+              }
+            : {}),
+        })
         .eq("id", logId);
+      if (answers?.pain && clientId) {
+        await supabase.from("pain_reports").insert({
+          client_id: clientId,
+          workout_log_id: logId,
+          note: answers.painNote,
+          status: "novo",
+        });
+      }
       setSaving(false);
+      setShowPostWorkout(false);
       setStarted(false);
       reload();
       if (auto) {
@@ -535,10 +757,10 @@ const TreinoTab = () => {
         setShowXpModal(true);
       }
     },
-    [logId, exercises, persistSerie, reload]
+    [logId, exercises, persistSerie, reload, clientId]
   );
 
-  finishRef.current = finishWorkout;
+  finishRef.current = (auto?: boolean) => { void finishWorkout(auto ?? false); };
 
   // Auto-finalização em 2h
   useEffect(() => {
@@ -654,7 +876,9 @@ const TreinoTab = () => {
                           <button onClick={() => setEditTarget({ ex: i, s: si })}
                             className="flex items-center gap-1 text-primary min-h-[32px] px-1">
                             <span className="text-[11px] font-dm font-semibold">
-                              {s.performedLoad || s.prescribedLoad || "0"}kg
+                              {s.cardio
+                                ? `${Math.round((s.performedTime ?? s.prescribedTime ?? 0) / 60)} min`
+                                : `${s.performedLoad || s.prescribedLoad || "0"}kg`}
                             </span>
                             <Pencil size={10} />
                           </button>
@@ -682,6 +906,9 @@ const TreinoTab = () => {
         )}
         {restSeconds !== null && <RestTimer seconds={restSeconds} onClose={() => setRestSeconds(null)} />}
         {videoTarget && <VideoModal url={videoTarget.url} name={videoTarget.name} onClose={() => setVideoTarget(null)} />}
+        {showPostWorkout && (
+          <PostWorkoutModal saving={saving} onSubmit={(a) => finishWorkout(false, a)} />
+        )}
         {showXpModal && (
           <XpCompletionModal
             xpBreakdown={{ loads: loadAnnotations, start: true, complete: true }}
@@ -747,21 +974,33 @@ const TreinoTab = () => {
 
           {plan.volume.length > 0 && (
             <div className="rounded-2xl bg-card card-shadow p-4 mb-3">
-              <p className="text-[10px] font-barlow tracking-[1px] uppercase text-muted mb-2">Volume semanal prescrito</p>
-              <div className="space-y-1.5">
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-[10px] font-barlow tracking-[1px] uppercase text-muted">Volume semanal (seg→dom)</p>
+                <span className="text-[9px] font-dm text-muted">realizado / prescrito</span>
+              </div>
+              <div className="space-y-2">
                 {plan.volume.slice(0, 6).map((v) => {
-                  const max = plan.volume[0].sets || 1;
+                  const max = Math.max(
+                    ...plan.volume.map((r) => Math.max(r.prescribed, r.done)),
+                    1
+                  );
                   return (
                     <div key={v.group} className="flex items-center gap-2">
                       <span className="text-[11px] font-dm text-foreground w-24 truncate">{v.group}</span>
-                      <div className="flex-1 h-2 rounded-full bg-secondary overflow-hidden">
-                        <div className="h-full rounded-full bg-primary" style={{ width: `${(v.sets / max) * 100}%` }} />
+                      <div className="flex-1 h-2.5 rounded-full bg-secondary overflow-hidden relative">
+                        <div className="absolute inset-y-0 left-0 rounded-full bg-primary/20"
+                          style={{ width: `${(v.prescribed / max) * 100}%` }} />
+                        <div className="absolute inset-y-0 left-0 rounded-full bg-primary"
+                          style={{ width: `${(Math.min(v.done, max) / max) * 100}%` }} />
                       </div>
-                      <span className="text-[11px] font-dm font-semibold text-muted w-12 text-right">{v.sets} sér.</span>
+                      <span className="text-[11px] font-dm font-semibold text-muted w-16 text-right">
+                        {v.done % 1 ? v.done.toFixed(1) : v.done}/{v.prescribed % 1 ? v.prescribed.toFixed(1) : v.prescribed}
+                      </span>
                     </div>
                   );
                 })}
               </div>
+              <p className="text-[10px] font-dm text-muted mt-2">Exercício auxiliar conta 0,5 série.</p>
             </div>
           )}
 

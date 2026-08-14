@@ -17,7 +17,15 @@ export interface ActivePlan {
   expiresAt: string | null;
   coachName: string | null;
   sessions: PlanSession[];
-  volume: { group: string; sets: number }[];
+  volume: VolumeRow[];
+}
+
+export interface VolumeRow {
+  group: string;
+  /** Séries prescritas na semana (auxiliar conta 0,5). */
+  prescribed: number;
+  /** Séries concluídas na semana (auxiliar conta 0,5). */
+  done: number;
 }
 
 export interface ArchivedPlan {
@@ -44,6 +52,17 @@ export const swapStatus = (expiresAt: string | null): "ok" | "soon" | "late" | n
   if (d < 0) return "late";
   if (d <= 7) return "soon";
   return "ok";
+};
+
+/** Semana atual segunda→domingo no fuso de Brasília. */
+export const brazilWeekRange = () => {
+  const today = new Date(`${brazilToday()}T00:00:00`);
+  const dow = today.getDay(); // 0 = domingo
+  const diffToMonday = dow === 0 ? -6 : 1 - dow;
+  const monday = new Date(today.getTime() + diffToMonday * 86400000);
+  const sunday = new Date(monday.getTime() + 6 * 86400000);
+  const fmt = (d: Date) => d.toISOString().slice(0, 10);
+  return { from: fmt(monday), to: fmt(sunday) };
 };
 
 export const useTrainingPlan = (clientId: number | null) => {
@@ -84,7 +103,7 @@ export const useTrainingPlan = (clientId: number | null) => {
       .limit(1);
 
     let sessions: PlanSession[] = [];
-    let volume: { group: string; sets: number }[] = [];
+    let volume: VolumeRow[] = [];
 
     if (weeks?.[0]) {
       const { data: rows } = await supabase
@@ -111,9 +130,30 @@ export const useTrainingPlan = (clientId: number | null) => {
 
       const libIds = [...new Set((exs || []).map((e) => e.exercise_id).filter(Boolean))] as string[];
       const { data: lib } = libIds.length
-        ? await supabase.from("exercise_library").select("id, muscle_group").in("id", libIds)
-        : { data: [] as { id: string; muscle_group: string | null }[] };
-      const groupById = new Map((lib || []).map((l) => [l.id, l.muscle_group || "Outros"]));
+        ? await supabase
+            .from("exercise_library")
+            .select("id, muscle_group, secondary_muscle, secondary_muscle_2")
+            .in("id", libIds)
+        : { data: [] as any[] };
+      const groupsById = new Map(
+        (lib || []).map((l) => [
+          l.id,
+          {
+            primary: l.muscle_group || "Outros",
+            aux: [
+              ...String(l.secondary_muscle || "").split(",").map((s: string) => s.trim()),
+              l.secondary_muscle_2,
+            ]
+              .filter(Boolean)
+              .slice(0, 2) as string[],
+          },
+        ])
+      );
+      const groupsForExercise = (sessionExerciseId: string) => {
+        const ex = (exs || []).find((e) => e.id === sessionExerciseId);
+        const g = ex?.exercise_id ? groupsById.get(ex.exercise_id) : undefined;
+        return g ?? { primary: "Outros", aux: [] as string[] };
+      };
 
       const { data: logs } = await supabase
         .from("workout_logs")
@@ -134,15 +174,44 @@ export const useTrainingPlan = (clientId: number | null) => {
         doneToday: doneIds.has(s.id),
       }));
 
-      const agg = new Map<string, number>();
-      (sets || []).forEach((st) => {
-        const ex = (exs || []).find((e) => e.id === st.session_exercise_id);
-        const g = ex?.exercise_id ? groupById.get(ex.exercise_id) || "Outros" : "Outros";
-        agg.set(g, (agg.get(g) || 0) + (st.sets || 1));
+      const prescribed = new Map<string, number>();
+      const done = new Map<string, number>();
+      const add = (m: Map<string, number>, sessionExerciseId: string, qty: number) => {
+        const g = groupsForExercise(sessionExerciseId);
+        m.set(g.primary, (m.get(g.primary) || 0) + qty);
+        g.aux.forEach((a) => m.set(a, (m.get(a) || 0) + qty * 0.5));
+      };
+
+      (sets || []).forEach((st) => add(prescribed, st.session_exercise_id, st.sets || 1));
+
+      // Realizado na semana atual (seg→dom), só séries concluídas
+      const { from, to } = brazilWeekRange();
+      const { data: weekLogs } = await supabase
+        .from("workout_logs")
+        .select("id")
+        .eq("client_id", clientId)
+        .gte("workout_date", from)
+        .lte("workout_date", to);
+      const logIds = (weekLogs || []).map((l) => l.id);
+      const { data: doneSets } = logIds.length
+        ? await supabase
+            .from("workout_log_sets")
+            .select("session_exercise_id, performed_sets, prescribed_sets, completed")
+            .in("workout_log_id", logIds)
+            .eq("completed", true)
+        : { data: [] as any[] };
+      (doneSets || []).forEach((st) => {
+        if (!st.session_exercise_id) return;
+        add(done, st.session_exercise_id, st.performed_sets ?? st.prescribed_sets ?? 1);
       });
-      volume = [...agg.entries()]
-        .map(([group, s]) => ({ group, sets: s }))
-        .sort((a, b) => b.sets - a.sets);
+
+      volume = [...new Set([...prescribed.keys(), ...done.keys()])]
+        .map((group) => ({
+          group,
+          prescribed: prescribed.get(group) || 0,
+          done: done.get(group) || 0,
+        }))
+        .sort((a, b) => b.prescribed - a.prescribed || b.done - a.done);
     }
 
     setPlan({

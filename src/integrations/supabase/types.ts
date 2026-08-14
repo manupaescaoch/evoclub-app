@@ -1342,6 +1342,7 @@ export type Database = {
           muscle_group: string | null
           name: string
           secondary_muscle: string | null
+          secondary_muscle_2: string | null
           video_url: string | null
         }
         Insert: {
@@ -1353,6 +1354,7 @@ export type Database = {
           muscle_group?: string | null
           name: string
           secondary_muscle?: string | null
+          secondary_muscle_2?: string | null
           video_url?: string | null
         }
         Update: {
@@ -1364,6 +1366,7 @@ export type Database = {
           muscle_group?: string | null
           name?: string
           secondary_muscle?: string | null
+          secondary_muscle_2?: string | null
           video_url?: string | null
         }
         Relationships: []
@@ -1843,6 +1846,57 @@ export type Database = {
           whatsapp_group_link?: string | null
         }
         Relationships: []
+      }
+      pain_reports: {
+        Row: {
+          client_id: number
+          created_at: string
+          handled_at: string | null
+          handled_by: string | null
+          id: string
+          note: string | null
+          status: string
+          updated_at: string
+          workout_log_id: string | null
+        }
+        Insert: {
+          client_id: number
+          created_at?: string
+          handled_at?: string | null
+          handled_by?: string | null
+          id?: string
+          note?: string | null
+          status?: string
+          updated_at?: string
+          workout_log_id?: string | null
+        }
+        Update: {
+          client_id?: number
+          created_at?: string
+          handled_at?: string | null
+          handled_by?: string | null
+          id?: string
+          note?: string | null
+          status?: string
+          updated_at?: string
+          workout_log_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pain_reports_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pain_reports_workout_log_id_fkey"
+            columns: ["workout_log_id"]
+            isOneToOne: false
+            referencedRelation: "workout_logs"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       partners: {
         Row: {
@@ -2635,6 +2689,7 @@ export type Database = {
       training_methods: {
         Row: {
           created_at: string
+          created_by: string | null
           description: string | null
           id: string
           is_global: boolean
@@ -2642,6 +2697,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          created_by?: string | null
           description?: string | null
           id?: string
           is_global?: boolean
@@ -2649,6 +2705,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          created_by?: string | null
           description?: string | null
           id?: string
           is_global?: boolean
@@ -3072,9 +3129,14 @@ export type Database = {
           exercise_order: number
           id: string
           order_index: number
+          performed_calories: number | null
+          performed_distance_km: number | null
+          performed_incline: string | null
           performed_load: string | null
           performed_reps: string | null
           performed_sets: number | null
+          performed_speed: number | null
+          performed_time_seconds: number | null
           prescribed_load: string | null
           prescribed_reps: string | null
           prescribed_set_id: string | null
@@ -3091,9 +3153,14 @@ export type Database = {
           exercise_order?: number
           id?: string
           order_index?: number
+          performed_calories?: number | null
+          performed_distance_km?: number | null
+          performed_incline?: string | null
           performed_load?: string | null
           performed_reps?: string | null
           performed_sets?: number | null
+          performed_speed?: number | null
+          performed_time_seconds?: number | null
           prescribed_load?: string | null
           prescribed_reps?: string | null
           prescribed_set_id?: string | null
@@ -3110,9 +3177,14 @@ export type Database = {
           exercise_order?: number
           id?: string
           order_index?: number
+          performed_calories?: number | null
+          performed_distance_km?: number | null
+          performed_incline?: string | null
           performed_load?: string | null
           performed_reps?: string | null
           performed_sets?: number | null
+          performed_speed?: number | null
+          performed_time_seconds?: number | null
           prescribed_load?: string | null
           prescribed_reps?: string | null
           prescribed_set_id?: string | null
@@ -3151,7 +3223,12 @@ export type Database = {
           client_id: number
           created_at: string
           finished_at: string | null
+          followup_note: string | null
+          followup_stars: number | null
           id: string
+          pain: boolean | null
+          pain_note: string | null
+          rpe: number | null
           session_name: string | null
           started_at: string
           status: string
@@ -3165,7 +3242,12 @@ export type Database = {
           client_id: number
           created_at?: string
           finished_at?: string | null
+          followup_note?: string | null
+          followup_stars?: number | null
           id?: string
+          pain?: boolean | null
+          pain_note?: string | null
+          rpe?: number | null
           session_name?: string | null
           started_at?: string
           status?: string
@@ -3179,7 +3261,12 @@ export type Database = {
           client_id?: number
           created_at?: string
           finished_at?: string | null
+          followup_note?: string | null
+          followup_stars?: number | null
           id?: string
+          pain?: boolean | null
+          pain_note?: string | null
+          rpe?: number | null
           session_name?: string | null
           started_at?: string
           status?: string
