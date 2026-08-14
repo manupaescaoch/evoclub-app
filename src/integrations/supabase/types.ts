@@ -540,6 +540,7 @@ export type Database = {
           phone: string | null
           plan: string | null
           plan_value: number | null
+          post_blocked_until: string | null
           status: string | null
           unit_id: string | null
           visit_type: string | null
@@ -559,6 +560,7 @@ export type Database = {
           phone?: string | null
           plan?: string | null
           plan_value?: number | null
+          post_blocked_until?: string | null
           status?: string | null
           unit_id?: string | null
           visit_type?: string | null
@@ -578,6 +580,7 @@ export type Database = {
           phone?: string | null
           plan?: string | null
           plan_value?: number | null
+          post_blocked_until?: string | null
           status?: string | null
           unit_id?: string | null
           visit_type?: string | null
@@ -622,6 +625,7 @@ export type Database = {
       club_redemptions: {
         Row: {
           amount_saved: number | null
+          benefit_label: string | null
           confirmed_at: string | null
           confirmed_by: string | null
           created_at: string
@@ -634,6 +638,7 @@ export type Database = {
         }
         Insert: {
           amount_saved?: number | null
+          benefit_label?: string | null
           confirmed_at?: string | null
           confirmed_by?: string | null
           created_at?: string
@@ -646,6 +651,7 @@ export type Database = {
         }
         Update: {
           amount_saved?: number | null
+          benefit_label?: string | null
           confirmed_at?: string | null
           confirmed_by?: string | null
           created_at?: string
@@ -803,6 +809,9 @@ export type Database = {
           client_id: number | null
           content: string | null
           created_at: string
+          edited_at: string | null
+          hidden: boolean
+          hidden_reason: string | null
           id: string
           image_url: string | null
           unit_id: string | null
@@ -813,6 +822,9 @@ export type Database = {
           client_id?: number | null
           content?: string | null
           created_at?: string
+          edited_at?: string | null
+          hidden?: boolean
+          hidden_reason?: string | null
           id?: string
           image_url?: string | null
           unit_id?: string | null
@@ -823,6 +835,9 @@ export type Database = {
           client_id?: number | null
           content?: string | null
           created_at?: string
+          edited_at?: string | null
+          hidden?: boolean
+          hidden_reason?: string | null
           id?: string
           image_url?: string | null
           unit_id?: string | null
@@ -3499,6 +3514,7 @@ export type Database = {
           name: string
           points: number
           posts: number
+          streak: number
           unit_id: string
           workouts: number
         }[]
