@@ -51,12 +51,13 @@ const AvaliacoesTab = ({ onBack }: { onBack: () => void }) => {
   const [detail, setDetail] = useState<Assessment | null>(null);
   const [measures, setMeasures] = useState<Record<string, number>>({});
   const [bio, setBio] = useState<any | null>(null);
+  const [rating, setRating] = useState<number | null>(null);
 
   const load = useCallback(async () => {
     if (!clientId) { setLoading(false); return; }
     const { data } = await supabase
       .from("physical_assessments")
-      .select("id, scheduled_at, performed_at, professional_name, status, notes")
+      .select("id, scheduled_at, performed_at, professional_name, status, notes, student_rating")
       .eq("client_id", clientId)
       .order("scheduled_at", { ascending: false, nullsFirst: false });
     setItems((data || []) as Assessment[]);
@@ -69,6 +70,7 @@ const AvaliacoesTab = ({ onBack }: { onBack: () => void }) => {
     setDetail(a);
     setMeasures({});
     setBio(null);
+    setRating((a as any).student_rating ?? null);
     const [m, b] = await Promise.all([
       supabase.from("assessment_measures").select("measure_key, value").eq("assessment_id", a.id),
       supabase.from("assessment_bioimpedance").select("*").eq("assessment_id", a.id).maybeSingle(),
@@ -79,6 +81,15 @@ const AvaliacoesTab = ({ onBack }: { onBack: () => void }) => {
     });
     setMeasures(map);
     setBio(b.data);
+  };
+
+  const rate = async (n: number) => {
+    if (!detail) return;
+    const { data, error } = await supabase.rpc("assessment_rate" as any, { _id: detail.id, _rating: n, _note: null });
+    if (error || !(data as any)?.ok) { toast.error("Não foi possível enviar sua nota."); return; }
+    setRating(n);
+    toast.success("Nota enviada. Obrigado!");
+    load();
   };
 
   const schedule = async () => {
@@ -234,6 +245,27 @@ const AvaliacoesTab = ({ onBack }: { onBack: () => void }) => {
                     </span>
                   </div>
                 ))}
+            </div>
+
+            <div className="border-t border-border mt-4 pt-4">
+              <p className="font-barlow font-bold text-sm text-foreground mb-2">Como foi o atendimento?</p>
+              <div className="flex gap-2">
+                {[1, 2, 3, 4, 5].map((n) => (
+                  <button
+                    key={n}
+                    onClick={() => rate(n)}
+                    disabled={rating != null}
+                    className={`w-9 h-9 rounded-xl font-dm text-sm font-bold ${
+                      (rating ?? 0) >= n ? "bg-primary text-white" : "bg-secondary text-muted-foreground"
+                    } disabled:opacity-70`}
+                  >
+                    {n}
+                  </button>
+                ))}
+              </div>
+              <p className="text-[11px] text-muted font-dm mt-2">
+                {rating != null ? "Obrigado! Sua avaliação foi enviada." : "Sua nota vai direto para a coordenação."}
+              </p>
             </div>
 
             {detail?.notes && (
