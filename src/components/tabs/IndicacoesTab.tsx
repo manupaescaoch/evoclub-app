@@ -14,12 +14,14 @@ type Indication = {
 };
 
 const STATUS: Record<string, string> = {
-  new: "Enviada",
-  contacted: "Em contato",
-  scheduled: "Visita agendada",
+  registered: "Registrada",
+  in_contact: "Em contato",
+  experimental_scheduled: "Experimental agendada",
+  attended: "Compareceu",
   enrolled: "Matriculado",
   discount_applied: "Desconto aplicado",
   lost: "Não seguiu",
+  cancelled: "Cancelada",
 };
 
 const IndicacoesTab = ({ onBack }: { onBack: () => void }) => {
@@ -79,7 +81,7 @@ const IndicacoesTab = ({ onBack }: { onBack: () => void }) => {
           <p className="font-barlow text-[10px] tracking-[2px] uppercase text-muted font-bold">COMO FUNCIONA</p>
         </div>
         <p className="text-[11px] font-dm text-muted">
-          Indique um amigo. Quando ele fechar o plano, você recebe <span className="font-semibold text-primary">10% de desconto</span> na
+          Indique um amigo. Quando ele fechar o plano, você recebe <span className="font-semibold text-primary">5% de desconto</span> na
           próxima mensalidade. Pode indicar quantos amigos quiser.
         </p>
         <div className="grid grid-cols-3 gap-2 mt-3">
