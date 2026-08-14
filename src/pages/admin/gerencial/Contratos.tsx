@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Plus, Pencil, Copy, Power } from "lucide-react";
+import { Plus, Pencil, Copy, Power, Send } from "lucide-react";
 import { toast } from "sonner";
 import PageShell, { EmptyState, LoadingState, StatusBadge } from "@/components/admin/gerencial/PageShell";
 import {
@@ -29,6 +29,10 @@ export default function Contratos() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<Partial<Contract>>(empty);
+  const [issueFor, setIssueFor] = useState<Contract | null>(null);
+  const [clients, setClients] = useState<{ id: number; name: string; plan: string | null; plan_value: number | null; unit_id: string | null; contract_start: string | null; contract_end: string | null }[]>([]);
+  const [clientId, setClientId] = useState("");
+  const [issuing, setIssuing] = useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -37,6 +41,40 @@ export default function Contratos() {
     setRows(data || []); setLoading(false);
   };
   useEffect(() => { load(); }, []);
+
+  const openIssue = async (r: Contract) => {
+    setClientId("");
+    setIssueFor(r);
+    const { data } = await supabase
+      .from("clients")
+      .select("id, name, plan, plan_value, unit_id, contract_start, contract_end")
+      .order("name");
+    setClients((data || []) as typeof clients);
+  };
+
+  const issue = async () => {
+    if (!issueFor || !clientId) { toast.error("Selecione o aluno"); return; }
+    const c = clients.find(x => String(x.id) === clientId);
+    if (!c) return;
+    setIssuing(true);
+    const body = [issueFor.body, issueFor.renewal_rules && `RENOVAÇÃO\n${issueFor.renewal_rules}`, issueFor.cancellation_rules && `CANCELAMENTO\n${issueFor.cancellation_rules}`]
+      .filter(Boolean).join("\n\n");
+    const { error } = await supabase.from("client_contracts").insert({
+      client_id: c.id,
+      unit_id: c.unit_id,
+      contract_id: issueFor.id,
+      title: issueFor.name,
+      body,
+      plan: c.plan || issueFor.linked_plan,
+      plan_value: c.plan_value,
+      starts_at: c.contract_start,
+      ends_at: c.contract_end,
+    });
+    setIssuing(false);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Contrato enviado para o app do aluno");
+    setIssueFor(null);
+  };
 
   const filtered = rows.filter(r =>
     (statusFilter === "all" || r.status === statusFilter) &&
@@ -111,6 +149,7 @@ export default function Contratos() {
                     <td className="px-4 py-3">
                       <div className="flex gap-1 justify-end">
                         <Button size="icon" variant="ghost" onClick={() => { setForm(r); setOpen(true); }}><Pencil size={14} /></Button>
+                        <Button size="icon" variant="ghost" title="Emitir para aluno" onClick={() => openIssue(r)}><Send size={14} /></Button>
                         <Button size="icon" variant="ghost" onClick={() => duplicate(r)}><Copy size={14} /></Button>
                         <Button size="icon" variant="ghost" onClick={() => toggleStatus(r)}><Power size={14} /></Button>
                       </div>
@@ -139,6 +178,30 @@ export default function Contratos() {
           <DialogFooter>
             <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
             <Button onClick={save}>Salvar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!issueFor} onOpenChange={o => !o && setIssueFor(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader><DialogTitle>Emitir "{issueFor?.name}" para aluno</DialogTitle></DialogHeader>
+          <p className="text-xs text-muted-foreground">
+            O aluno recebe o contrato no app, pode ler, baixar em PDF e assinar digitalmente.
+          </p>
+          <div>
+            <Label>Aluno</Label>
+            <Select value={clientId} onValueChange={setClientId}>
+              <SelectTrigger className="h-9"><SelectValue placeholder="Selecione o aluno" /></SelectTrigger>
+              <SelectContent className="max-h-72">
+                {clients.map(c => (
+                  <SelectItem key={c.id} value={String(c.id)}>{c.name}{c.plan ? ` — ${c.plan}` : ""}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIssueFor(null)}>Cancelar</Button>
+            <Button disabled={issuing} onClick={issue}>{issuing ? "Enviando..." : "Emitir contrato"}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
