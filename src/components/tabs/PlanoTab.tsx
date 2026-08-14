@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useProfile, daysLeft } from "@/hooks/useProfile";
+import { usePlanState, planMessage } from "@/hooks/usePlanState";
 import { fmtBRL } from "@/lib/finance";
 
 type Contract = {
@@ -35,8 +36,9 @@ const PAYMENTS = ["Pix", "Cartão de crédito", "Dinheiro", "Débito automático
 const fmtDate = (iso: string | null) =>
   iso ? new Date(`${iso.slice(0, 10)}T00:00:00`).toLocaleDateString("pt-BR") : "—";
 
-const PlanoTab = ({ onBack }: { onBack: () => void }) => {
+const PlanoTab = ({ onBack, onNavigate }: { onBack: () => void; onNavigate?: (s: string) => void }) => {
   const { profile } = useProfile();
+  const { plan: planState } = usePlanState();
   const [contracts, setContracts] = useState<Contract[]>([]);
   const [requests, setRequests] = useState<Renewal[]>([]);
   const [open, setOpen] = useState(false);
@@ -93,6 +95,16 @@ const PlanoTab = ({ onBack }: { onBack: () => void }) => {
         </button>
         <p className="font-barlow font-bold text-lg text-foreground">Meu Plano</p>
       </div>
+
+      {(planState.state === "blocked" || planState.state === "overdue") && (
+        <div
+          className={`rounded-2xl px-4 py-3 mb-4 text-[11px] font-dm font-semibold ${
+            planState.blocked ? "bg-red-50 text-red-700" : "bg-amber-50 text-amber-700"
+          }`}
+        >
+          {planMessage(planState)}
+        </div>
+      )}
 
       {/* Plano atual */}
       <div className="rounded-2xl bg-white p-4 card-shadow mb-4">
@@ -153,6 +165,13 @@ const PlanoTab = ({ onBack }: { onBack: () => void }) => {
           className="mt-4 w-full py-3.5 rounded-2xl bg-primary text-primary-foreground font-dm font-semibold text-sm cta-shadow flex items-center justify-center gap-2"
         >
           <CreditCard size={16} /> Quero renovar
+        </button>
+
+        <button
+          onClick={() => onNavigate?.("contratos")}
+          className="mt-2 w-full py-3 rounded-2xl bg-secondary text-foreground font-dm font-semibold text-sm flex items-center justify-center gap-2"
+        >
+          <FileText size={15} /> Meus contratos
         </button>
       </div>
 
