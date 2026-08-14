@@ -18,9 +18,17 @@ interface Serie {
   prescribedSets: number | null;
   prescribedReps: string | null;
   prescribedLoad: string | null;
+  prescribedTime: number | null;
+  prescribedIncline: string | null;
   performedSets: number | null;
   performedReps: string | null;
   performedLoad: string | null;
+  performedTime: number | null;
+  performedDistance: string | null;
+  performedSpeed: string | null;
+  performedIncline: string | null;
+  performedCalories: string | null;
+  cardio: boolean;
   completed: boolean;
   lastExecution: string | null;
 }
@@ -41,6 +49,9 @@ const formatTime = (seconds: number) => {
 
 const fmtDate = (d: string | null) =>
   d ? new Date(`${d}T00:00:00`).toLocaleDateString("pt-BR", { day: "2-digit", month: "short" }) : "—";
+
+const isCardioType = (t: string | null) =>
+  !!t && /cardio|corrida|inclina|tempo/i.test(t);
 
 const XP_LOAD = 5;
 const XP_START = 10;
