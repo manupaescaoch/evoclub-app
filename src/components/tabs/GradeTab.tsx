@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import CheckInDialog from "./CheckInDialog";
 import { useStudentName } from "@/hooks/useStudentName";
+import { usePlanState, planMessage } from "@/hooks/usePlanState";
 
 type ClassRow = {
   id: string;
@@ -40,12 +41,14 @@ const REASONS: Record<string, string> = {
   full: "Turma lotada.",
   wrong_day: "Aula não acontece neste dia.",
   no_client: "Cadastro não encontrado.",
+  plan_irregular: "Plano irregular. Regularize na recepção para agendar.",
   forbidden: "Ação não permitida.",
   not_found: "Registro não encontrado.",
 };
 
 const GradeTab = () => {
   const { name: authName, clientId } = useStudentName();
+  const { plan } = usePlanState();
   const [offset, setOffset] = useState(0);
   const [classes, setClasses] = useState<ClassRow[]>([]);
   const [status, setStatus] = useState<Record<string, Status>>({});
@@ -132,6 +135,7 @@ const GradeTab = () => {
 
   const hasBookingToday = Object.values(status).some((s) => s.my_booking_id);
   const inWaitlistToday = Object.values(status).some((s) => s.my_waitlist_position);
+  const planBlocked = plan.blocked;
 
   return (
     <div>
@@ -158,6 +162,14 @@ const GradeTab = () => {
           <div className="bg-white card-shadow rounded-xl px-3 py-2 text-xs font-dm">
             <span className="text-muted-foreground">Aluno: </span>
             <span className="font-semibold text-foreground">{authName}</span>
+          </div>
+        </div>
+      )}
+
+      {(plan.state === "blocked" || plan.state === "overdue") && (
+        <div className="px-4 pb-2">
+          <div className={`rounded-xl px-3 py-2.5 text-[11px] font-dm font-semibold ${planBlocked ? "bg-red-50 text-red-700" : "bg-amber-50 text-amber-700"}`}>
+            {planMessage(plan)}
           </div>
         </div>
       )}
@@ -205,6 +217,10 @@ const GradeTab = () => {
             label = "Lista de espera";
             action = () => openBooking(c, true);
             tag = "LOTADO";
+          }
+
+          if (planBlocked && !mine && !myWait) {
+            label = "Plano irregular"; disabled = true; action = null;
           }
 
           return (
