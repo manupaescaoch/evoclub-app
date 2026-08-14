@@ -713,8 +713,9 @@ const TreinoTab = () => {
   };
 
   const finishWorkout = useCallback(
-    async (auto = false) => {
+    async (auto = false, answers?: PostWorkoutAnswers) => {
       if (!logId) { setShowXpModal(true); return; }
+      if (!auto && !answers) { setShowPostWorkout(true); return; }
       setSaving(true);
       for (let i = 0; i < exercises.length; i++) {
         for (let j = 0; j < exercises[i].series.length; j++) {
@@ -723,9 +724,30 @@ const TreinoTab = () => {
       }
       await supabase
         .from("workout_logs")
-        .update({ status: "completed", finished_at: new Date().toISOString() })
+        .update({
+          status: "completed",
+          finished_at: new Date().toISOString(),
+          ...(answers
+            ? {
+                rpe: answers.rpe,
+                followup_stars: answers.stars,
+                followup_note: answers.note || null,
+                pain: answers.pain,
+                pain_note: answers.pain ? answers.painNote : null,
+              }
+            : {}),
+        })
         .eq("id", logId);
+      if (answers?.pain && clientId) {
+        await supabase.from("pain_reports").insert({
+          client_id: clientId,
+          workout_log_id: logId,
+          note: answers.painNote,
+          status: "novo",
+        });
+      }
       setSaving(false);
+      setShowPostWorkout(false);
       setStarted(false);
       reload();
       if (auto) {
@@ -735,10 +757,10 @@ const TreinoTab = () => {
         setShowXpModal(true);
       }
     },
-    [logId, exercises, persistSerie, reload]
+    [logId, exercises, persistSerie, reload, clientId]
   );
 
-  finishRef.current = finishWorkout;
+  finishRef.current = (auto?: boolean) => { void finishWorkout(auto ?? false); };
 
   // Auto-finalização em 2h
   useEffect(() => {
