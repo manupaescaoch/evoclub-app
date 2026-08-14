@@ -285,6 +285,47 @@ export type Database = {
           },
         ]
       }
+      assessment_revisions: {
+        Row: {
+          after_data: Json | null
+          assessment_id: string
+          before_data: Json | null
+          changed_by: string | null
+          changed_by_name: string | null
+          created_at: string
+          id: string
+          reason: string
+        }
+        Insert: {
+          after_data?: Json | null
+          assessment_id: string
+          before_data?: Json | null
+          changed_by?: string | null
+          changed_by_name?: string | null
+          created_at?: string
+          id?: string
+          reason: string
+        }
+        Update: {
+          after_data?: Json | null
+          assessment_id?: string
+          before_data?: Json | null
+          changed_by?: string | null
+          changed_by_name?: string | null
+          created_at?: string
+          id?: string
+          reason?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assessment_revisions_assessment_id_fkey"
+            columns: ["assessment_id"]
+            isOneToOne: false
+            referencedRelation: "physical_assessments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       audit_logs: {
         Row: {
           action: string
@@ -3051,36 +3092,75 @@ export type Database = {
       }
       physical_assessments: {
         Row: {
+          cancel_reason: string | null
+          cancelled_at: string | null
+          cancelled_by: string | null
           client_id: number
           created_at: string
           id: string
+          next_due_at: string | null
           notes: string | null
+          origin: string | null
           performed_at: string | null
+          professional_id: string | null
           professional_name: string | null
+          published_at: string | null
+          rescheduled_from: string | null
           scheduled_at: string | null
+          scheduled_by: string | null
           status: string
+          student_rated_at: string | null
+          student_rating: number | null
+          student_rating_note: string | null
+          unit_id: string | null
           updated_at: string
         }
         Insert: {
+          cancel_reason?: string | null
+          cancelled_at?: string | null
+          cancelled_by?: string | null
           client_id: number
           created_at?: string
           id?: string
+          next_due_at?: string | null
           notes?: string | null
+          origin?: string | null
           performed_at?: string | null
+          professional_id?: string | null
           professional_name?: string | null
+          published_at?: string | null
+          rescheduled_from?: string | null
           scheduled_at?: string | null
+          scheduled_by?: string | null
           status?: string
+          student_rated_at?: string | null
+          student_rating?: number | null
+          student_rating_note?: string | null
+          unit_id?: string | null
           updated_at?: string
         }
         Update: {
+          cancel_reason?: string | null
+          cancelled_at?: string | null
+          cancelled_by?: string | null
           client_id?: number
           created_at?: string
           id?: string
+          next_due_at?: string | null
           notes?: string | null
+          origin?: string | null
           performed_at?: string | null
+          professional_id?: string | null
           professional_name?: string | null
+          published_at?: string | null
+          rescheduled_from?: string | null
           scheduled_at?: string | null
+          scheduled_by?: string | null
           status?: string
+          student_rated_at?: string | null
+          student_rating?: number | null
+          student_rating_note?: string | null
+          unit_id?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -4697,6 +4777,67 @@ export type Database = {
     Functions: {
       ack_limitation_alert: { Args: { _alert_id: string }; Returns: Json }
       allowed_unit_ids: { Args: { _user_id: string }; Returns: string[] }
+      assessment_cancel: {
+        Args: { _id: string; _reason?: string }
+        Returns: Json
+      }
+      assessment_dashboard: {
+        Args: { _from?: string; _to?: string; _unit_id?: string }
+        Returns: Json
+      }
+      assessment_list: {
+        Args: { _from?: string; _to?: string; _unit_id?: string }
+        Returns: {
+          client_id: number
+          client_name: string
+          created_at: string
+          id: string
+          next_due_at: string
+          origin: string
+          performed_at: string
+          professional_id: string
+          professional_name: string
+          published_at: string
+          revisions: number
+          scheduled_at: string
+          status: string
+          student_rating: number
+          unit_id: string
+        }[]
+      }
+      assessment_publish: {
+        Args: {
+          _bio: Json
+          _id: string
+          _measures: Json
+          _next_due?: string
+          _notes?: string
+          _origin: string
+          _reason?: string
+        }
+        Returns: Json
+      }
+      assessment_rate: {
+        Args: { _id: string; _note?: string; _rating: number }
+        Returns: Json
+      }
+      assessment_reschedule: {
+        Args: { _at: string; _id: string; _professional_id?: string }
+        Returns: Json
+      }
+      assessment_schedule: {
+        Args: {
+          _at: string
+          _client_id: number
+          _notes?: string
+          _professional_id?: string
+        }
+        Returns: Json
+      }
+      assessment_set_status: {
+        Args: { _id: string; _status: string }
+        Returns: Json
+      }
       assign_professor: {
         Args: { _booking_id: string; _collaborator_id: string }
         Returns: Json
@@ -4736,6 +4877,7 @@ export type Database = {
         Returns: Json
       }
       client_attendance_stats: { Args: { _client_id: number }; Returns: Json }
+      client_health_overview: { Args: { _client_id: number }; Returns: Json }
       client_timeline: {
         Args: {
           _client_id: number
@@ -4829,6 +4971,32 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      health_correct_bp: {
+        Args: {
+          _diastolic: number
+          _id: string
+          _reason: string
+          _systolic: number
+        }
+        Returns: Json
+      }
+      health_correct_weight: {
+        Args: { _id: string; _reason: string; _value: number }
+        Returns: Json
+      }
+      health_record_bp: {
+        Args: {
+          _client_id: number
+          _diastolic: number
+          _measured_at?: string
+          _systolic: number
+        }
+        Returns: Json
+      }
+      health_record_weight: {
+        Args: { _client_id: number; _measured_at?: string; _value: number }
+        Returns: Json
       }
       is_staff: { Args: { _user_id: string }; Returns: boolean }
       join_waitlist: {
