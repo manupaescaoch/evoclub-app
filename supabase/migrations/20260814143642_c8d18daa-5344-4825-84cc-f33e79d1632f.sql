@@ -1,0 +1,11 @@
+REVOKE EXECUTE ON FUNCTION public.set_slot_override(uuid, date, integer, boolean, text) FROM anon;
+REVOKE EXECUTE ON FUNCTION public.clear_slot_override(uuid, date) FROM anon;
+REVOKE EXECUTE ON FUNCTION public.set_attendance(uuid, text) FROM anon;
+REVOKE EXECUTE ON FUNCTION public.assign_professor(uuid, uuid) FROM anon;
+REVOKE EXECUTE ON FUNCTION public.unassign_professor(uuid) FROM anon;
+REVOKE EXECUTE ON FUNCTION public.start_assigned_session(uuid) FROM anon;
+REVOKE EXECUTE ON FUNCTION public.update_limitations(integer, text) FROM anon;
+REVOKE EXECUTE ON FUNCTION public.ack_limitation_alert(uuid) FROM anon;
+REVOKE EXECUTE ON FUNCTION public.register_conversion(integer, numeric, uuid, uuid, uuid, uuid, date, uuid, text) FROM anon;
+REVOKE EXECUTE ON FUNCTION public.effective_capacity(uuid, date) FROM anon;
+REVOKE EXECUTE ON FUNCTION public.slot_blocked(uuid, date) FROM anon;

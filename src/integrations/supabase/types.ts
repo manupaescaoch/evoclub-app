@@ -459,8 +459,72 @@ export type Database = {
           },
         ]
       }
+      class_assignments: {
+        Row: {
+          assigned_at: string
+          assigned_by: string | null
+          booking_id: string
+          class_date: string
+          class_id: string
+          collaborator_id: string
+          id: string
+          locked: boolean
+          started_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          assigned_at?: string
+          assigned_by?: string | null
+          booking_id: string
+          class_date: string
+          class_id: string
+          collaborator_id: string
+          id?: string
+          locked?: boolean
+          started_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          assigned_at?: string
+          assigned_by?: string | null
+          booking_id?: string
+          class_date?: string
+          class_id?: string
+          collaborator_id?: string
+          id?: string
+          locked?: boolean
+          started_at?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "class_assignments_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: true
+            referencedRelation: "class_bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "class_assignments_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "class_assignments_collaborator_id_fkey"
+            columns: ["collaborator_id"]
+            isOneToOne: false
+            referencedRelation: "collaborators"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       class_bookings: {
         Row: {
+          attendance_marked_at: string | null
+          attendance_marked_by: string | null
+          attendance_status: string
           booked_at: string | null
           cancelled_at: string | null
           checked_in_at: string | null
@@ -474,6 +538,9 @@ export type Database = {
           student_name: string | null
         }
         Insert: {
+          attendance_marked_at?: string | null
+          attendance_marked_by?: string | null
+          attendance_status?: string
           booked_at?: string | null
           cancelled_at?: string | null
           checked_in_at?: string | null
@@ -487,6 +554,9 @@ export type Database = {
           student_name?: string | null
         }
         Update: {
+          attendance_marked_at?: string | null
+          attendance_marked_by?: string | null
+          attendance_status?: string
           booked_at?: string | null
           cancelled_at?: string | null
           checked_in_at?: string | null
@@ -519,6 +589,53 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      class_slot_overrides: {
+        Row: {
+          blocked: boolean
+          capacity_override: number | null
+          class_date: string
+          class_id: string
+          created_at: string
+          created_by: string | null
+          id: string
+          reason: string
+          unit_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          blocked?: boolean
+          capacity_override?: number | null
+          class_date: string
+          class_id: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          reason: string
+          unit_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          blocked?: boolean
+          capacity_override?: number | null
+          class_date?: string
+          class_id?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          reason?: string
+          unit_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "class_slot_overrides_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
             referencedColumns: ["id"]
           },
         ]
@@ -1013,6 +1130,63 @@ export type Database = {
             columns: ["permission_profile_id"]
             isOneToOne: false
             referencedRelation: "permission_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      commission_entries: {
+        Row: {
+          amount: number
+          base_value: number
+          collaborator_id: string | null
+          conversion_id: string
+          created_at: string
+          id: string
+          rate: number | null
+          reference_date: string
+          role: string
+          rule: string
+          unit_id: string | null
+        }
+        Insert: {
+          amount?: number
+          base_value?: number
+          collaborator_id?: string | null
+          conversion_id: string
+          created_at?: string
+          id?: string
+          rate?: number | null
+          reference_date?: string
+          role: string
+          rule: string
+          unit_id?: string | null
+        }
+        Update: {
+          amount?: number
+          base_value?: number
+          collaborator_id?: string | null
+          conversion_id?: string
+          created_at?: string
+          id?: string
+          rate?: number | null
+          reference_date?: string
+          role?: string
+          rule?: string
+          unit_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "commission_entries_collaborator_id_fkey"
+            columns: ["collaborator_id"]
+            isOneToOne: false
+            referencedRelation: "collaborators"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commission_entries_conversion_id_fkey"
+            columns: ["conversion_id"]
+            isOneToOne: false
+            referencedRelation: "enrollment_conversions"
             referencedColumns: ["id"]
           },
         ]
@@ -1701,6 +1875,107 @@ export type Database = {
           },
         ]
       }
+      enrollment_conversions: {
+        Row: {
+          client_id: number
+          created_at: string
+          created_by: string | null
+          enrollment_date: string
+          first_monthly_value: number
+          id: string
+          notes: string | null
+          registrar_id: string | null
+          sale_id: string | null
+          seller_id: string | null
+          trial_booking_id: string | null
+          trial_professor_id: string | null
+          unit_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          client_id: number
+          created_at?: string
+          created_by?: string | null
+          enrollment_date?: string
+          first_monthly_value?: number
+          id?: string
+          notes?: string | null
+          registrar_id?: string | null
+          sale_id?: string | null
+          seller_id?: string | null
+          trial_booking_id?: string | null
+          trial_professor_id?: string | null
+          unit_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          client_id?: number
+          created_at?: string
+          created_by?: string | null
+          enrollment_date?: string
+          first_monthly_value?: number
+          id?: string
+          notes?: string | null
+          registrar_id?: string | null
+          sale_id?: string | null
+          seller_id?: string | null
+          trial_booking_id?: string | null
+          trial_professor_id?: string | null
+          unit_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "enrollment_conversions_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: true
+            referencedRelation: "client_overview"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "enrollment_conversions_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: true
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "enrollment_conversions_registrar_id_fkey"
+            columns: ["registrar_id"]
+            isOneToOne: false
+            referencedRelation: "collaborators"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "enrollment_conversions_sale_id_fkey"
+            columns: ["sale_id"]
+            isOneToOne: false
+            referencedRelation: "sales"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "enrollment_conversions_seller_id_fkey"
+            columns: ["seller_id"]
+            isOneToOne: false
+            referencedRelation: "collaborators"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "enrollment_conversions_trial_booking_id_fkey"
+            columns: ["trial_booking_id"]
+            isOneToOne: false
+            referencedRelation: "class_bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "enrollment_conversions_trial_professor_id_fkey"
+            columns: ["trial_professor_id"]
+            isOneToOne: false
+            referencedRelation: "collaborators"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       evo_cycles: {
         Row: {
           client_id: number
@@ -2127,6 +2402,60 @@ export type Database = {
           },
           {
             foreignKeyName: "health_weights_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      limitation_alerts: {
+        Row: {
+          acknowledged_at: string | null
+          acknowledged_by: string | null
+          client_id: number
+          created_at: string
+          created_by: string | null
+          id: string
+          new_value: string | null
+          old_value: string | null
+          source: string
+          unit_id: string | null
+        }
+        Insert: {
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          client_id: number
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          new_value?: string | null
+          old_value?: string | null
+          source?: string
+          unit_id?: string | null
+        }
+        Update: {
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          client_id?: number
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          new_value?: string | null
+          old_value?: string | null
+          source?: string
+          unit_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "limitation_alerts_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "client_overview"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "limitation_alerts_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
@@ -4265,7 +4594,12 @@ export type Database = {
       }
     }
     Functions: {
+      ack_limitation_alert: { Args: { _alert_id: string }; Returns: Json }
       allowed_unit_ids: { Args: { _user_id: string }; Returns: string[] }
+      assign_professor: {
+        Args: { _booking_id: string; _collaborator_id: string }
+        Returns: Json
+      }
       book_class: {
         Args: { _class_date: string; _class_id: string; _muscle_group: string }
         Returns: Json
@@ -4296,6 +4630,10 @@ export type Database = {
           waiting: number
         }[]
       }
+      clear_slot_override: {
+        Args: { _class_date: string; _class_id: string }
+        Returns: Json
+      }
       client_attendance_stats: { Args: { _client_id: number }; Returns: Json }
       client_timeline: {
         Args: {
@@ -4312,6 +4650,23 @@ export type Database = {
           title: string
         }[]
       }
+      commission_report: {
+        Args: { _from: string; _to: string; _unit_id?: string }
+        Returns: {
+          amount: number
+          base_value: number
+          client_id: number
+          client_name: string
+          collaborator_id: string
+          collaborator_name: string
+          conversion_id: string
+          entry_id: string
+          reference_date: string
+          role: string
+          rule: string
+          unit_id: string
+        }[]
+      }
       complete_evo_cycle: { Args: { _stats?: Json }; Returns: Json }
       create_indication: {
         Args: { _name: string; _phone: string }
@@ -4319,8 +4674,52 @@ export type Database = {
       }
       current_client_id: { Args: never; Returns: number }
       current_collaborator_id: { Args: never; Returns: string }
+      effective_capacity: {
+        Args: { _class_date: string; _class_id: string }
+        Returns: number
+      }
       evo_cycle_state: { Args: never; Returns: Json }
       gamification_state: { Args: never; Returns: Json }
+      grade_day_roster: {
+        Args: { _class_date: string; _unit_id?: string }
+        Returns: {
+          attendance_status: string
+          avatar_url: string
+          booking_id: string
+          class_id: string
+          client_id: number
+          collaborator_id: string
+          is_trial: boolean
+          kind: string
+          locked: boolean
+          muscle_group: string
+          professor_name: string
+          started_at: string
+          student_name: string
+          waitlist_position: number
+          waitlisted: boolean
+        }[]
+      }
+      grade_day_slots: {
+        Args: { _class_date: string; _unit_id?: string }
+        Returns: {
+          absent: number
+          blocked: boolean
+          booked: number
+          capacity: number
+          capacity_override: number
+          class_id: string
+          end_time: string
+          name: string
+          present: number
+          reason: string
+          start_time: string
+          trainer: string
+          trials: number
+          unit_id: string
+          waiting: number
+        }[]
+      }
       has_financial_release: { Args: { _user_id: string }; Returns: boolean }
       has_role: {
         Args: {
@@ -4369,10 +4768,44 @@ export type Database = {
         }[]
       }
       refresh_attendance_alerts: { Args: never; Returns: number }
+      register_conversion: {
+        Args: {
+          _client_id: number
+          _enrollment_date?: string
+          _first_monthly_value: number
+          _notes?: string
+          _registrar_id?: string
+          _seller_id?: string
+          _trial_booking_id?: string
+          _trial_professor_id?: string
+          _unit_id?: string
+        }
+        Returns: Json
+      }
+      set_attendance: {
+        Args: { _booking_id: string; _status: string }
+        Returns: Json
+      }
+      set_slot_override: {
+        Args: {
+          _blocked: boolean
+          _capacity: number
+          _class_date: string
+          _class_id: string
+          _reason: string
+        }
+        Returns: Json
+      }
       sign_contract: {
         Args: { _contract: string; _cpf: string; _name: string }
         Returns: Json
       }
+      slot_blocked: {
+        Args: { _class_date: string; _class_id: string }
+        Returns: boolean
+      }
+      start_assigned_session: { Args: { _booking_id: string }; Returns: Json }
+      student_quick_summary: { Args: { _client_id: number }; Returns: Json }
       student_xp: {
         Args: { _client_id: number; _from?: string; _to?: string }
         Returns: {
@@ -4384,6 +4817,11 @@ export type Database = {
         }[]
       }
       sync_achievements: { Args: never; Returns: Json }
+      unassign_professor: { Args: { _booking_id: string }; Returns: Json }
+      update_limitations: {
+        Args: { _client_id: number; _limitations: string }
+        Returns: Json
+      }
     }
     Enums: {
       app_role: "admin" | "coach" | "coordinator" | "student" | "viewer"
