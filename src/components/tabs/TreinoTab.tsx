@@ -630,6 +630,11 @@ const TreinoTab = () => {
         performed_sets: serie.performedSets ?? serie.prescribedSets,
         performed_reps: serie.performedReps ?? serie.prescribedReps,
         performed_load: serie.performedLoad ?? serie.prescribedLoad,
+        performed_time_seconds: serie.performedTime ?? serie.prescribedTime,
+        performed_distance_km: serie.performedDistance ? Number(serie.performedDistance) : null,
+        performed_speed: serie.performedSpeed ? Number(serie.performedSpeed) : null,
+        performed_incline: serie.performedIncline ?? serie.prescribedIncline,
+        performed_calories: serie.performedCalories ? parseInt(serie.performedCalories) : null,
         completed: true,
         exercise_order: exIdx,
         order_index: sIdx,
@@ -677,7 +682,10 @@ const TreinoTab = () => {
   const saveSerieData = async (
     exIdx: number,
     sIdx: number,
-    v: { load: string; sets: string; reps: string }
+    v: {
+      load: string; sets: string; reps: string;
+      time?: string; distance?: string; speed?: string; incline?: string; calories?: string;
+    }
   ) => {
     const ex = exercises[exIdx];
     const serie = ex.series[sIdx];
@@ -686,6 +694,11 @@ const TreinoTab = () => {
       performedLoad: v.load || serie.performedLoad,
       performedSets: v.sets ? parseInt(v.sets) : serie.performedSets,
       performedReps: v.reps || serie.performedReps,
+      performedTime: v.time ? parseInt(v.time) : serie.performedTime,
+      performedDistance: v.distance || serie.performedDistance,
+      performedSpeed: v.speed || serie.performedSpeed,
+      performedIncline: v.incline || serie.performedIncline,
+      performedCalories: v.calories || serie.performedCalories,
     };
     setExercises((prev) =>
       prev.map((e, i) =>
