@@ -3,11 +3,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { Lock } from "lucide-react";
+import { Lock, AlertTriangle } from "lucide-react";
 import { EmptyState, LoadingState, SummaryCard } from "@/components/admin/gerencial/PageShell";
 import { useAccess } from "@/contexts/AccessContext";
 import { logAudit, diffFields } from "@/lib/audit";
 import { OverviewRow, useAttendanceStats, useClientTimeline } from "@/hooks/useClient360";
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
+import { RANGES, RangeKey } from "@/hooks/useHealth";
+import { AdminSeriesKey, useAdminHealthOverview, useAdminHealthSeries } from "@/hooks/useAdminHealth";
 
 export const fmtDate = (d?: string | null) =>
   d ? new Date(d.length <= 10 ? `${d}T12:00:00` : d).toLocaleDateString("pt-BR") : "—";
@@ -540,40 +543,250 @@ export function TreinosTab({ c }: { c: OverviewRow }) {
 }
 
 export function SaudeTab({ c }: { c: OverviewRow }) {
-  const weights = useClientRows("health_weights", c.id, "client_id", "created_at");
+  const { can } = useAccess();
+  const canEdit = can("clientes", "edit");
+  const overview = useAdminHealthOverview(c.id);
+  const [metric, setMetric] = useState<AdminSeriesKey>("weight");
+  const [range, setRange] = useState<RangeKey>("3m");
+  const series = useAdminHealthSeries(c.id, metric, range);
   const photos = useClientRows("evolution_photos", c.id);
-  const checkins = useClientRows("daily_checkins", c.id, "client_id", "checkin_date");
+  const [form, setForm] = useState<null | "weight" | "bp">(null);
+
+  const o = overview.data;
+  const alerts = o?.alerts;
+  const alertList = [
+    { on: (alerts?.new_limitation || 0) > 0, label: "Nova limitação registrada" },
+    { on: (alerts?.low_readiness || 0) > 0, label: "Prontidão baixa no último check-in" },
+    { on: (alerts?.pain_open || 0) > 0, label: "Dor em acompanhamento" },
+    { on: (alerts?.assessment_overdue || 0) > 0, label: "Avaliação vencida" },
+    { on: (alerts?.training_overdue || 0) > 0, label: "Treino vencido" },
+  ].filter(a => a.on);
+
+  const chartData = series.points.map(p => ({
+    label: new Date(p.date.length <= 10 ? `${p.date}T12:00:00` : p.date)
+      .toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" }),
+    value: p.value,
+    extra: p.extra,
+  }));
+
+  const reload = () => { overview.reload(); series.reload(); };
+
   return (
     <div className="space-y-4">
-      <Section title="Peso">
-        <ListShell {...weights} empty="Nenhum peso registrado.">
-          <div className="space-y-2">
-            {weights.rows.slice(0, 10).map(w => (
-              <div key={w.id} className="flex items-center justify-between border-b border-border pb-2 last:border-0 text-sm font-dm">
-                <span className="text-foreground">{w.value} kg</span>
-                <span className="text-[11px] text-muted-foreground">{fmtDate(w.created_at)}</span>
-              </div>
-            ))}
+      {overview.error && (
+        <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm font-dm text-red-700">
+          Não foi possível carregar os dados de saúde: {overview.error}
+        </div>
+      )}
+
+      {overview.loading ? <LoadingState /> : !o?.allowed ? (
+        <EmptyState message="Sem acesso aos dados de saúde deste aluno." />
+      ) : (
+        <>
+          {!!alertList.length && (
+            <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 space-y-1">
+              {alertList.map(a => (
+                <p key={a.label} className="text-xs font-dm text-amber-800 flex items-center gap-1">
+                  <AlertTriangle size={12} /> {a.label}
+                </p>
+              ))}
+            </div>
+          )}
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <SummaryCard label="Peso atual" value={o.weight ? `${o.weight.value} kg` : "—"} />
+            <SummaryCard label="Meta de peso" value={o.goal ? `${o.goal.target} kg` : "—"} accent="blue" />
+            <SummaryCard label="FC repouso" value={o.resting_hr ? `${o.resting_hr.value} bpm` : "—"} />
+            <SummaryCard label="Pressão arterial"
+              value={o.bp ? `${o.bp.systolic}/${o.bp.diastolic}` : "—"} />
+            <SummaryCard label="Sono (último)" value={o.checkin?.sleep_hours != null ? `${o.checkin.sleep_hours} h` : "—"} />
+            <SummaryCard label="Qualidade do sono" value={o.checkin?.sleep_quality != null ? `${o.checkin.sleep_quality}/5` : "—"} />
+            <SummaryCard label="Prontidão do dia"
+              value={o.checkin?.readiness != null ? `${o.checkin.readiness}/5` : "—"}
+              accent={o.checkin?.readiness != null && Number(o.checkin.readiness) <= 2.5 ? "red" : "green"} />
+            <SummaryCard label="Última sincronização"
+              value={o.device?.last_sync_at ? fmtDateTime(o.device.last_sync_at) : "—"} />
           </div>
-        </ListShell>
-      </Section>
-      <Section title="Check-ins de bem-estar">
-        <ListShell {...checkins} empty="Nenhum check-in diário.">
-          <div className="space-y-2">
-            {checkins.rows.slice(0, 10).map(d => (
-              <div key={d.id} className="flex items-center justify-between border-b border-border pb-2 last:border-0 text-sm font-dm">
-                <span className="text-foreground">Sono {d.sleep_hours ?? "—"}h · Energia {d.energy ?? "—"} · Humor {d.mood ?? "—"}</span>
-                <span className="text-[11px] text-muted-foreground">{fmtDate(d.checkin_date)}</span>
+
+          <Section title="Evolução">
+            <div className="flex flex-wrap gap-2 mb-3">
+              {([
+                ["weight", "Peso"], ["resting_hr", "FC repouso"], ["blood_pressure", "Pressão"],
+                ["sleep_hours", "Sono"], ["sleep_quality", "Qualidade do sono"],
+              ] as [AdminSeriesKey, string][]).map(([k, l]) => (
+                <button key={k} onClick={() => setMetric(k)}
+                  className={`px-3 py-1.5 rounded-lg text-[11px] font-dm border ${
+                    metric === k ? "bg-primary text-white border-primary" : "border-border text-muted-foreground"}`}>
+                  {l}
+                </button>
+              ))}
+            </div>
+            <div className="flex flex-wrap gap-2 mb-3">
+              {RANGES.map(r => (
+                <button key={r.key} onClick={() => setRange(r.key)}
+                  className={`px-3 py-1 rounded-full text-[11px] font-dm border ${
+                    range === r.key ? "bg-foreground text-white border-foreground" : "border-border text-muted-foreground"}`}>
+                  {r.label}
+                </button>
+              ))}
+            </div>
+            {series.loading ? <LoadingState /> : series.error ? (
+              <p className="text-sm font-dm text-red-700">{series.error}</p>
+            ) : chartData.length === 0 ? (
+              <EmptyState message="Sem registros neste recorte." />
+            ) : (
+              <div className="h-48">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={chartData} margin={{ left: -20, right: 6, top: 6 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                    <XAxis dataKey="label" tick={{ fontSize: 10 }} />
+                    <YAxis tick={{ fontSize: 10 }} domain={["auto", "auto"]} />
+                    <Tooltip />
+                    <Line type="monotone" dataKey="value" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} />
+                    {metric === "blood_pressure" && (
+                      <Line type="monotone" dataKey="extra" stroke="hsl(var(--muted-foreground))" strokeWidth={2} dot={false} />
+                    )}
+                  </LineChart>
+                </ResponsiveContainer>
               </div>
-            ))}
-          </div>
-        </ListShell>
-      </Section>
-      <Section title="Fotos de evolução">
-        <ListShell {...photos} empty="Nenhuma foto enviada.">
-          <p className="text-sm font-dm text-foreground">{photos.rows.length} foto(s) registrada(s) pelo aluno.</p>
-        </ListShell>
-      </Section>
+            )}
+          </Section>
+
+          <Section title="Registros da equipe">
+            {canEdit ? (
+              <div className="flex flex-wrap gap-2">
+                <Button size="sm" variant="outline" className="font-dm" onClick={() => setForm("weight")}>Registrar / corrigir peso</Button>
+                <Button size="sm" variant="outline" className="font-dm" onClick={() => setForm("bp")}>Registrar / corrigir pressão</Button>
+              </div>
+            ) : (
+              <p className="text-xs font-dm text-muted-foreground flex items-center gap-1">
+                <Lock size={12} /> Somente leitura para o seu perfil.
+              </p>
+            )}
+            <p className="text-[11px] font-dm text-muted-foreground mt-2 flex items-center gap-1">
+              <Lock size={12} /> Sono e dados de smartwatch são somente leitura. Fotos de evolução são privadas do aluno.
+            </p>
+            {form && (
+              <HealthEntryForm kind={form} client={c} overview={o} onClose={() => setForm(null)} onSaved={reload} />
+            )}
+          </Section>
+
+          <Section title="Check-ins de bem-estar (somente leitura)">
+            <p className="text-sm font-dm text-foreground">
+              {o.checkin
+                ? `${fmtDate(o.checkin.date)} · Sono ${o.checkin.sleep_hours ?? "—"}h · Qualidade ${o.checkin.sleep_quality ?? "—"} · Energia ${o.checkin.energy ?? "—"} · Humor ${o.checkin.mood ?? "—"}`
+                : "Nenhum check-in diário registrado."}
+            </p>
+          </Section>
+
+          <Section title="Fotos de evolução">
+            <ListShell {...photos} empty="Nenhuma foto enviada.">
+              <p className="text-sm font-dm text-muted-foreground flex items-center gap-1">
+                <Lock size={12} /> {photos.rows.length} foto(s) do aluno — conteúdo privado, não exibido para a equipe.
+              </p>
+            </ListShell>
+          </Section>
+        </>
+      )}
+    </div>
+  );
+}
+
+/** Registro e correção de peso e pressão pela equipe, com auditoria antes/depois. */
+function HealthEntryForm({
+  kind, client, overview, onClose, onSaved,
+}: {
+  kind: "weight" | "bp"; client: OverviewRow; overview: any;
+  onClose: () => void; onSaved: () => void;
+}) {
+  const [mode, setMode] = useState<"new" | "fix">("new");
+  const [v1, setV1] = useState("");
+  const [v2, setV2] = useState("");
+  const [reason, setReason] = useState("");
+  const [saving, setSaving] = useState(false);
+  const current = kind === "weight" ? overview?.weight : overview?.bp;
+
+  const submit = async () => {
+    const num = (v: string) => Number(v.replace(",", "."));
+    if (!v1 || (kind === "bp" && !v2)) { toast.error("Preencha os valores."); return; }
+    if (mode === "fix" && !current?.id) { toast.error("Nenhum registro para corrigir."); return; }
+    if (mode === "fix" && !reason.trim()) { toast.error("Correção exige motivo."); return; }
+    setSaving(true);
+    let res: any = null; let err: any = null;
+    if (kind === "weight") {
+      const r = mode === "new"
+        ? await supabase.rpc("health_record_weight" as any, { _client_id: client.id, _value: num(v1) })
+        : await supabase.rpc("health_correct_weight" as any, { _id: current.id, _value: num(v1), _reason: reason.trim() });
+      res = r.data; err = r.error;
+    } else {
+      const r = mode === "new"
+        ? await supabase.rpc("health_record_bp" as any, { _client_id: client.id, _systolic: num(v1), _diastolic: num(v2) })
+        : await supabase.rpc("health_correct_bp" as any, { _id: current.id, _systolic: num(v1), _diastolic: num(v2), _reason: reason.trim() });
+      res = r.data; err = r.error;
+    }
+    setSaving(false);
+    if (err || !res?.ok) {
+      const map: Record<string, string> = {
+        forbidden: "Sem permissão para registrar dados de saúde.",
+        reason_required: "Correção exige motivo.",
+        not_found: "Registro não encontrado.",
+      };
+      toast.error(map[res?.reason] || err?.message || "Não foi possível salvar.");
+      return;
+    }
+    const before = mode === "fix"
+      ? (kind === "weight" ? { value: current.value } : { systolic: current.systolic, diastolic: current.diastolic })
+      : null;
+    const after = kind === "weight" ? { value: num(v1) } : { systolic: num(v1), diastolic: num(v2) };
+    await logAudit({
+      action: mode === "fix" ? "update" : "create",
+      entity: kind === "weight" ? "health_weights" : "health_blood_pressure",
+      entity_id: mode === "fix" ? current.id : (res.id ?? null),
+      module: "clientes", unit_id: client.unit_id,
+      description: `${mode === "fix" ? "Correção" : "Registro"} de ${kind === "weight" ? "peso" : "pressão arterial"} de ${client.name}`,
+      metadata: { sensitive: mode === "fix", reason: reason.trim() || null },
+      before, after,
+    });
+    toast.success(mode === "fix" ? "Correção registrada com auditoria." : "Registro salvo.");
+    onSaved(); onClose();
+  };
+
+  return (
+    <div className="mt-3 rounded-xl border border-border p-3 space-y-2">
+      <div className="flex gap-2">
+        {([["new", "Novo registro"], ["fix", "Corrigir último"]] as [typeof mode, string][]).map(([k, l]) => (
+          <button key={k} onClick={() => setMode(k)}
+            className={`px-3 py-1.5 rounded-lg text-[11px] font-dm border ${
+              mode === k ? "bg-primary text-white border-primary" : "border-border text-muted-foreground"}`}>
+            {l}
+          </button>
+        ))}
+      </div>
+      {mode === "fix" && (
+        <p className="text-[11px] font-dm text-muted-foreground">
+          Valor atual: {kind === "weight"
+            ? (current ? `${current.value} kg` : "—")
+            : (current ? `${current.systolic}/${current.diastolic}` : "—")}
+        </p>
+      )}
+      <div className="grid grid-cols-2 gap-2">
+        <Input inputMode="decimal" value={v1} onChange={e => setV1(e.target.value)}
+          placeholder={kind === "weight" ? "Peso (kg)" : "Sistólica"} className="h-9 font-dm" />
+        {kind === "bp" && (
+          <Input inputMode="numeric" value={v2} onChange={e => setV2(e.target.value)}
+            placeholder="Diastólica" className="h-9 font-dm" />
+        )}
+      </div>
+      {mode === "fix" && (
+        <Input value={reason} onChange={e => setReason(e.target.value)}
+          placeholder="Motivo da correção (obrigatório)" className="h-9 font-dm" />
+      )}
+      <div className="flex gap-2 justify-end">
+        <Button size="sm" variant="outline" className="font-dm" onClick={onClose}>Cancelar</Button>
+        <Button size="sm" className="font-dm" onClick={submit} disabled={saving}>
+          {saving ? "SALVANDO..." : "SALVAR"}
+        </Button>
+      </div>
     </div>
   );
 }

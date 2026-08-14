@@ -28,6 +28,9 @@ const TYPES: Record<string, string> = {
   equipamento: "Equipamento",
   limpeza: "Limpeza / estrutura",
   atendimento: "Atendimento",
+  avaliacao_baixa: "Avaliação baixa do professor",
+  experiencia_evo: "Experiência EVO",
+  operacional: "Operacional",
   financeiro: "Financeiro",
   outro: "Outro",
 };
