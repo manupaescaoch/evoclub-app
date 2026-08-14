@@ -9,6 +9,7 @@ import PushNotificationsCard from "@/components/tabs/PushNotificationsCard";
 import {
   Camera, ChevronRight, ChevronLeft, Calendar, HeartPulse, CreditCard,
   Shield, LogOut, Trophy, Flame, Gift, Dumbbell, Zap, Edit2, Loader2,
+  History, HelpCircle, Bell, Ticket, ClipboardList, Camera as CameraIcon, Users,
 } from "lucide-react";
 
 interface PerfilTabProps {
@@ -101,9 +102,16 @@ const PerfilTab = ({ onBack, onNavigate }: PerfilTabProps) => {
 
   const menu = [
     { label: "Meu plano e contrato", icon: CreditCard, screen: "plano", hint: left != null ? `${left} dia(s)` : undefined },
-    { label: "Indique e ganhe", icon: Gift, screen: "indicacoes" },
     { label: "Saúde & Evolução", icon: HeartPulse, screen: "saude" },
-    { label: "Privacidade e ranking", icon: Shield, screen: "ranking" },
+    { label: "Avaliações físicas", icon: ClipboardList, screen: "avaliacoes" },
+    { label: "Fotos de evolução", icon: CameraIcon, screen: "fotos" },
+    { label: "Meu histórico", icon: History, screen: "historico" },
+    { label: "Notificações", icon: Bell, screen: "notificacoes" },
+    { label: "Club de vantagens", icon: Ticket, screen: "club" },
+    { label: "Indique e ganhe", icon: Gift, screen: "indicacoes" },
+    { label: "Comunidade", icon: Users, screen: "comunidade" },
+    { label: "Privacidade", icon: Shield, screen: "privacidade" },
+    { label: "Ajuda", icon: HelpCircle, screen: "ajuda" },
   ];
 
   return (
