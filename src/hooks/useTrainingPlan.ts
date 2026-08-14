@@ -140,7 +140,12 @@ export const useTrainingPlan = (clientId: number | null) => {
           l.id,
           {
             primary: l.muscle_group || "Outros",
-            aux: [l.secondary_muscle, l.secondary_muscle_2].filter(Boolean) as string[],
+            aux: [
+              ...String(l.secondary_muscle || "").split(",").map((s: string) => s.trim()),
+              l.secondary_muscle_2,
+            ]
+              .filter(Boolean)
+              .slice(0, 2) as string[],
           },
         ])
       );
