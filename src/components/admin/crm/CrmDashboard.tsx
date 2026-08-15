@@ -170,15 +170,6 @@ export default function CrmDashboard() {
     const aulas = [...dedup.values()];
     const aulasPeriodo = aulas.filter((a) => inRange(a.data));
 
-    const presencaStatus = new Set(["aula_realizada", "follow_up", "negociacao", "convertido"]);
-    const compareceuLead = (leadId: string) => {
-      const l = leads.find((x) => x.id === leadId);
-      return !!l && presencaStatus.has(l.status_funil);
-    };
-    const compareceram = aulasPeriodo.filter((a) => a.compareceu === true).length
-      || aulasPeriodo.filter((a) => a.data < iso(hoje) && dedupLead(a)).length;
-    function dedupLead(_a: { data: string }) { return false; }
-
     const compareceramReais = aulasPeriodo.filter((a) => a.compareceu === true).length;
     const naoCompareceram = aulasPeriodo.filter((a) => a.compareceu === false).length;
 
