@@ -177,6 +177,22 @@ export function ResumoTab({ c, onGoTab }: { c: OverviewRow; onGoTab: (t: string)
 
 const SENSITIVE_FIELDS = ["name", "cpf", "birth_date", "email", "phone", "unit_id", "plan", "status"];
 
+/** Campo estável (fora do render do DadosTab) para não remontar o input a cada tecla. */
+function TextField({ k, label, type = "text", value, locked, disabled, onChange }: {
+  k: string; label: string; type?: string; value: string;
+  locked: boolean; disabled: boolean; onChange: (k: string, v: any) => void;
+}) {
+  return (
+    <div>
+      <label className="text-[11px] font-dm text-muted-foreground flex items-center gap-1">
+        {label} {locked && <Lock size={11} />}
+      </label>
+      <Input type={type} value={value} disabled={disabled}
+        onChange={e => onChange(k, e.target.value)} className="mt-1 h-9 font-dm" />
+    </div>
+  );
+}
+
 export function DadosTab({ c, onSaved }: { c: OverviewRow; onSaved: () => void }) {
   const { can, isAdmin } = useAccess();
   const canSensitive = isAdmin || can("clientes", "sensitive");
