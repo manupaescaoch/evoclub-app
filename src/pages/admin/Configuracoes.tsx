@@ -96,9 +96,16 @@ const Configuracoes = () => {
 
   const saveKey = async (key: string, value: any) => {
     setSaving(true);
+    const { data: prev } = await supabase.from("app_settings").select("value").eq("key", key).maybeSingle();
     const { error } = await supabase.from("app_settings").upsert({ key, value }, { onConflict: "key" });
     setSaving(false);
-    if (error) toast.error(error.message); else toast.success("Salvo");
+    if (error) { toast.error(error.message); return; }
+    logSensitive({
+      entity: "app_settings", entity_id: key, module: "configuracoes",
+      description: `Alterou configurações de ${key}`,
+      before: (prev?.value as any) || null, after: value,
+    });
+    toast.success("Salvo");
   };
 
   const updateProfile = async () => {
