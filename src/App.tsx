@@ -21,6 +21,10 @@ import Transacoes from "./pages/admin/financeiro/Transacoes.tsx";
 import Folha from "./pages/admin/financeiro/Folha.tsx";
 import DRE from "./pages/admin/financeiro/DRE.tsx";
 import Relatorios from "./pages/admin/financeiro/Relatorios.tsx";
+import Inadimplencia from "./pages/admin/financeiro/Inadimplencia.tsx";
+import FinAjustes from "./pages/admin/financeiro/Ajustes.tsx";
+import Fechamentos from "./pages/admin/financeiro/Fechamentos.tsx";
+import Forecast from "./pages/admin/financeiro/Forecast.tsx";
 import FinConfiguracoes from "./pages/admin/financeiro/Configuracoes.tsx";
 import { UnitProvider } from "./contexts/UnitContext.tsx";
 import { AccessProvider } from "./contexts/AccessContext.tsx";
@@ -150,6 +154,10 @@ const App = () => (
               <Route path="fluxo" element={<FluxoCaixa />} />
               <Route path="recebimentos" element={<Recebimentos />} />
               <Route path="contas-a-pagar" element={<ContasAPagar />} />
+              <Route path="inadimplencia" element={<Inadimplencia />} />
+              <Route path="ajustes" element={<FinAjustes />} />
+              <Route path="fechamentos" element={<Fechamentos />} />
+              <Route path="forecast" element={<Forecast />} />
               <Route path="transacoes" element={<Transacoes />} />
               <Route path="folha" element={<Folha />} />
               <Route path="dre" element={<DRE />} />
