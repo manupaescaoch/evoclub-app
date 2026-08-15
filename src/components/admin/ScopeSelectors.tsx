@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { forwardRef, useState } from "react";
 import { Building2, CalendarRange } from "lucide-react";
 import { CONSOLIDATED, useUnit } from "@/contexts/UnitContext";
 import { usePeriod, PeriodMode } from "@/contexts/PeriodContext";
@@ -15,11 +15,11 @@ const MODES: { key: PeriodMode; label: string }[] = [
   { key: "custom", label: "Personalizado" },
 ];
 
-export function UnitSelect() {
+export const UnitSelect = forwardRef<HTMLDivElement>(function UnitSelect(_props, ref) {
   const { units, selected, setSelected } = useUnit();
   const { canConsolidated } = useAccess();
   return (
-    <div className="flex items-center gap-1.5">
+    <div ref={ref} className="flex items-center gap-1.5">
       <Building2 size={14} className="text-muted-foreground shrink-0" />
       <select
         value={selected}
@@ -31,9 +31,9 @@ export function UnitSelect() {
       </select>
     </div>
   );
-}
+});
 
-export function PeriodSelect() {
+export const PeriodSelect = forwardRef<HTMLButtonElement>(function PeriodSelect(_props, ref) {
   const { mode, setMode, from, to, setCustom, label } = usePeriod();
   const [open, setOpen] = useState(false);
   const [f, setF] = useState(from);
@@ -42,7 +42,7 @@ export function PeriodSelect() {
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <button className="h-8 inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-2.5 text-xs md:text-sm font-dm hover:bg-muted/50">
+        <button ref={ref} className="h-8 inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-2.5 text-xs md:text-sm font-dm hover:bg-muted/50">
           <CalendarRange size={14} className="text-muted-foreground" />
           <span className="max-w-[120px] md:max-w-none truncate">{label}</span>
         </button>
@@ -71,4 +71,4 @@ export function PeriodSelect() {
       </PopoverContent>
     </Popover>
   );
-}
+});

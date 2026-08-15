@@ -1,4 +1,4 @@
-import { ReactNode } from "react";
+import { forwardRef, ReactNode } from "react";
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 
@@ -12,11 +12,12 @@ interface PageShellProps {
   children: ReactNode;
 }
 
-export default function PageShell({
-  title, description, primaryAction, filters, search, summary, children,
-}: PageShellProps) {
+const PageShell = forwardRef<HTMLDivElement, PageShellProps>(function PageShell(
+  { title, description, primaryAction, filters, search, summary, children },
+  ref,
+) {
   return (
-    <div className="space-y-5">
+    <div ref={ref} className="space-y-5">
       <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3">
         <div>
           <h1 className="font-barlow font-bold text-2xl md:text-3xl text-foreground leading-tight">{title}</h1>
@@ -49,11 +50,16 @@ export default function PageShell({
       {children}
     </div>
   );
-}
+});
 
-export function SummaryCard({
-  label, value, accent = "default",
-}: { label: string; value: string | number; accent?: "default" | "green" | "red" | "yellow" | "blue" }) {
+export default PageShell;
+
+type SummaryCardProps = { label: string; value: string | number; accent?: "default" | "green" | "red" | "yellow" | "blue" };
+
+export const SummaryCard = forwardRef<HTMLDivElement, SummaryCardProps>(function SummaryCard(
+  { label, value, accent = "default" },
+  ref,
+) {
   const accentMap: Record<string, string> = {
     default: "bg-card border-border",
     green: "bg-green-50 border-green-200",
@@ -69,32 +75,35 @@ export function SummaryCard({
     blue: "text-blue-700",
   };
   return (
-    <div className={`rounded-xl border p-4 ${accentMap[accent]}`}>
+    <div ref={ref} className={`rounded-xl border p-4 ${accentMap[accent]}`}>
       <p className="text-xs font-dm text-muted-foreground uppercase tracking-wide">{label}</p>
       <p className={`font-barlow font-bold text-2xl mt-1 ${valueColor[accent]}`}>{value}</p>
     </div>
   );
-}
+});
 
-export function StatusBadge({ status }: { status: string }) {
+export const StatusBadge = forwardRef<HTMLSpanElement, { status: string }>(function StatusBadge({ status }, ref) {
   const isActive = status === "active" || status === "ativo";
   return (
-    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-dm font-medium ${
+    <span ref={ref} className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-dm font-medium ${
       isActive ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-600"
     }`}>
       {isActive ? "Ativo" : "Inativo"}
     </span>
   );
-}
+});
 
-export function EmptyState({ message = "Nenhum registro encontrado." }: { message?: string }) {
+export const EmptyState = forwardRef<HTMLDivElement, { message?: string }>(function EmptyState(
+  { message = "Nenhum registro encontrado." },
+  ref,
+) {
   return (
-    <div className="text-center py-12 text-sm text-muted-foreground font-dm">
+    <div ref={ref} className="text-center py-12 text-sm text-muted-foreground font-dm">
       {message}
     </div>
   );
-}
+});
 
-export function LoadingState() {
-  return <div className="text-center py-12 text-sm text-muted-foreground font-dm">Carregando...</div>;
-}
+export const LoadingState = forwardRef<HTMLDivElement, Record<string, never>>(function LoadingState(_props, ref) {
+  return <div ref={ref} className="text-center py-12 text-sm text-muted-foreground font-dm">Carregando...</div>;
+});
