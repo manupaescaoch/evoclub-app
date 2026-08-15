@@ -9,7 +9,7 @@ import {
   FileSignature, CalendarRange, UserCog, Truck, ShieldCheck, Tag, Ticket, TrendingUp,
   Gift, ListTodo, ClipboardCheck, CalendarClock, HeartPulse, AlertTriangle,
   Clock, Trophy, History, Inbox, Workflow, RefreshCw,
-  Wallet, Receipt, ArrowLeftRight, FileBarChart, Percent, Lock, LineChart,
+  Wallet, Receipt, ArrowLeftRight, FileBarChart, Percent, Lock, LineChart, Smartphone,
 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { logAudit } from "@/lib/audit";
