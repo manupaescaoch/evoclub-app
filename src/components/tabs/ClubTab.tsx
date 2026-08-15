@@ -5,7 +5,7 @@ import { useStudentName } from "@/hooks/useStudentName";
 import { usePartners, useClubMember, useClubRedemptions, Partner, Redemption } from "@/hooks/useClub";
 import { fmtBRL } from "@/lib/finance";
 
-const STUDENT_UNIT = "Evo Training Club · Boa Viagem";
+const STUDENT_UNIT = "Evo Club · Boa Viagem";
 
 const filters = ["Todos", "Saúde", "Lifestyle", "Negócios"] as const;
 const sections = ["Meu Cartão", "Parceiros", "Minha Economia"] as const;
@@ -42,7 +42,7 @@ const ClubTab = () => {
     <div className="px-4 pt-4 pb-4">
       <h1 className="font-barlow font-bold text-xl text-foreground">BENEFÍCIOS 🎟️</h1>
       <p className="text-xs font-dm text-muted mt-1 mb-4">
-        Clube de vantagens exclusivo para alunos Evo Training Club.
+        Clube de vantagens exclusivo para alunos Evo Club.
       </p>
 
       {/* Sub-abas */}

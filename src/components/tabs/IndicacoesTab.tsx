@@ -58,7 +58,7 @@ const IndicacoesTab = ({ onBack }: { onBack: () => void }) => {
   };
 
   const share = () => {
-    const text = `Treina comigo na EVO Training Club! Fala com a recepção que ${name} te indicou e garanta sua condição especial.`;
+    const text = `Treina comigo na EVO Club! Fala com a recepção que ${name} te indicou e garanta sua condição especial.`;
     if (navigator.share) navigator.share({ text }).catch(() => {});
     else {
       navigator.clipboard.writeText(text);

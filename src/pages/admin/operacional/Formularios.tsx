@@ -83,7 +83,7 @@ export default function OperacionalFormularios() {
     load();
     if (row.phone) {
       const label = KINDS.find(k => k.value === row.kind)?.label || "formulário";
-      openWhatsApp(row.phone, `Olá ${row.lead_name || ""}! Preencha seu ${label} da EVO TRAINING CLUB: ${publicUrl(row.token)}`);
+      openWhatsApp(row.phone, `Olá ${row.lead_name || ""}! Preencha seu ${label} da EVO CLUB: ${publicUrl(row.token)}`);
     } else {
       toast.success("Link gerado. Copie e envie manualmente.");
     }

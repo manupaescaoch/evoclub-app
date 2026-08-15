@@ -46,8 +46,8 @@ const InicioTab = ({ onTabChange }: InicioTabProps) => {
       {/* Header */}
       <div className="flex items-center justify-between mb-5">
         <div className="flex items-center gap-2">
-          <img src={logoAsset.url} alt="EVO Training Club" className="w-9 h-9 rounded-lg object-contain" />
-          <span className="font-barlow font-bold text-foreground text-lg">EVO TRAINING</span>
+          <img src={logoAsset.url} alt="EVO Club" className="w-9 h-9 rounded-lg object-contain" />
+          <span className="font-barlow font-bold text-foreground text-lg">EVO CLUB</span>
         </div>
         <div className="flex items-center gap-3">
           <button onClick={() => onTabChange?.("saude")} aria-label="Saúde e Evolução">

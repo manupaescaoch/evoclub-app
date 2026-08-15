@@ -170,7 +170,7 @@ const FotosEvolucaoTab = ({ onBack }: { onBack: () => void }) => {
                   />
                 )}
                 <span className="absolute bottom-2 left-2 text-[10px] font-barlow font-bold tracking-[1px] uppercase bg-black/50 text-white px-2 py-0.5 rounded">
-                  EVO TRAINING CLUB
+                  EVO CLUB
                 </span>
               </div>
               <input
@@ -221,7 +221,7 @@ const FotosEvolucaoTab = ({ onBack }: { onBack: () => void }) => {
                 const urls = compare ? [compare.a.url, compare.b.url].filter(Boolean).join("\n") : "";
                 if (navigator.share) {
                   try {
-                    await navigator.share({ title: "Minha evolução — EVO Training Club", text: urls });
+                    await navigator.share({ title: "Minha evolução — EVO Club", text: urls });
                   } catch { /* cancelado */ }
                 } else {
                   await navigator.clipboard.writeText(urls);

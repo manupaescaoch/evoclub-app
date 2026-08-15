@@ -40,7 +40,7 @@ export function printContract(c: PrintableContract, studentName: string): boolea
     pre{white-space:pre-wrap;font-family:inherit;font-size:13px}
     .sign{margin-top:40px;border-top:1px solid #ddd;padding-top:16px;font-size:12px}
   </style></head><body>
-  <h1>EVO Training Club</h1>
+  <h1>EVO Club</h1>
   <p class="muted">${esc(c.title)} — versão ${c.version ?? 1}</p>
   <table>
     <tr><td><b>Aluno</b></td><td>${esc(studentName)}</td></tr>

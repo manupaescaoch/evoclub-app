@@ -49,7 +49,7 @@ const AjudaTab = ({ onBack }: { onBack: () => void }) => {
         <p className="font-barlow text-[10px] tracking-[2px] uppercase text-muted font-bold mb-1">AINDA COM DÚVIDA?</p>
         <p className="text-xs font-dm text-muted mb-3">Fale direto com a recepção da sua unidade.</p>
         <button
-          onClick={() => openWhatsApp(RECEPTION_PHONE, "Olá! Preciso de ajuda com o app EVO Training.")}
+          onClick={() => openWhatsApp(RECEPTION_PHONE, "Olá! Preciso de ajuda com o app EVO Club.")}
           className="w-full py-3 rounded-2xl bg-primary text-primary-foreground font-dm font-semibold text-sm cta-shadow flex items-center justify-center gap-2"
         >
           <MessageCircle size={16} />

@@ -121,7 +121,7 @@ export default function CRM() {
   const whats = (r: OverviewRow) => {
     if (!r.phone) { toast.error("Aluno sem telefone cadastrado."); return; }
     const pend = pendingOf(r).map(p => p.label).join(", ");
-    openWhatsApp(r.phone, `Olá, ${r.name.split(" ")[0]}! Aqui é da EVO Training Club.\n\nEstamos passando para falar sobre: ${pend || "seu acompanhamento"}.\nPodemos conversar?`);
+    openWhatsApp(r.phone, `Olá, ${r.name.split(" ")[0]}! Aqui é da EVO Club.\n\nEstamos passando para falar sobre: ${pend || "seu acompanhamento"}.\nPodemos conversar?`);
   };
 
   return (

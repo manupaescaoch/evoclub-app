@@ -58,14 +58,14 @@ const AlunoCadastro = () => {
       return;
     }
 
-    toast.success("Conta criada! Bem-vindo ao EVO Training Club.");
+    toast.success("Conta criada! Bem-vindo ao EVO Club.");
     navigate("/aluno", { replace: true });
   };
 
   return (
     <div className="mx-auto max-w-[390px] min-h-screen bg-background flex flex-col justify-center px-6">
       <div className="flex flex-col items-center mb-8">
-        <img src={logoAsset.url} alt="EVO Training Club" className="w-16 h-16 rounded-2xl mb-3 hero-shadow" />
+        <img src={logoAsset.url} alt="EVO Club" className="w-16 h-16 rounded-2xl mb-3 hero-shadow" />
         <h1 className="font-barlow font-bold text-2xl text-foreground">CRIAR CONTA</h1>
         <p className="text-sm text-muted-foreground font-dm text-center mt-1">
           Use o mesmo e-mail cadastrado na sua unidade.

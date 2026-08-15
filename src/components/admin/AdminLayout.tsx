@@ -179,10 +179,10 @@ const AdminLayout = () => {
       {/* Logo */}
       <div className="p-5 flex items-center gap-3">
         <div className="w-10 h-10 rounded-lg overflow-hidden shrink-0">
-          <img src={logoAsset.url} alt="EVO Training Club" className="w-full h-full object-cover" />
+          <img src={logoAsset.url} alt="EVO Club" className="w-full h-full object-cover" />
         </div>
         <div>
-          <p className="text-white font-barlow font-bold text-sm leading-tight">EVO TRAINING CLUB</p>
+          <p className="text-white font-barlow font-bold text-sm leading-tight">EVO CLUB</p>
           <p className="text-gray-500 text-[10px] font-dm">UND 1 — Admin</p>
         </div>
         {isMobile && (
