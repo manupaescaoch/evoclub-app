@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { NON_STRENGTH_GROUPS, weeklyTarget } from "@/lib/muscleVolume";
 
 export interface PlanSession {
   id: string;
@@ -26,6 +27,8 @@ export interface VolumeRow {
   prescribed: number;
   /** Séries concluídas na semana (auxiliar conta 0,5). */
   done: number;
+  /** Meta semanal de séries para o grupo. */
+  target: number;
 }
 
 export interface ArchivedPlan {
@@ -206,11 +209,14 @@ export const useTrainingPlan = (clientId: number | null) => {
       });
 
       volume = [...new Set([...prescribed.keys(), ...done.keys()])]
+        .filter((g) => g && !NON_STRENGTH_GROUPS.includes(g))
         .map((group) => ({
           group,
           prescribed: prescribed.get(group) || 0,
           done: done.get(group) || 0,
+          target: weeklyTarget(group),
         }))
+        .filter((r) => r.prescribed > 0 || r.done > 0)
         .sort((a, b) => b.prescribed - a.prescribed || b.done - a.done);
     }
 
