@@ -147,20 +147,28 @@ export default function ComercialPanel({ indicadores }: { indicadores?: ReactNod
 
   const diasSemContato = (l: Lead) => diffDays(ultimaInteracao.get(l.id) || l.created_at);
 
+  // limites configuráveis em Configurações › CRM
+  const [crmCfg, setCrmCfg] = useState({ followup_stale_days: 3, no_contact_hours: 24, negotiation_stale_days: 5 });
+  useEffect(() => {
+    supabase.from("app_settings").select("value").eq("key", "crm").maybeSingle()
+      .then(({ data }) => { if (data?.value) setCrmCfg(c => ({ ...c, ...(data.value as any) })); });
+  }, []);
+  const semContatoDias = Math.max(1, Math.ceil((crmCfg.no_contact_hours || 24) / 24));
+
   const test = (key: RuleKey, l: Lead) => {
     if (l.status_funil === "convertido" || l.status_funil === "perdido") return false;
     const exp = l.data_aula_experimental ? l.data_aula_experimental.slice(0, 10) : null;
     const dExp = exp ? diffDays(exp) : null;
     if (key === "sem_contato")
-      return ["novo", "contato_inicial"].includes(l.status_funil) && diasSemContato(l) >= 2;
+      return ["novo", "contato_inicial"].includes(l.status_funil) && diasSemContato(l) >= semContatoDias;
     if (key === "confirmar_hoje")
       return !!exp && dExp !== null && dExp <= 0 && dExp >= -1 && !expRealizadas.has(l.id);
     if (key === "no_show")
       return !!exp && dExp !== null && dExp >= 1 && !expRealizadas.has(l.id);
     if (key === "pos_experimental")
-      return expRealizadas.has(l.id) && diasSemContato(l) >= 2;
+      return expRealizadas.has(l.id) && diasSemContato(l) >= (crmCfg.followup_stale_days || 3);
     if (key === "negociacao_parada")
-      return ["negociacao", "follow_up"].includes(l.status_funil) && diasSemContato(l) >= 3;
+      return ["negociacao", "follow_up"].includes(l.status_funil) && diasSemContato(l) >= (crmCfg.negotiation_stale_days || 5);
     return false;
   };
 
@@ -168,11 +176,11 @@ export default function ComercialPanel({ indicadores }: { indicadores?: ReactNod
     const c: Record<string, number> = {};
     RULES.forEach((r) => { c[r.key] = leads.filter((l) => test(r.key, l)).length; });
     return c;
-  }, [leads, ultimaInteracao, expRealizadas]);
+  }, [leads, ultimaInteracao, expRealizadas, crmCfg]);
 
   const fila = useMemo(
     () => leads.filter((l) => test(rule, l)).sort((a, b) => diasSemContato(b) - diasSemContato(a)),
-    [leads, rule, ultimaInteracao, expRealizadas],
+    [leads, rule, ultimaInteracao, expRealizadas, crmCfg],
   );
 
   // Controles do dia

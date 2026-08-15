@@ -41,10 +41,12 @@ const TreinosDashboard = () => {
       const clientsWithWorkout = new Set(allWorkouts.filter(w => w.status === "active").map(w => w.client_id));
       setNoWorkout(allClients.length - clientsWithWorkout.size);
 
-      // Expiring this week
+      // Vencendo: janela configurável em Configurações › Treinos
+      const { data: cfgRow } = await supabase.from("app_settings").select("value").eq("key", "treinos").maybeSingle();
+      const cfg = { warn_days_before: 7, expired_after_days: 0, ...((cfgRow?.value as any) || {}) };
       const now = new Date();
       const endOfWeek = new Date(now);
-      endOfWeek.setDate(now.getDate() + (7 - now.getDay()));
+      endOfWeek.setDate(now.getDate() + Number(cfg.warn_days_before || 7));
       const expiring = allWorkouts.filter(w => {
         if (!w.expires_at || w.status !== "active") return false;
         const exp = new Date(w.expires_at);
@@ -55,7 +57,9 @@ const TreinosDashboard = () => {
       // Expired
       const expired = allWorkouts.filter(w => {
         if (!w.expires_at) return false;
-        return new Date(w.expires_at) < now;
+        const limit = new Date(now);
+        limit.setDate(limit.getDate() - Number(cfg.expired_after_days || 0));
+        return new Date(w.expires_at) < limit;
       });
       setExpiredWorkouts(expired.length);
 
