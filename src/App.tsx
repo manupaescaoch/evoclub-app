@@ -127,6 +127,7 @@ const App = () => (
             <Route path="clientes" element={<ModuleGuard module="clientes"><Clientes /></ModuleGuard>} />
             <Route path="grade" element={<ModuleGuard module="grade"><Grade /></ModuleGuard>} />
             <Route path="leads" element={<ModuleGuard module="crm"><Leads /></ModuleGuard>} />
+            <Route path="leads/dashboard" element={<ModuleGuard module="crm"><LeadsDashboard /></ModuleGuard>} />
             <Route path="leads/:id" element={<ModuleGuard module="crm"><LeadDetalhe /></ModuleGuard>} />
             <Route path="crm" element={<ModuleGuard module="crm"><CRM /></ModuleGuard>} />
             <Route path="crm/comissoes" element={<ModuleGuard module="crm"><Comissoes /></ModuleGuard>} />
