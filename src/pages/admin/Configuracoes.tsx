@@ -8,6 +8,7 @@ import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { Building2, Sliders, Plug, User, KeyRound, LogOut, Save, ScrollText, MapPin, Layers, CalendarClock, Dumbbell, ClipboardList, Users, Bell } from "lucide-react";
 import AuditLogTab from "@/components/admin/AuditLogTab";
+import { logSensitive } from "@/lib/audit";
 import UnidadesTab from "@/pages/admin/configuracoes/UnidadesTab";
 import PlanosTab from "@/pages/admin/configuracoes/PlanosTab";
 import NotificacoesTab from "@/pages/admin/configuracoes/NotificacoesTab";
