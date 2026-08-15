@@ -351,6 +351,17 @@ const AdminLayout = () => {
             <PeriodSelect />
           </div>
           <div className="flex items-center gap-3">
+            {isMobile && isStaffMobileUser && (
+              <button
+                onClick={() => {
+                  sessionStorage.removeItem("evo_desktop_mode");
+                  navigate("/pro");
+                }}
+                className="flex items-center gap-1.5 h-8 px-2.5 rounded-lg bg-primary/10 text-primary font-dm text-[11px] font-semibold"
+              >
+                <Smartphone size={14} /> Modo treinador
+              </button>
+            )}
             {!isMobile && (
               <div className="relative">
                 <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
