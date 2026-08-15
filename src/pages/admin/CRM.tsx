@@ -5,6 +5,7 @@ import { useAccess } from "@/contexts/AccessContext";
 import { useClientOverview, OverviewRow } from "@/hooks/useClient360";
 import PageShell, { SummaryCard, EmptyState, LoadingState } from "@/components/admin/gerencial/PageShell";
 import Perfil360 from "@/components/admin/clientes/Perfil360";
+import CrmDashboard from "@/components/admin/crm/CrmDashboard";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { MessageCircle, UserCog } from "lucide-react";
@@ -126,8 +127,8 @@ export default function CRM() {
 
   return (
     <PageShell
-      title="CRM — FILA DE AÇÃO"
-      description="Uma página única com as pendências de hoje. Cada aluno aparece com o motivo do contato, o responsável e a ação direta."
+      title="CRM — DASHBOARD"
+      description="Indicadores comerciais da unidade e, abaixo, a fila de ação com as pendências de hoje."
       search={{ value: search, onChange: setSearch, placeholder: "Buscar por nome, telefone, e-mail ou código..." }}
       filters={
         <div className="flex flex-wrap gap-1.5">
@@ -152,6 +153,15 @@ export default function CRM() {
         </>
       }
     >
+      <CrmDashboard />
+
+      <div>
+        <h2 className="font-barlow font-bold text-lg">Fila de ação</h2>
+        <p className="text-sm text-muted-foreground font-dm">
+          Cada aluno aparece com o motivo do contato, o responsável e a ação direta.
+        </p>
+      </div>
+
       {error && (
         <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-dm text-red-700">
           Não foi possível carregar a fila: {error}
