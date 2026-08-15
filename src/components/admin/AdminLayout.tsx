@@ -50,6 +50,7 @@ const navItems: NavItem[] = [
       { label: "Transações", icon: ArrowLeftRight, path: "/admin/financeiro/transacoes" },
       { label: "Folha de Pagamento", icon: Users, path: "/admin/financeiro/folha" },
       { label: "Descontos e Estornos", icon: Percent, path: "/admin/financeiro/ajustes" },
+      { label: "Conciliação Bancária", icon: ArrowLeftRight, path: "/admin/financeiro/conciliacao" },
       { label: "DRE", icon: FileBarChart, path: "/admin/financeiro/dre" },
       { label: "Forecast", icon: LineChart, path: "/admin/financeiro/forecast" },
       { label: "Relatórios", icon: BarChart3, path: "/admin/financeiro/relatorios" },

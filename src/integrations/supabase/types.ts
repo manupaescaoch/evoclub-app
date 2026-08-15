@@ -474,6 +474,244 @@ export type Database = {
           },
         ]
       }
+      bank_accounts: {
+        Row: {
+          account_number: string | null
+          account_type: string
+          agency: string | null
+          bank_code: string | null
+          bank_name: string | null
+          created_at: string
+          currency: string
+          id: string
+          last_sync_at: string | null
+          name: string
+          opening_balance: number
+          provider: string
+          provider_account_id: string | null
+          provider_status: string | null
+          status: string
+          unit_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          account_number?: string | null
+          account_type?: string
+          agency?: string | null
+          bank_code?: string | null
+          bank_name?: string | null
+          created_at?: string
+          currency?: string
+          id?: string
+          last_sync_at?: string | null
+          name: string
+          opening_balance?: number
+          provider?: string
+          provider_account_id?: string | null
+          provider_status?: string | null
+          status?: string
+          unit_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          account_number?: string | null
+          account_type?: string
+          agency?: string | null
+          bank_code?: string | null
+          bank_name?: string | null
+          created_at?: string
+          currency?: string
+          id?: string
+          last_sync_at?: string | null
+          name?: string
+          opening_balance?: number
+          provider?: string
+          provider_account_id?: string | null
+          provider_status?: string | null
+          status?: string
+          unit_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bank_accounts_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "units"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bank_import_batches: {
+        Row: {
+          auto_matched: number
+          bank_account_id: string | null
+          created_at: string
+          created_by: string | null
+          created_by_name: string | null
+          duplicate_rows: number
+          file_name: string | null
+          id: string
+          imported_rows: number
+          source: string
+          total_rows: number
+          unit_id: string | null
+        }
+        Insert: {
+          auto_matched?: number
+          bank_account_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          created_by_name?: string | null
+          duplicate_rows?: number
+          file_name?: string | null
+          id?: string
+          imported_rows?: number
+          source?: string
+          total_rows?: number
+          unit_id?: string | null
+        }
+        Update: {
+          auto_matched?: number
+          bank_account_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          created_by_name?: string | null
+          duplicate_rows?: number
+          file_name?: string | null
+          id?: string
+          imported_rows?: number
+          source?: string
+          total_rows?: number
+          unit_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bank_import_batches_bank_account_id_fkey"
+            columns: ["bank_account_id"]
+            isOneToOne: false
+            referencedRelation: "bank_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bank_import_batches_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "units"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bank_transactions: {
+        Row: {
+          amount: number
+          bank_account_id: string
+          bank_ref: string | null
+          batch_id: string | null
+          created_at: string
+          description: string | null
+          direction: string
+          id: string
+          match_client_id: number | null
+          match_confidence: number | null
+          match_id: string | null
+          match_type: string | null
+          matched_at: string | null
+          matched_by: string | null
+          matched_by_name: string | null
+          memo: string | null
+          notes: string | null
+          parent_id: string | null
+          payment_method: string | null
+          posted_at: string
+          raw: Json | null
+          status: string
+          unit_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          bank_account_id: string
+          bank_ref?: string | null
+          batch_id?: string | null
+          created_at?: string
+          description?: string | null
+          direction?: string
+          id?: string
+          match_client_id?: number | null
+          match_confidence?: number | null
+          match_id?: string | null
+          match_type?: string | null
+          matched_at?: string | null
+          matched_by?: string | null
+          matched_by_name?: string | null
+          memo?: string | null
+          notes?: string | null
+          parent_id?: string | null
+          payment_method?: string | null
+          posted_at: string
+          raw?: Json | null
+          status?: string
+          unit_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          bank_account_id?: string
+          bank_ref?: string | null
+          batch_id?: string | null
+          created_at?: string
+          description?: string | null
+          direction?: string
+          id?: string
+          match_client_id?: number | null
+          match_confidence?: number | null
+          match_id?: string | null
+          match_type?: string | null
+          matched_at?: string | null
+          matched_by?: string | null
+          matched_by_name?: string | null
+          memo?: string | null
+          notes?: string | null
+          parent_id?: string | null
+          payment_method?: string | null
+          posted_at?: string
+          raw?: Json | null
+          status?: string
+          unit_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bank_transactions_bank_account_id_fkey"
+            columns: ["bank_account_id"]
+            isOneToOne: false
+            referencedRelation: "bank_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bank_transactions_batch_id_fkey"
+            columns: ["batch_id"]
+            isOneToOne: false
+            referencedRelation: "bank_import_batches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bank_transactions_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "bank_transactions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bank_transactions_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "units"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cancellations: {
         Row: {
           cancelled_at: string | null
@@ -1639,6 +1877,76 @@ export type Database = {
         }
         Relationships: []
       }
+      cost_allocation_rules: {
+        Row: {
+          created_at: string
+          id: string
+          pct: number
+          unit_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          pct?: number
+          unit_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          pct?: number
+          unit_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cost_allocation_rules_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: true
+            referencedRelation: "units"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cost_centers: {
+        Row: {
+          active: boolean
+          created_at: string
+          id: string
+          kind: string
+          name: string
+          unit_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          kind?: string
+          name: string
+          unit_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          kind?: string
+          name?: string
+          unit_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cost_centers_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "units"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       crm_attendance_alerts: {
         Row: {
           client_id: number
@@ -2575,6 +2883,77 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "forecast_scenarios_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "units"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      forecast_snapshots: {
+        Row: {
+          accuracy_pct: number | null
+          at_risk: number
+          closed_at: string | null
+          contracted: number
+          created_at: string
+          created_by: string | null
+          created_by_name: string | null
+          horizon_days: number
+          id: string
+          period_end: string
+          period_start: string
+          predicted_expense: number
+          predicted_income: number
+          probable: number
+          realized_expense: number | null
+          realized_income: number | null
+          scenario: string
+          unit_id: string | null
+        }
+        Insert: {
+          accuracy_pct?: number | null
+          at_risk?: number
+          closed_at?: string | null
+          contracted?: number
+          created_at?: string
+          created_by?: string | null
+          created_by_name?: string | null
+          horizon_days?: number
+          id?: string
+          period_end: string
+          period_start: string
+          predicted_expense?: number
+          predicted_income?: number
+          probable?: number
+          realized_expense?: number | null
+          realized_income?: number | null
+          scenario?: string
+          unit_id?: string | null
+        }
+        Update: {
+          accuracy_pct?: number | null
+          at_risk?: number
+          closed_at?: string | null
+          contracted?: number
+          created_at?: string
+          created_by?: string | null
+          created_by_name?: string | null
+          horizon_days?: number
+          id?: string
+          period_end?: string
+          period_start?: string
+          predicted_expense?: number
+          predicted_income?: number
+          probable?: number
+          realized_expense?: number | null
+          realized_income?: number | null
+          scenario?: string
+          unit_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "forecast_snapshots_unit_id_fkey"
             columns: ["unit_id"]
             isOneToOne: false
             referencedRelation: "units"
@@ -6089,6 +6468,45 @@ export type Database = {
         Args: { _booking_id: string; _collaborator_id: string }
         Returns: Json
       }
+      bank_auto_match: {
+        Args: { _bank_account_id: string; _batch_id?: string }
+        Returns: Json
+      }
+      bank_create_entry: {
+        Args: {
+          _category_name: string
+          _client_id?: number
+          _cost_center?: string
+          _description?: string
+          _movement_id: string
+        }
+        Returns: Json
+      }
+      bank_match_candidates: {
+        Args: { _movement_id: string }
+        Returns: {
+          amount: number
+          client_id: number
+          confidence: number
+          due_date: string
+          exact: boolean
+          label: string
+          target_id: string
+          target_type: string
+        }[]
+      }
+      bank_reconcile: {
+        Args: { _movement_id: string; _target_id: string; _target_type: string }
+        Returns: Json
+      }
+      bank_set_status: {
+        Args: { _movement_id: string; _notes?: string; _status: string }
+        Returns: undefined
+      }
+      bank_split: {
+        Args: { _movement_id: string; _parts: number[] }
+        Returns: Json
+      }
       book_class: {
         Args: { _class_date: string; _class_id: string; _muscle_group: string }
         Returns: Json
@@ -6261,10 +6679,15 @@ export type Database = {
           unit_name: string
         }[]
       }
+      fin_forecast: {
+        Args: { _from: string; _to: string; _unit_id: string }
+        Returns: Json
+      }
       fin_reopen_period: {
         Args: { _id: string; _reason?: string }
         Returns: undefined
       }
+      forecast_settle: { Args: { _snapshot_id: string }; Returns: Json }
       form_link_open: { Args: { p_token: string }; Returns: Json }
       form_link_submit: {
         Args: { p_payload: Json; p_token: string }
