@@ -124,6 +124,20 @@ const AdminLayout = () => {
   const [userName, setUserName] = useState("Admin");
   const [userEmail, setUserEmail] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [openMenus, setOpenMenus] = useState<Set<string>>(new Set());
+
+  // Auto-expand menu when navigating to any of its child routes
+  useEffect(() => {
+    setOpenMenus((prev) => {
+      const next = new Set(prev);
+      navItems.forEach((item) => {
+        if (item.children && location.pathname.startsWith(item.path)) {
+          next.add(item.path);
+        }
+      });
+      return next;
+    });
+  }, [location.pathname]);
 
   useEffect(() => {
     const checkAuth = async () => {
