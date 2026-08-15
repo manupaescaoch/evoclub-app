@@ -1369,49 +1369,78 @@ export type Database = {
       club_redemptions: {
         Row: {
           amount_saved: number | null
+          benefit_id: string | null
           benefit_label: string | null
           confirmed_at: string | null
           confirmed_by: string | null
           created_at: string
           id: string
           partner_id: string | null
+          purchase_amount: number | null
           redeemed_at: string
+          source: string
           status: string
           student_id: string
+          unit_id: string | null
           updated_at: string
+          validated_by: string | null
         }
         Insert: {
           amount_saved?: number | null
+          benefit_id?: string | null
           benefit_label?: string | null
           confirmed_at?: string | null
           confirmed_by?: string | null
           created_at?: string
           id?: string
           partner_id?: string | null
+          purchase_amount?: number | null
           redeemed_at?: string
+          source?: string
           status?: string
           student_id: string
+          unit_id?: string | null
           updated_at?: string
+          validated_by?: string | null
         }
         Update: {
           amount_saved?: number | null
+          benefit_id?: string | null
           benefit_label?: string | null
           confirmed_at?: string | null
           confirmed_by?: string | null
           created_at?: string
           id?: string
           partner_id?: string | null
+          purchase_amount?: number | null
           redeemed_at?: string
+          source?: string
           status?: string
           student_id?: string
+          unit_id?: string | null
           updated_at?: string
+          validated_by?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "club_redemptions_benefit_id_fkey"
+            columns: ["benefit_id"]
+            isOneToOne: false
+            referencedRelation: "partner_benefits"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "club_redemptions_partner_id_fkey"
             columns: ["partner_id"]
             isOneToOne: false
             referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "club_redemptions_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "units"
             referencedColumns: ["id"]
           },
         ]
@@ -3970,11 +3999,72 @@ export type Database = {
           },
         ]
       }
+      partner_benefits: {
+        Row: {
+          active: boolean
+          benefit_type: string
+          created_at: string
+          id: string
+          label: string
+          limit_period: string
+          partner_id: string
+          rules: string | null
+          updated_at: string
+          usage_limit: number | null
+          valid_from: string | null
+          valid_until: string | null
+          value: number | null
+        }
+        Insert: {
+          active?: boolean
+          benefit_type?: string
+          created_at?: string
+          id?: string
+          label: string
+          limit_period?: string
+          partner_id: string
+          rules?: string | null
+          updated_at?: string
+          usage_limit?: number | null
+          valid_from?: string | null
+          valid_until?: string | null
+          value?: number | null
+        }
+        Update: {
+          active?: boolean
+          benefit_type?: string
+          created_at?: string
+          id?: string
+          label?: string
+          limit_period?: string
+          partner_id?: string
+          rules?: string | null
+          updated_at?: string
+          usage_limit?: number | null
+          valid_from?: string | null
+          valid_until?: string | null
+          value?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_benefits_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       partners: {
         Row: {
           active: boolean
           category: string
           code: string | null
+          contact_email: string | null
+          contact_name: string | null
+          contact_phone: string | null
+          contract_ends_at: string | null
+          contract_starts_at: string | null
           created_at: string
           description: string | null
           discount_label: string | null
@@ -3982,14 +4072,24 @@ export type Database = {
           image_url: string | null
           location: string | null
           name: string
+          notes: string | null
+          portal_last_seen_at: string | null
+          portal_token: string | null
+          portal_token_at: string | null
           redeem_instructions: string | null
           tag: string | null
+          unit_ids: string[]
           updated_at: string
         }
         Insert: {
           active?: boolean
           category?: string
           code?: string | null
+          contact_email?: string | null
+          contact_name?: string | null
+          contact_phone?: string | null
+          contract_ends_at?: string | null
+          contract_starts_at?: string | null
           created_at?: string
           description?: string | null
           discount_label?: string | null
@@ -3997,14 +4097,24 @@ export type Database = {
           image_url?: string | null
           location?: string | null
           name: string
+          notes?: string | null
+          portal_last_seen_at?: string | null
+          portal_token?: string | null
+          portal_token_at?: string | null
           redeem_instructions?: string | null
           tag?: string | null
+          unit_ids?: string[]
           updated_at?: string
         }
         Update: {
           active?: boolean
           category?: string
           code?: string | null
+          contact_email?: string | null
+          contact_name?: string | null
+          contact_phone?: string | null
+          contract_ends_at?: string | null
+          contract_starts_at?: string | null
           created_at?: string
           description?: string | null
           discount_label?: string | null
@@ -4012,8 +4122,13 @@ export type Database = {
           image_url?: string | null
           location?: string | null
           name?: string
+          notes?: string | null
+          portal_last_seen_at?: string | null
+          portal_token?: string | null
+          portal_token_at?: string | null
           redeem_instructions?: string | null
           tag?: string | null
+          unit_ids?: string[]
           updated_at?: string
         }
         Relationships: []
@@ -6558,6 +6673,45 @@ export type Database = {
           title: string
         }[]
       }
+      club_alerts: {
+        Args: { _days?: number }
+        Returns: {
+          benefit_id: string
+          days_left: number
+          expires_at: string
+          kind: string
+          label: string
+          partner_id: string
+          partner_name: string
+        }[]
+      }
+      club_benefit_check: {
+        Args: { _benefit_id: string; _student_id: string }
+        Returns: Json
+      }
+      club_dashboard: {
+        Args: { _from?: string; _to?: string; _unit_id?: string }
+        Returns: Json
+      }
+      club_estimate_saving: {
+        Args: { _purchase: number; _type: string; _value: number }
+        Returns: number
+      }
+      club_limit_window_start: {
+        Args: { _period: string; _ref: string }
+        Returns: string
+      }
+      club_redeem: {
+        Args: {
+          _benefit_id: string
+          _confirmed_by?: string
+          _purchase_amount?: number
+          _source?: string
+          _student_id: string
+          _unit_id?: string
+        }
+        Returns: Json
+      }
       collaborator_scores: {
         Args: { _from: string; _to: string; _unit_id: string }
         Returns: {
@@ -6821,6 +6975,8 @@ export type Database = {
         Returns: Json
       }
       operational_ruler: { Args: never; Returns: Json }
+      partner_portal_open: { Args: { p_token: string }; Returns: Json }
+      partner_portal_rotate: { Args: { _partner_id: string }; Returns: string }
       plan_blocked: { Args: { _client: number }; Returns: boolean }
       plan_state: { Args: never; Returns: Json }
       post_likers: {

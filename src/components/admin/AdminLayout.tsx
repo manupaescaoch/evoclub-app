@@ -10,6 +10,7 @@ import {
   Gift, ListTodo, ClipboardCheck, CalendarClock, HeartPulse, AlertTriangle,
   Clock, Trophy, History, Inbox, Workflow, RefreshCw,
   Wallet, Receipt, ArrowLeftRight, FileBarChart, Percent, Lock, LineChart, Smartphone,
+  Store,
 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { logAudit } from "@/lib/audit";
@@ -111,6 +112,8 @@ const navItems: NavItem[] = [
   {
     label: "EVO Club", icon: Ticket, path: "/admin/club", module: "club",
     children: [
+      { label: "Visão Geral", icon: LayoutDashboard, path: "/admin/club" },
+      { label: "Parceiros e Benefícios", icon: Store, path: "/admin/club/parceiros" },
       { label: "Validar Resgate", icon: Ticket, path: "/admin/club/validar" },
     ],
   },
