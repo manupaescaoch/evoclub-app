@@ -146,7 +146,7 @@ const MemberCard = ({
           </div>
           {value && (
             <div className="rounded-xl bg-card p-2">
-              <QRCodeSVG value={value} size={64} bgColor="transparent" fgColor="#1400FF" />
+              <QRCodeSVG value={value} size={64} bgColor="transparent" fgColor="#0057FF" />
             </div>
           )}
         </div>
@@ -182,7 +182,7 @@ const MemberCard = ({
           <p className="font-barlow font-bold text-xl text-foreground">{name.toUpperCase()}</p>
           <p className="text-xs font-dm text-muted mt-1">{STUDENT_UNIT}</p>
           <div className="mt-6 p-5 rounded-3xl bg-card card-shadow">
-            <QRCodeSVG value={value} size={240} bgColor="transparent" fgColor="#1400FF" />
+            <QRCodeSVG value={value} size={240} bgColor="transparent" fgColor="#0057FF" />
           </div>
           <p className="font-barlow font-bold text-lg text-primary tracking-wider mt-5">{memberId}</p>
           <p className="text-xs font-dm text-muted text-center mt-2">
@@ -300,7 +300,7 @@ const PartnerDetail = ({
         </p>
         {studentId ? (
           <div className="mt-4 p-3 rounded-xl bg-secondary">
-            <QRCodeSVG value={`EVOCLUB-MEMBER|${studentId}`} size={160} bgColor="transparent" fgColor="#1400FF" />
+            <QRCodeSVG value={`EVOCLUB-MEMBER|${studentId}`} size={160} bgColor="transparent" fgColor="#0057FF" />
           </div>
         ) : (
           <p className="mt-4 text-xs font-dm text-muted text-center">

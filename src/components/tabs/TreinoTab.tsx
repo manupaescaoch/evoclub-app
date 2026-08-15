@@ -132,7 +132,7 @@ const LoadModal = ({
           <button
             onClick={() => { save(); onClose(); }}
             className="w-full py-3.5 rounded-2xl bg-primary text-primary-foreground font-barlow font-bold text-base active:scale-[0.98] transition-transform"
-            style={{ boxShadow: "0 3px 10px #1400FF44" }}
+            style={{ boxShadow: "0 3px 10px #0057FF44" }}
           >
             Salvar
           </button>
@@ -187,7 +187,7 @@ const LoadModal = ({
         <button
           onClick={() => { save(); onClose(); }}
           className="w-full py-3.5 rounded-2xl bg-primary text-primary-foreground font-barlow font-bold text-base active:scale-[0.98] transition-transform"
-          style={{ boxShadow: "0 3px 10px #1400FF44" }}
+          style={{ boxShadow: "0 3px 10px #0057FF44" }}
         >
           Salvar
         </button>
@@ -236,7 +236,7 @@ const RestTimer = ({ seconds, onClose }: { seconds: number; onClose: () => void 
         <div className="flex items-center justify-center gap-4 mb-3">
           <button onClick={() => setRunning(!running)}
             className="w-12 h-12 rounded-full bg-primary flex items-center justify-center active:scale-95 transition-transform"
-            style={{ boxShadow: "0 3px 10px #1400FF44" }}>
+            style={{ boxShadow: "0 3px 10px #0057FF44" }}>
             {running ? <Pause size={20} className="text-primary-foreground" /> : <Play size={20} className="text-primary-foreground fill-primary-foreground" />}
           </button>
           <button onClick={() => { setTimeLeft(seconds); setRunning(true); }}
@@ -360,7 +360,7 @@ const PostWorkoutModal = ({
           disabled={!valid || saving}
           onClick={() => onSubmit({ rpe, stars, note, pain: !!pain, painNote })}
           className="w-full py-3.5 rounded-2xl bg-primary text-primary-foreground font-barlow font-bold text-base active:scale-[0.98] transition-transform disabled:opacity-50"
-          style={{ boxShadow: "0 3px 10px #1400FF44" }}
+          style={{ boxShadow: "0 3px 10px #0057FF44" }}
         >
           {saving ? "SALVANDO..." : "ENVIAR E FINALIZAR"}
         </button>
@@ -409,13 +409,13 @@ const XpCompletionModal = ({
             </div>
           )}
         </div>
-        <div className="rounded-2xl p-4 mb-5" style={{ background: "linear-gradient(135deg, #1400FF 0%, #0A00B0 100%)" }}>
+        <div className="rounded-2xl p-4 mb-5" style={{ background: "linear-gradient(135deg, #0057FF 0%, #0043C4 100%)" }}>
           <p className="text-white/70 text-[10px] font-barlow tracking-[2px] uppercase">XP TOTAL GANHO</p>
           <p className="font-barlow font-[800] text-4xl text-white">+{total}</p>
         </div>
         <button onClick={onClose}
           className="w-full py-3.5 rounded-2xl bg-primary text-primary-foreground font-barlow font-bold text-base active:scale-[0.98] transition-transform"
-          style={{ boxShadow: "0 3px 10px #1400FF44" }}>
+          style={{ boxShadow: "0 3px 10px #0057FF44" }}>
           FECHAR
         </button>
       </div>
@@ -787,7 +787,7 @@ const TreinoTab = () => {
           <div className="flex items-center gap-2">
             <div className="flex-1 h-2 rounded-full bg-secondary overflow-hidden">
               <div className="h-full rounded-full transition-all"
-                style={{ width: allSeries.length ? `${(doneSeries / allSeries.length) * 100}%` : "0%", background: "linear-gradient(90deg, #1400FF, #0A00B0)" }} />
+                style={{ width: allSeries.length ? `${(doneSeries / allSeries.length) * 100}%` : "0%", background: "linear-gradient(90deg, #0057FF, #0043C4)" }} />
             </div>
             <span className="text-xs font-dm text-muted">{doneSeries}/{allSeries.length} séries</span>
           </div>
@@ -803,7 +803,7 @@ const TreinoTab = () => {
             <div className="mb-4">
               <button onClick={startWorkout}
                 className="w-full py-3 rounded-2xl bg-primary text-primary-foreground font-barlow font-bold text-base tracking-wide active:scale-[0.98] transition-transform"
-                style={{ boxShadow: "0 3px 10px #1400FF44" }}>
+                style={{ boxShadow: "0 3px 10px #0057FF44" }}>
                 INICIAR TREINO
               </button>
               <p className="text-center text-[11px] text-muted font-dm mt-2">Modo visualização. Aperte INICIAR para registrar.</p>
@@ -814,7 +814,7 @@ const TreinoTab = () => {
             <div className="mb-4">
               <button onClick={() => finishWorkout(false)} disabled={saving}
                 className="w-full py-3.5 rounded-2xl font-barlow font-bold text-base tracking-wide text-white active:scale-[0.98] transition-transform disabled:opacity-60"
-                style={{ background: "linear-gradient(135deg, #1400FF 0%, #0A00B0 100%)", boxShadow: "0 3px 14px #1400FF55" }}>
+                style={{ background: "linear-gradient(135deg, #0057FF 0%, #0043C4 100%)", boxShadow: "0 3px 14px #0057FF55" }}>
                 {saving ? "SALVANDO..." : "🏆 FINALIZAR TREINO"}
               </button>
             </div>

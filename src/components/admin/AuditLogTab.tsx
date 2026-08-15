@@ -29,7 +29,7 @@ const ACTION_STYLES: Record<string, string> = {
   delete: "bg-red-100 text-red-700",
   login: "bg-gray-100 text-gray-700",
   logout: "bg-gray-100 text-gray-500",
-  custom: "bg-purple-100 text-purple-700",
+  custom: "bg-blue-100 text-blue-700",
 };
 
 const ACTION_LABEL: Record<string, string> = {

@@ -125,7 +125,7 @@ const RankingTab = () => {
       {/* Minha posição */}
       <div
         className="rounded-2xl p-4 text-white mb-4 hero-shadow"
-        style={{ background: "linear-gradient(135deg, #1400FF 0%, #0A00B0 100%)" }}
+        style={{ background: "linear-gradient(135deg, #0057FF 0%, #0043C4 100%)" }}
       >
         <div className="flex items-center gap-3">
           <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center text-sm font-semibold font-dm">
@@ -259,7 +259,7 @@ const RankingTab = () => {
                   className="h-full rounded-full"
                   style={{
                     width: `${(r.points / maxPoints) * 100}%`,
-                    background: r.isMe ? "linear-gradient(90deg, #1400FF, #0A00B0)" : "#D1D5DB",
+                    background: r.isMe ? "linear-gradient(90deg, #0057FF, #0043C4)" : "#D1D5DB",
                   }}
                 />
               </div>

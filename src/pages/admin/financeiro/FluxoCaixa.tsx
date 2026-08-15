@@ -82,7 +82,7 @@ const FluxoCaixa = () => {
                 <XAxis dataKey="date" tick={{ fontSize: 10 }} />
                 <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
                 <Tooltip formatter={(v: any) => fmtBRL(Number(v))} />
-                <Area type="monotone" dataKey="balance" stroke="#1400FF" fill="#1400FF22" />
+                <Area type="monotone" dataKey="balance" stroke="#0057FF" fill="#0057FF22" />
               </AreaChart>
             </ResponsiveContainer>
           </div>

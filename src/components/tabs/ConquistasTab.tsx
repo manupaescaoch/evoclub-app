@@ -30,7 +30,7 @@ const ConquistasTab = ({ onBack }: { onBack: () => void }) => {
 
       <div
         className="rounded-2xl p-5 text-white mb-5 hero-shadow"
-        style={{ background: "linear-gradient(135deg, #1400FF 0%, #0A00B0 100%)" }}
+        style={{ background: "linear-gradient(135deg, #0057FF 0%, #0043C4 100%)" }}
       >
         <p className="font-barlow text-[10px] tracking-[2px] uppercase text-white/70">Nível {g.level}</p>
         <p className="font-barlow font-[800] text-3xl leading-tight">{levelTitle(g.level)}</p>

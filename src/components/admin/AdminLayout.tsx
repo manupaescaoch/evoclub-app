@@ -226,7 +226,7 @@ const AdminLayout = () => {
                   }}
                   className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-dm transition-colors w-full text-left
                     ${isActive
-                      ? "bg-[rgba(20,0,255,0.13)] text-white border-l-[3px] border-l-primary"
+                      ? "bg-[rgba(0,87,255,0.16)] text-white border-l-[3px] border-l-primary"
                       : "text-gray-400 hover:text-white hover:bg-white/5 border-l-[3px] border-l-transparent"
                     }`}
                 >
@@ -267,7 +267,7 @@ const AdminLayout = () => {
               onClick={() => isMobile && setSidebarOpen(false)}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-dm transition-colors
                 ${isActive
-                  ? "bg-[rgba(20,0,255,0.13)] text-white border-l-[3px] border-l-primary"
+                  ? "bg-[rgba(0,87,255,0.16)] text-white border-l-[3px] border-l-primary"
                   : "text-gray-400 hover:text-white hover:bg-white/5 border-l-[3px] border-l-transparent"
                 }`}
             >
