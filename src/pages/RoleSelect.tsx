@@ -25,7 +25,7 @@ const RoleSelect = () => {
         <img src={logoAsset.url} alt="EVO Club" className="w-24 h-24 rounded-2xl mb-5 hero-shadow" />
         <div className="flex items-baseline gap-1.5">
           <span className="font-barlow font-black text-3xl tracking-tight text-foreground">EVO</span>
-          <span className="font-barlow font-bold text-3xl tracking-tight text-muted-foreground">TRAINING CLUB</span>
+          <span className="font-barlow font-bold text-3xl tracking-tight text-muted-foreground">CLUB</span>
         </div>
         <p className="text-sm text-muted-foreground font-dm mt-1">O seu app</p>
       </div>
