@@ -155,21 +155,6 @@ const AdminLayout = () => {
     navigate("/pro", { replace: true });
   }, [accessLoading, isMobile, location.pathname, isAdmin, collaboratorId, navigate]);
 
-  const legacyExpandEffect = useEffect(() => {
-    setClosedMenus((prev) => {
-      const next = new Set(prev);
-      navItems.forEach((item) => {
-        const matches =
-          location.pathname.startsWith(item.path) ||
-          (item.children || []).some((c) => location.pathname.startsWith(c.path));
-        if (item.children && matches) {
-          next.delete(item.path);
-        }
-      });
-      return next;
-    });
-  }, [location.pathname]);
-
   useEffect(() => {
     const checkAuth = async () => {
       const { data: { session } } = await supabase.auth.getSession();
