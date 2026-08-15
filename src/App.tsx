@@ -69,6 +69,9 @@ import EquipePonto from "./pages/admin/equipe/Ponto.tsx";
 import EquipeDesempenho from "./pages/admin/equipe/Desempenho.tsx";
 import EquipeHistorico from "./pages/admin/equipe/Historico.tsx";
 import ValidarResgate from "./pages/admin/club/ValidarResgate";
+import ClubDashboard from "./pages/admin/club/ClubDashboard";
+import Parceiros from "./pages/admin/club/Parceiros";
+import PortalParceiro from "./pages/public/PortalParceiro";
 import Configuracoes from "./pages/admin/Configuracoes.tsx";
 import AdminComunidade from "./pages/admin/Comunidade.tsx";
 import ProLayout from "./components/pro/ProLayout.tsx";
@@ -140,6 +143,7 @@ const App = () => (
           </Route>
           {/* Formulário público por link rastreável */}
           <Route path="/f/:token" element={<FormLink />} />
+          <Route path="/parceiro/:token" element={<PortalParceiro />} />
           <Route path="/admin" element={<AdminLayout />}>
             <Route index element={<ModuleGuard module="dashboard"><Dashboard /></ModuleGuard>} />
             <Route path="clientes" element={<ModuleGuard module="clientes"><Clientes /></ModuleGuard>} />
@@ -207,7 +211,8 @@ const App = () => (
               <Route path="biblioteca" element={<TreinosBiblioteca />} />
               <Route path="metodos" element={<TreinosMetodos />} />
             </Route>
-            <Route path="club" element={<Navigate to="/admin/club/validar" replace />} />
+            <Route path="club" element={<ModuleGuard module="club"><ClubDashboard /></ModuleGuard>} />
+            <Route path="club/parceiros" element={<ModuleGuard module="club"><Parceiros /></ModuleGuard>} />
             <Route path="club/validar" element={<ModuleGuard module="club"><ValidarResgate /></ModuleGuard>} />
             <Route path="comunidade" element={<ModuleGuard module="comunidade"><AdminComunidade /></ModuleGuard>} />
             <Route path="configuracoes" element={<ModuleGuard module="configuracoes"><Configuracoes /></ModuleGuard>} />
