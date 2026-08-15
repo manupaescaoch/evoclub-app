@@ -245,7 +245,7 @@ const AdminLayout = () => {
                           onClick={() => isMobile && setSidebarOpen(false)}
                           className={`flex items-center gap-2.5 px-2 py-2 rounded-md text-xs font-dm transition-colors
                             ${childActive
-                              ? "text-white bg-white/5"
+                              ? "text-white bg-primary/15 font-semibold"
                               : "text-gray-500 hover:text-white hover:bg-white/5"
                             }`}
                         >
@@ -309,7 +309,7 @@ const AdminLayout = () => {
       {/* Sidebar */}
       <aside
         className={`
-          w-[220px] bg-[#0A0A1A] flex flex-col fixed left-0 top-0 bottom-0 z-50
+          w-[220px] bg-sidebar border-r border-sidebar-border flex flex-col fixed left-0 top-0 bottom-0 z-50
           transition-transform duration-200 ease-in-out
           ${isMobile ? (sidebarOpen ? "translate-x-0" : "-translate-x-full") : "translate-x-0"}
         `}
