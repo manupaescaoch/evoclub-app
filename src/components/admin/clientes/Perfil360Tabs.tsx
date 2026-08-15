@@ -247,13 +247,8 @@ export function DadosTab({ c, onSaved }: { c: OverviewRow; onSaved: () => void }
   const lockedNote = (k: string) => SENSITIVE_FIELDS.includes(k) && !canSensitive;
 
   const Text = ({ k, label, type = "text" }: { k: string; label: string; type?: string }) => (
-    <div>
-      <label className="text-[11px] font-dm text-muted-foreground flex items-center gap-1">
-        {label} {lockedNote(k) && <Lock size={11} />}
-      </label>
-      <Input type={type} value={form[k] ?? ""} disabled={!canEdit || lockedNote(k)}
-        onChange={e => set(k, e.target.value)} className="mt-1 h-9 font-dm" />
-    </div>
+    <TextField k={k} label={label} type={type} value={form[k] ?? ""}
+      locked={lockedNote(k)} disabled={!canEdit || lockedNote(k)} onChange={set} />
   );
 
   return (
