@@ -202,7 +202,9 @@ const AdminLayout = () => {
           const isActive = isExact || (item.path !== "/admin" && active);
 
           if (hasChildren) {
-            const routeMatches = location.pathname.startsWith(item.path);
+            const routeMatches =
+              location.pathname.startsWith(item.path) ||
+              (item.children || []).some((c) => location.pathname.startsWith(c.path));
             const expanded = (routeMatches && !closedMenus.has(item.path)) || openMenus.has(item.path);
             return (
               <div key={item.path}>
