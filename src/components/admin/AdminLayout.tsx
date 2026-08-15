@@ -172,7 +172,7 @@ const AdminLayout = () => {
   // Professor/estagiário no celular entra direto no modo treinador (/pro),
   // a menos que tenha escolhido explicitamente a versão desktop.
   useEffect(() => {
-    console.log("PRO_DBG", JSON.stringify({accessLoading, isMobile, path: location.pathname, isAdmin, isTrainerRole, collaboratorId, dm: sessionStorage.getItem("evo_desktop_mode")}));
+    console.log("PRO_DBG", JSON.stringify({accessLoading, isMobile, iw: window.innerWidth, mm: window.matchMedia("(max-width: 767px)").matches, path: location.pathname, isAdmin, isTrainerRole, collaboratorId, dm: sessionStorage.getItem("evo_desktop_mode")}));
     if (accessLoading || !isMobile) return;
     if (location.pathname !== "/admin") return;
     if (!collaboratorId || isTrainerRole === null) return;
