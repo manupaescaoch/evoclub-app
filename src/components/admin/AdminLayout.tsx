@@ -8,7 +8,7 @@ import {
   Search, Bell, ChevronDown, ClipboardList, Library, Wrench, Menu, X, ClipboardEdit,
   FileSignature, CalendarRange, UserCog, Truck, ShieldCheck, Tag, Ticket, TrendingUp,
   Gift, ListTodo, ClipboardCheck, CalendarClock, HeartPulse, AlertTriangle,
-  Clock, Trophy, History, Inbox, Workflow, RefreshCw,
+  Clock, Trophy, History, Inbox, Workflow, RefreshCw, Target,
   Wallet, Receipt, ArrowLeftRight, FileBarChart, Percent, Lock, LineChart,
 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -33,6 +33,7 @@ const navItems: NavItem[] = [
     children: [
       { label: "Dashboard", icon: LayoutDashboard, path: "/admin/crm" },
       { label: "Leads", icon: Inbox, path: "/admin/leads" },
+      { label: "Dashboard Comercial", icon: Target, path: "/admin/leads/dashboard" },
       { label: "Comissões", icon: DollarSign, path: "/admin/crm/comissoes" },
       { label: "Indicações", icon: Gift, path: "/admin/crm/indicacoes" },
       { label: "Tarefas", icon: ListTodo, path: "/admin/crm/tarefas" },
