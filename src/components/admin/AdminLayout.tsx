@@ -133,7 +133,10 @@ const AdminLayout = () => {
     setClosedMenus((prev) => {
       const next = new Set(prev);
       navItems.forEach((item) => {
-        if (item.children && location.pathname.startsWith(item.path)) {
+        const matches =
+          location.pathname.startsWith(item.path) ||
+          (item.children || []).some((c) => location.pathname.startsWith(c.path));
+        if (item.children && matches) {
           next.delete(item.path);
         }
       });
