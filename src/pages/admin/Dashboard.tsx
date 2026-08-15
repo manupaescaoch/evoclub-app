@@ -135,7 +135,7 @@ const Dashboard = () => {
       </div>
 
       {loading ? (
-        <div className="grid grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
           {Array.from({ length: 8 }).map((_, i) => (
             <div key={i} className="bg-card rounded-xl p-4 card-shadow h-24 animate-pulse" />
           ))}
@@ -143,14 +143,14 @@ const Dashboard = () => {
       ) : activeTab === "clientes" ? (
         <>
           {/* Stat cards row 1 */}
-          <div className="grid grid-cols-4 gap-4 mb-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-4">
             <StatCard label="Clientes Ativos" value={stats.ativos} accent trend="up" trendValue="+5%" />
             <StatCard label="Adimplentes" value={stats.ativos - stats.inad} trend="up" trendValue="92%" />
             <StatCard label="Inadimplentes" value={stats.inad} trend="down" trendValue={`${stats.inad}`} />
             <StatCard label="Evasão (Churn)" value={`${churnPct}%`} trend="down" trendValue="2.1%" />
           </div>
           {/* Stat cards row 2 */}
-          <div className="grid grid-cols-4 gap-4 mb-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-6">
             <StatCard label="VIP" value={Math.round(stats.ativos * 0.08)} />
             <StatCard label="Suspensos" value={stats.suspensos} />
             <StatCard label="Tempo Médio de Vida" value="8.2" sub="meses" />
@@ -158,7 +158,7 @@ const Dashboard = () => {
           </div>
 
           {/* Contratos cancelados + Acessos do dia */}
-          <div className="grid grid-cols-2 gap-4 mb-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4 mb-4">
             {/* Contratos cancelados */}
             <div className="bg-card rounded-xl p-5 card-shadow">
               <div className="flex items-center justify-between mb-4">
@@ -304,7 +304,7 @@ const Dashboard = () => {
       ) : activeTab === "vendas" ? (
         <>
           {/* Row 1: 3 stat cards */}
-          <div className="grid grid-cols-3 gap-4 mb-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4 mb-4">
             {/* Contratos vendidos */}
             <div className="bg-card rounded-xl p-5 card-shadow">
               <div className="flex items-center gap-2 mb-2">
@@ -356,7 +356,7 @@ const Dashboard = () => {
           </div>
 
           {/* Row 2: 3 stat cards */}
-          <div className="grid grid-cols-3 gap-4 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4 mb-6">
             <div className="bg-card rounded-xl p-5 card-shadow">
               <div className="flex items-center gap-2 mb-2">
                 <span className="text-muted-foreground">🛒</span>
@@ -406,7 +406,7 @@ const Dashboard = () => {
           </div>
 
           {/* Total de vendas + Mensal média charts */}
-          <div className="grid grid-cols-2 gap-4 mb-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4 mb-4">
             {/* Total de vendas */}
             <div className="bg-card rounded-xl p-5 card-shadow">
               <div className="flex items-center justify-between mb-3">
@@ -568,7 +568,7 @@ const Dashboard = () => {
       ) : (
         <>
           {/* Row 1: 3 cards */}
-          <div className="grid grid-cols-3 gap-4 mb-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4 mb-4">
             {/* Inadimplência */}
             <div className="bg-card rounded-xl p-5 card-shadow">
               <div className="flex items-center gap-2 mb-2">
@@ -623,9 +623,9 @@ const Dashboard = () => {
           </div>
 
           {/* Recebimentos e gastos + Ticket médio */}
-          <div className="grid grid-cols-5 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-3 md:gap-4">
             {/* Recebimentos e gastos — 3 cols */}
-            <div className="col-span-3 bg-card rounded-xl p-5 card-shadow">
+            <div className="md:col-span-3 bg-card rounded-xl p-5 card-shadow">
               <div className="flex items-center gap-2 mb-3">
                 <span className="text-lg">💰</span>
                 <span className="text-sm font-dm font-semibold text-foreground">Recebimentos e gastos</span>
@@ -679,7 +679,7 @@ const Dashboard = () => {
             </div>
 
             {/* Ticket médio — 2 cols */}
-            <div className="col-span-2 bg-card rounded-xl p-5 card-shadow">
+            <div className="md:col-span-2 bg-card rounded-xl p-5 card-shadow">
               <div className="flex items-center gap-2 mb-3">
                 <span className="text-muted-foreground">📊</span>
                 <span className="text-sm font-dm font-semibold text-foreground">Ticket médio</span>
