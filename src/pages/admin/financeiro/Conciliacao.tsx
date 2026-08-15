@@ -133,7 +133,14 @@ const Conciliacao = () => {
       } as any).select("id").single();
       if (bErr) throw bErr;
 
-      const rows = parsed.map(p => ({
+      const refs = parsed.map(p => p.bank_ref).filter(Boolean) as string[];
+      const existing = new Set<string>();
+      if (refs.length) {
+        const { data: dup } = await supabase.from("bank_transactions")
+          .select("bank_ref").eq("bank_account_id", accountId).in("bank_ref", refs);
+        ((dup || []) as any[]).forEach(d => d.bank_ref && existing.add(d.bank_ref));
+      }
+      const rows = parsed.filter(p => !p.bank_ref || !existing.has(p.bank_ref)).map(p => ({
         bank_account_id: accountId,
         unit_id: acc?.unit_id ?? filterId ?? null,
         batch_id: (batch as any).id,
@@ -145,11 +152,12 @@ const Conciliacao = () => {
         bank_ref: p.bank_ref,
         raw: p.raw ?? null,
       }));
-      const { data: ins, error: iErr } = await supabase
-        .from("bank_transactions").upsert(rows as any, { onConflict: "bank_account_id,bank_ref", ignoreDuplicates: true })
-        .select("id");
-      if (iErr) throw iErr;
-      const imported = (ins || []).length;
+      let imported = 0;
+      if (rows.length) {
+        const { data: ins, error: iErr } = await supabase.from("bank_transactions").insert(rows as any).select("id");
+        if (iErr) throw iErr;
+        imported = (ins || []).length;
+      }
       await supabase.from("bank_import_batches").update({
         imported_rows: imported, duplicate_rows: parsed.length - imported,
       } as any).eq("id", (batch as any).id);
