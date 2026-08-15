@@ -2921,6 +2921,173 @@ export type Database = {
           },
         ]
       }
+      interacoes: {
+        Row: {
+          agendou_experimental: boolean
+          atendido_por: string | null
+          cadastrado_por: string | null
+          compareceu: boolean | null
+          created_at: string
+          created_by: string | null
+          data_experimental: string | null
+          data_fechamento: string | null
+          descricao: string | null
+          fechou_matricula: boolean
+          hora_experimental: string | null
+          id: string
+          lead_id: string
+          plano_escolhido: string | null
+          quem_agendou: string | null
+          tipo: string
+          unidade_id: string
+          updated_at: string
+          valor_plano: number | null
+        }
+        Insert: {
+          agendou_experimental?: boolean
+          atendido_por?: string | null
+          cadastrado_por?: string | null
+          compareceu?: boolean | null
+          created_at?: string
+          created_by?: string | null
+          data_experimental?: string | null
+          data_fechamento?: string | null
+          descricao?: string | null
+          fechou_matricula?: boolean
+          hora_experimental?: string | null
+          id?: string
+          lead_id: string
+          plano_escolhido?: string | null
+          quem_agendou?: string | null
+          tipo?: string
+          unidade_id: string
+          updated_at?: string
+          valor_plano?: number | null
+        }
+        Update: {
+          agendou_experimental?: boolean
+          atendido_por?: string | null
+          cadastrado_por?: string | null
+          compareceu?: boolean | null
+          created_at?: string
+          created_by?: string | null
+          data_experimental?: string | null
+          data_fechamento?: string | null
+          descricao?: string | null
+          fechou_matricula?: boolean
+          hora_experimental?: string | null
+          id?: string
+          lead_id?: string
+          plano_escolhido?: string | null
+          quem_agendou?: string | null
+          tipo?: string
+          unidade_id?: string
+          updated_at?: string
+          valor_plano?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "interacoes_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "interacoes_unidade_id_fkey"
+            columns: ["unidade_id"]
+            isOneToOne: false
+            referencedRelation: "units"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      leads: {
+        Row: {
+          atendido_por: string | null
+          ativo: boolean
+          cadastrado_por: string | null
+          created_at: string
+          created_by: string | null
+          data_aula_experimental: string | null
+          email: string | null
+          hora_aula_experimental: string | null
+          id: string
+          nivel_interesse:
+            | Database["public"]["Enums"]["lead_nivel_interesse"]
+            | null
+          nome: string
+          observacoes: string | null
+          origem: string | null
+          status_funil: Database["public"]["Enums"]["lead_status_funil"]
+          status_taxa_experimental:
+            | Database["public"]["Enums"]["lead_taxa_status"]
+            | null
+          telefone: string | null
+          telefone_normalizado: string | null
+          unidade_id: string
+          updated_at: string
+        }
+        Insert: {
+          atendido_por?: string | null
+          ativo?: boolean
+          cadastrado_por?: string | null
+          created_at?: string
+          created_by?: string | null
+          data_aula_experimental?: string | null
+          email?: string | null
+          hora_aula_experimental?: string | null
+          id?: string
+          nivel_interesse?:
+            | Database["public"]["Enums"]["lead_nivel_interesse"]
+            | null
+          nome: string
+          observacoes?: string | null
+          origem?: string | null
+          status_funil?: Database["public"]["Enums"]["lead_status_funil"]
+          status_taxa_experimental?:
+            | Database["public"]["Enums"]["lead_taxa_status"]
+            | null
+          telefone?: string | null
+          telefone_normalizado?: string | null
+          unidade_id: string
+          updated_at?: string
+        }
+        Update: {
+          atendido_por?: string | null
+          ativo?: boolean
+          cadastrado_por?: string | null
+          created_at?: string
+          created_by?: string | null
+          data_aula_experimental?: string | null
+          email?: string | null
+          hora_aula_experimental?: string | null
+          id?: string
+          nivel_interesse?:
+            | Database["public"]["Enums"]["lead_nivel_interesse"]
+            | null
+          nome?: string
+          observacoes?: string | null
+          origem?: string | null
+          status_funil?: Database["public"]["Enums"]["lead_status_funil"]
+          status_taxa_experimental?:
+            | Database["public"]["Enums"]["lead_taxa_status"]
+            | null
+          telefone?: string | null
+          telefone_normalizado?: string | null
+          unidade_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leads_unidade_id_fkey"
+            columns: ["unidade_id"]
+            isOneToOne: false
+            referencedRelation: "units"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       limitation_alerts: {
         Row: {
           acknowledged_at: string | null
@@ -2971,6 +3138,47 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      metas: {
+        Row: {
+          alunos_ativos: number
+          created_at: string
+          id: string
+          mes_referencia: string
+          meta_experimentais: number
+          meta_matriculas: number
+          unidade_id: string
+          updated_at: string
+        }
+        Insert: {
+          alunos_ativos?: number
+          created_at?: string
+          id?: string
+          mes_referencia: string
+          meta_experimentais?: number
+          meta_matriculas?: number
+          unidade_id: string
+          updated_at?: string
+        }
+        Update: {
+          alunos_ativos?: number
+          created_at?: string
+          id?: string
+          mes_referencia?: string
+          meta_experimentais?: number
+          meta_matriculas?: number
+          unidade_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "metas_unidade_id_fkey"
+            columns: ["unidade_id"]
+            isOneToOne: false
+            referencedRelation: "units"
             referencedColumns: ["id"]
           },
         ]
@@ -6362,6 +6570,17 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "coach" | "coordinator" | "student" | "viewer"
+      lead_nivel_interesse: "alto" | "medio" | "baixo"
+      lead_status_funil:
+        | "novo"
+        | "contato_inicial"
+        | "aula_agendada"
+        | "aula_realizada"
+        | "follow_up"
+        | "negociacao"
+        | "convertido"
+        | "perdido"
+      lead_taxa_status: "pendente" | "pago" | "isento"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -6490,6 +6709,18 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "coach", "coordinator", "student", "viewer"],
+      lead_nivel_interesse: ["alto", "medio", "baixo"],
+      lead_status_funil: [
+        "novo",
+        "contato_inicial",
+        "aula_agendada",
+        "aula_realizada",
+        "follow_up",
+        "negociacao",
+        "convertido",
+        "perdido",
+      ],
+      lead_taxa_status: ["pendente", "pago", "isento"],
     },
   },
 } as const

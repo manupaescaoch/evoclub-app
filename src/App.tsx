@@ -12,6 +12,8 @@ import Dashboard from "./pages/admin/Dashboard.tsx";
 import Clientes from "./pages/admin/Clientes.tsx";
 import Grade from "./pages/admin/Grade.tsx";
 import CRM from "./pages/admin/CRM.tsx";
+import Leads from "./pages/admin/Leads.tsx";
+import LeadDetalhe from "./pages/admin/LeadDetalhe.tsx";
 import FinanceiroLayout from "./components/admin/financeiro/FinanceiroLayout.tsx";
 import FinDashboard from "./pages/admin/financeiro/Dashboard.tsx";
 import FluxoCaixa from "./pages/admin/financeiro/FluxoCaixa.tsx";
@@ -124,6 +126,8 @@ const App = () => (
             <Route index element={<ModuleGuard module="dashboard"><Dashboard /></ModuleGuard>} />
             <Route path="clientes" element={<ModuleGuard module="clientes"><Clientes /></ModuleGuard>} />
             <Route path="grade" element={<ModuleGuard module="grade"><Grade /></ModuleGuard>} />
+            <Route path="leads" element={<ModuleGuard module="crm"><Leads /></ModuleGuard>} />
+            <Route path="leads/:id" element={<ModuleGuard module="crm"><LeadDetalhe /></ModuleGuard>} />
             <Route path="crm" element={<ModuleGuard module="crm"><CRM /></ModuleGuard>} />
             <Route path="crm/comissoes" element={<ModuleGuard module="crm"><Comissoes /></ModuleGuard>} />
             <Route path="crm/indicacoes" element={<ModuleGuard module="crm"><Indicacoes /></ModuleGuard>} />
