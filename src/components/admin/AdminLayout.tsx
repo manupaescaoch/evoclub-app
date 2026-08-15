@@ -33,6 +33,7 @@ const navItems: NavItem[] = [
     children: [
       { label: "Dashboard", icon: LayoutDashboard, path: "/admin/crm" },
       { label: "Leads", icon: Inbox, path: "/admin/leads" },
+      { label: "Dashboard Comercial", icon: Target, path: "/admin/leads/dashboard" },
       { label: "Comissões", icon: DollarSign, path: "/admin/crm/comissoes" },
       { label: "Indicações", icon: Gift, path: "/admin/crm/indicacoes" },
       { label: "Tarefas", icon: ListTodo, path: "/admin/crm/tarefas" },
