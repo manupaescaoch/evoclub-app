@@ -6,15 +6,26 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { Building2, Sliders, Plug, User, KeyRound, LogOut, Save, ScrollText, MapPin } from "lucide-react";
+import { Building2, Sliders, Plug, User, KeyRound, LogOut, Save, ScrollText, MapPin, Layers, CalendarClock, Dumbbell, ClipboardList, Users, Bell } from "lucide-react";
 import AuditLogTab from "@/components/admin/AuditLogTab";
+import { logSensitive } from "@/lib/audit";
 import UnidadesTab from "@/pages/admin/configuracoes/UnidadesTab";
+import PlanosTab from "@/pages/admin/configuracoes/PlanosTab";
+import NotificacoesTab from "@/pages/admin/configuracoes/NotificacoesTab";
+import IntegracoesStatus from "@/pages/admin/configuracoes/IntegracoesStatus";
+import { GradeConfigTab, TreinosConfigTab, AvaliacoesConfigTab, CrmConfigTab } from "@/pages/admin/configuracoes/RegrasTabs";
 
-type TabKey = "empresa" | "unidades" | "sistema" | "integracoes" | "conta" | "auditoria";
+type TabKey = "empresa" | "unidades" | "planos" | "grade" | "treinos" | "avaliacoes" | "crm" | "notificacoes" | "sistema" | "integracoes" | "conta" | "auditoria";
 
 const TABS: { key: TabKey; label: string; icon: any }[] = [
   { key: "empresa", label: "Dados da empresa", icon: Building2 },
   { key: "unidades", label: "Unidades", icon: MapPin },
+  { key: "planos", label: "Planos", icon: Layers },
+  { key: "grade", label: "Grade", icon: CalendarClock },
+  { key: "treinos", label: "Treinos", icon: Dumbbell },
+  { key: "avaliacoes", label: "Avaliações", icon: ClipboardList },
+  { key: "crm", label: "CRM", icon: Users },
+  { key: "notificacoes", label: "Notificações", icon: Bell },
   { key: "sistema", label: "Preferências do sistema", icon: Sliders },
   { key: "integracoes", label: "Integrações", icon: Plug },
   { key: "conta", label: "Conta e segurança", icon: User },
@@ -86,9 +97,16 @@ const Configuracoes = () => {
 
   const saveKey = async (key: string, value: any) => {
     setSaving(true);
+    const { data: prev } = await supabase.from("app_settings").select("value").eq("key", key).maybeSingle();
     const { error } = await supabase.from("app_settings").upsert({ key, value }, { onConflict: "key" });
     setSaving(false);
-    if (error) toast.error(error.message); else toast.success("Salvo");
+    if (error) { toast.error(error.message); return; }
+    logSensitive({
+      entity: "app_settings", entity_id: key, module: "configuracoes",
+      description: `Alterou configurações de ${key}`,
+      before: (prev?.value as any) || null, after: value,
+    });
+    toast.success("Salvo");
   };
 
   const updateProfile = async () => {
@@ -217,6 +235,7 @@ const Configuracoes = () => {
 
       {tab === "integracoes" && (
         <div className="space-y-4">
+          <IntegracoesStatus />
           <div className="bg-card rounded-xl card-shadow p-5 space-y-3">
             <div className="flex items-center justify-between">
               <div><p className="font-barlow font-bold text-base">WhatsApp</p><p className="text-xs text-muted-foreground font-dm">Envio via wa.me a partir do número principal.</p></div>
@@ -312,6 +331,13 @@ const Configuracoes = () => {
       {tab === "auditoria" && <AuditLogTab />}
 
       {tab === "unidades" && <UnidadesTab />}
+
+      {tab === "planos" && <PlanosTab />}
+      {tab === "grade" && <GradeConfigTab />}
+      {tab === "treinos" && <TreinosConfigTab />}
+      {tab === "avaliacoes" && <AvaliacoesConfigTab />}
+      {tab === "crm" && <CrmConfigTab />}
+      {tab === "notificacoes" && <NotificacoesTab />}
     </div>
   );
 };

@@ -8,7 +8,7 @@ import type { Lead } from "@/hooks/useLeads";
 export type RuleKey = "sem_contato" | "confirmar_hoje" | "no_show" | "pos_experimental" | "negociacao_parada";
 
 export const RULES: { key: RuleKey; label: string; hint: string; msg: (nome: string) => string }[] = [
-  { key: "sem_contato", label: "Sem contato há 2+ dias", hint: "Lead novo ou em contato inicial sem interação recente.",
+  { key: "sem_contato", label: "Sem contato", hint: "Lead novo ou em contato inicial sem interação dentro do prazo configurado.",
     msg: (n) => `Olá, ${n}! Aqui é da EVO Club. Vi que você demonstrou interesse em treinar com a gente. Quer agendar sua aula experimental?` },
   { key: "confirmar_hoje", label: "Confirmar experimental (hoje/amanhã)", hint: "Aulas agendadas para hoje ou amanhã que ainda precisam de confirmação.",
     msg: (n) => `Olá, ${n}! Passando para confirmar sua aula experimental na EVO Club. Podemos contar com você?` },
@@ -16,7 +16,7 @@ export const RULES: { key: RuleKey; label: string; hint: string; msg: (nome: str
     msg: (n) => `Olá, ${n}! Sentimos sua falta na aula experimental. Quer reagendar para outro dia?` },
   { key: "pos_experimental", label: "Pós-experimental sem fechamento", hint: "Fez a aula e ainda não fechou matrícula.",
     msg: (n) => `Olá, ${n}! O que achou da sua experiência na EVO Club? Posso te mostrar as condições de matrícula?` },
-  { key: "negociacao_parada", label: "Negociação parada há 3+ dias", hint: "Em negociação ou follow up sem movimentação.",
+  { key: "negociacao_parada", label: "Negociação parada", hint: "Em negociação ou follow up sem movimentação no prazo configurado.",
     msg: (n) => `Olá, ${n}! Consegui uma condição especial para sua matrícula na EVO Club. Posso te enviar?` },
 ];
 

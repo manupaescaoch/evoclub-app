@@ -3591,6 +3591,83 @@ export type Database = {
           },
         ]
       }
+      notification_rules: {
+        Row: {
+          channel: string
+          created_at: string
+          enabled: boolean
+          event_key: string
+          id: string
+          unit_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          channel?: string
+          created_at?: string
+          enabled?: boolean
+          event_key: string
+          id?: string
+          unit_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          channel?: string
+          created_at?: string
+          enabled?: boolean
+          event_key?: string
+          id?: string
+          unit_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_rules_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "units"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notification_templates: {
+        Row: {
+          active: boolean
+          body: string
+          channel: string
+          created_at: string
+          event_key: string
+          id: string
+          name: string
+          title: string | null
+          updated_at: string
+          variables: string[]
+        }
+        Insert: {
+          active?: boolean
+          body?: string
+          channel?: string
+          created_at?: string
+          event_key: string
+          id?: string
+          name: string
+          title?: string | null
+          updated_at?: string
+          variables?: string[]
+        }
+        Update: {
+          active?: boolean
+          body?: string
+          channel?: string
+          created_at?: string
+          event_key?: string
+          id?: string
+          name?: string
+          title?: string | null
+          updated_at?: string
+          variables?: string[]
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           body: string | null
@@ -4410,6 +4487,69 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      plans: {
+        Row: {
+          allowed_days: number[]
+          allowed_end: string | null
+          allowed_start: string | null
+          billing_cycle: string
+          created_at: string
+          duration_months: number
+          id: string
+          name: string
+          notes: string | null
+          payment_tolerance_days: number
+          restrict_hours: boolean
+          service_id: string | null
+          status: string
+          unit_ids: string[]
+          updated_at: string
+          usage_rules: string | null
+          value: number
+          weekly_frequency: number | null
+        }
+        Insert: {
+          allowed_days?: number[]
+          allowed_end?: string | null
+          allowed_start?: string | null
+          billing_cycle?: string
+          created_at?: string
+          duration_months?: number
+          id?: string
+          name: string
+          notes?: string | null
+          payment_tolerance_days?: number
+          restrict_hours?: boolean
+          service_id?: string | null
+          status?: string
+          unit_ids?: string[]
+          updated_at?: string
+          usage_rules?: string | null
+          value?: number
+          weekly_frequency?: number | null
+        }
+        Update: {
+          allowed_days?: number[]
+          allowed_end?: string | null
+          allowed_start?: string | null
+          billing_cycle?: string
+          created_at?: string
+          duration_months?: number
+          id?: string
+          name?: string
+          notes?: string | null
+          payment_tolerance_days?: number
+          restrict_hours?: boolean
+          service_id?: string | null
+          status?: string
+          unit_ids?: string[]
+          updated_at?: string
+          usage_rules?: string | null
+          value?: number
+          weekly_frequency?: number | null
+        }
+        Relationships: []
       }
       push_notifications: {
         Row: {
@@ -6634,6 +6774,14 @@ export type Database = {
         Returns: boolean
       }
       cancel_booking: { Args: { _booking_id: string }; Returns: Json }
+      cfg_bool: {
+        Args: { _default: boolean; _field: string; _key: string }
+        Returns: boolean
+      }
+      cfg_num: {
+        Args: { _default: number; _field: string; _key: string }
+        Returns: number
+      }
       class_booking_counts: {
         Args: { _day: number }
         Returns: {
@@ -6657,6 +6805,7 @@ export type Database = {
         Returns: Json
       }
       client_attendance_stats: { Args: { _client_id: number }; Returns: Json }
+      client_grace_days: { Args: { _client: number }; Returns: number }
       client_health_overview: { Args: { _client_id: number }; Returns: Json }
       client_timeline: {
         Args: {
