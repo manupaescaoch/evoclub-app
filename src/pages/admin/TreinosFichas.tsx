@@ -245,6 +245,47 @@ const TreinosFichas = () => {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        {/* Add Chooser Dialog (visão de categorias) */}
+        <Dialog open={addChooserOpen} onOpenChange={setAddChooserOpen}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle className="font-barlow font-bold text-lg">O que deseja adicionar?</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-3 py-2">
+              <button
+                onClick={openCreate}
+                className="w-full border-2 border-primary/20 hover:border-primary rounded-xl p-6 flex flex-col items-center gap-2 transition-colors"
+              >
+                <Dumbbell className="w-8 h-8 text-primary" />
+                <span className="font-barlow font-bold text-sm text-foreground">Novo Treino</span>
+              </button>
+              <button
+                onClick={openFolderCreate}
+                className="w-full border-2 border-border hover:border-primary/40 rounded-xl p-6 flex flex-col items-center gap-2 transition-colors"
+              >
+                <FolderPlus className="w-8 h-8 text-muted-foreground" />
+                <span className="font-barlow font-bold text-sm text-foreground">Nova Pasta</span>
+              </button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* New Folder Dialog (visão de categorias) */}
+        <Dialog open={folderDialogOpen} onOpenChange={setFolderDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle className="font-barlow font-bold">Nova Pasta</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-3">
+              <div><Label className="font-dm text-sm">Nome da Pasta *</Label><Input value={folderName} onChange={e => setFolderName(e.target.value)} className="font-dm" placeholder="Ex: Masculino, Feminino..." /></div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setFolderDialogOpen(false)} className="font-dm">Cancelar</Button>
+              <Button onClick={handleSaveFolder} className="bg-primary text-primary-foreground font-dm">Criar</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     );
   }

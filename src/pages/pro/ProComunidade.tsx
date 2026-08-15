@@ -5,6 +5,7 @@ import { AlertTriangle, Megaphone, RefreshCw, Users2 } from "lucide-react";
 type Post = {
   id: string; author_name: string | null; content: string | null;
   image_url: string | null; created_at: string; hidden: boolean;
+  signedUrl?: string | null;
 };
 type Ann = { id: string; title: string; body: string | null; pinned: boolean; created_at: string };
 
@@ -25,7 +26,14 @@ export default function ProComunidade() {
         .eq("active", true).order("created_at", { ascending: false }).limit(10),
     ]);
     if (p.error) setError(p.error.message);
-    setPosts(((p.data as any[]) || []) as Post[]);
+    const rows = ((p.data as any[]) || []) as Post[];
+    const paths = rows.map(r => r.image_url).filter(Boolean) as string[];
+    let signedMap = new Map<string, string>();
+    if (paths.length) {
+      const { data: signed } = await supabase.storage.from("community").createSignedUrls(paths, 3600);
+      signedMap = new Map((signed || []).map((s: any, i: number) => [paths[i], s?.signedUrl]).filter(([, v]) => !!v) as any);
+    }
+    setPosts(rows.map(r => ({ ...r, signedUrl: r.image_url ? signedMap.get(r.image_url) ?? null : null })));
     setAnns(((a.data as any[]) || []) as Ann[]);
     setLoading(false);
   }, []);
@@ -77,8 +85,8 @@ export default function ProComunidade() {
             </div>
           </div>
           {p.content && <p className="font-dm text-sm mt-2.5 whitespace-pre-wrap">{p.content}</p>}
-          {p.image_url && (
-            <img src={p.image_url} alt="Publicação da comunidade" loading="lazy"
+          {p.signedUrl && (
+            <img src={p.signedUrl} alt="Publicação da comunidade" loading="lazy"
               className="mt-2.5 w-full rounded-xl object-cover max-h-72" />
           )}
         </article>
