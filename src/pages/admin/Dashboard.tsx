@@ -16,6 +16,13 @@ const REASON_LABELS: Record<string, string> = {
   outro: "Outros (especificar)",
 };
 
+const currentMonthLabel = () => {
+  const s = new Date().toLocaleDateString("pt-BR", { month: "long", timeZone: "America/Sao_Paulo" });
+  return s.charAt(0).toUpperCase() + s.slice(1);
+};
+const currentMonthYearLabel = () =>
+  `${currentMonthLabel()} ${new Date().toLocaleDateString("pt-BR", { year: "numeric", timeZone: "America/Sao_Paulo" })}`;
+
 const Dashboard = () => {
   const [activeTab, setActiveTab] = useState<"clientes" | "vendas" | "financeiro">("clientes");
   const [stats, setStats] = useState({ total: 0, ativos: 0, inad: 0, suspensos: 0 });
@@ -180,7 +187,7 @@ const Dashboard = () => {
               <div className="flex gap-8 mb-4">
                 <div>
                   <span className="text-4xl font-barlow font-bold text-foreground">{totalCancels}</span>
-                  <div className="text-xs text-muted-foreground font-dm">Abril<br/>Meta: 0%</div>
+                  <div className="text-xs text-muted-foreground font-dm">{currentMonthLabel()}<br/>Meta: 0%</div>
                 </div>
                 <div>
                   <span className="text-4xl font-barlow font-bold text-foreground">0</span>
@@ -267,7 +274,7 @@ const Dashboard = () => {
             <div className="flex items-baseline gap-2 mb-1">
               <span className="text-4xl font-barlow font-bold text-foreground">5</span>
               <div className="text-xs text-muted-foreground font-dm">
-                Abril<br/>Total a vencer: 26 <span className="text-green-600">(19%)</span>
+                {currentMonthLabel()}<br/>Total a vencer: 26 <span className="text-green-600">(19%)</span>
               </div>
             </div>
 
@@ -420,7 +427,7 @@ const Dashboard = () => {
                     <span className="text-3xl font-barlow font-bold text-foreground">{(salesStats.totalSales / 1000).toFixed(1)}</span>
                     <span className="text-sm text-green-600 font-dm font-semibold">mil+</span>
                   </div>
-                  <p className="text-[10px] text-muted-foreground font-dm">Meta: R$ 0 (0%)<br/>Abril 2025: R$ 0</p>
+                  <p className="text-[10px] text-muted-foreground font-dm">Meta: R$ 0 (0%)<br/>{currentMonthYearLabel()}: R$ 0</p>
                 </div>
                 <div>
                   <div className="flex items-baseline gap-1">
@@ -468,7 +475,7 @@ const Dashboard = () => {
               <div className="flex items-baseline gap-2 mb-1">
                 <span className="text-lg text-muted-foreground font-dm">R$</span>
                 <span className="text-3xl font-barlow font-bold text-foreground">555,74</span>
-                <div className="text-[10px] text-muted-foreground font-dm">Abril<br/>Meta: R$ 0 <span className="text-green-600">(0%)</span></div>
+                <div className="text-[10px] text-muted-foreground font-dm">{currentMonthLabel()}<br/>Meta: R$ 0 <span className="text-green-600">(0%)</span></div>
               </div>
               <div className="flex gap-4 mb-2">
                 <div className="flex items-center gap-1.5">
@@ -519,7 +526,7 @@ const Dashboard = () => {
                   <span className="text-xl text-muted-foreground font-barlow">x</span>
                   <span className="text-3xl font-barlow font-bold text-foreground">17</span>
                 </div>
-                <p className="text-[10px] text-muted-foreground font-dm">Abril<br/>Meta: 0% <span className="text-green-600">(70,83%)</span></p>
+                <p className="text-[10px] text-muted-foreground font-dm">{currentMonthLabel()}<br/>Meta: 0% <span className="text-green-600">(70,83%)</span></p>
               </div>
               <div>
                 <div className="flex items-baseline gap-1">
