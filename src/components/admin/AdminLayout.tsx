@@ -125,14 +125,15 @@ const AdminLayout = () => {
   const [userEmail, setUserEmail] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [openMenus, setOpenMenus] = useState<Set<string>>(new Set());
+  const [closedMenus, setClosedMenus] = useState<Set<string>>(new Set());
 
   // Auto-expand menu when navigating to any of its child routes
   useEffect(() => {
-    setOpenMenus((prev) => {
+    setClosedMenus((prev) => {
       const next = new Set(prev);
       navItems.forEach((item) => {
         if (item.children && location.pathname.startsWith(item.path)) {
-          next.add(item.path);
+          next.delete(item.path);
         }
       });
       return next;
