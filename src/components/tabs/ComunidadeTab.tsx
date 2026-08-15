@@ -315,7 +315,7 @@ const ComunidadeTab = () => {
             <div
               key={a.id}
               className="rounded-2xl p-4 text-white hero-shadow"
-              style={{ background: "linear-gradient(135deg, #1400FF 0%, #0A00B0 100%)" }}
+              style={{ background: "linear-gradient(135deg, #0057FF 0%, #0043C4 100%)" }}
             >
               <div className="flex items-center gap-2 mb-1">
                 <Megaphone size={14} />

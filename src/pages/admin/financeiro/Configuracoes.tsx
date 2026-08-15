@@ -28,8 +28,8 @@ const Configuracoes = () => {
 
   const openNew = (t: "group" | "category" | "unit") => {
     setType(t);
-    if (t === "group") setForm({ name: "", kind: "expense", color: "#1400FF" });
-    if (t === "category") setForm({ name: "", kind: "expense", color: "#1400FF", group_id: "" });
+    if (t === "group") setForm({ name: "", kind: "expense", color: "#0057FF" });
+    if (t === "category") setForm({ name: "", kind: "expense", color: "#0057FF", group_id: "" });
     if (t === "unit") setForm({ name: "", address: "" });
     setOpen(true);
   };
@@ -129,7 +129,7 @@ const Configuracoes = () => {
                       <option value="income">Entrada</option><option value="expense">Saída</option>
                     </select>
                   </div>
-                  <div><Label>Cor</Label><Input type="color" value={form.color || "#1400FF"} onChange={(e) => setForm({ ...form, color: e.target.value })} /></div>
+                  <div><Label>Cor</Label><Input type="color" value={form.color || "#0057FF"} onChange={(e) => setForm({ ...form, color: e.target.value })} /></div>
                 </>
               )}
               {type === "category" && (

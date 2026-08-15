@@ -74,7 +74,7 @@ const InicioTab = ({ onTabChange }: InicioTabProps) => {
       {/* Hero — Total de Treinos */}
       <div
         className="rounded-2xl p-5 text-white mb-4 hero-shadow"
-        style={{ background: "linear-gradient(135deg, #1400FF 0%, #0A00B0 100%)" }}
+        style={{ background: "linear-gradient(135deg, #0057FF 0%, #0043C4 100%)" }}
       >
         <p className="font-barlow text-[10px] tracking-[2px] uppercase text-white/70 mb-1">TOTAL DE TREINOS</p>
         <p className="font-barlow font-[800] text-[52px] leading-none">
@@ -147,7 +147,7 @@ const InicioTab = ({ onTabChange }: InicioTabProps) => {
         <div className="w-full h-2 rounded-full bg-secondary overflow-hidden">
           <div
             className="h-full rounded-full transition-all"
-            style={{ width: `${weekPct}%`, background: "linear-gradient(90deg, #1400FF, #0A00B0)" }}
+            style={{ width: `${weekPct}%`, background: "linear-gradient(90deg, #0057FF, #0043C4)" }}
           />
         </div>
       </div>
@@ -165,7 +165,7 @@ const InicioTab = ({ onTabChange }: InicioTabProps) => {
           <div className="w-full h-2 rounded-full bg-secondary overflow-hidden mb-1">
             <div
               className="h-full rounded-full transition-all"
-              style={{ width: `${xpPct}%`, background: "linear-gradient(90deg, #1400FF, #0A00B0)" }}
+              style={{ width: `${xpPct}%`, background: "linear-gradient(90deg, #0057FF, #0043C4)" }}
             />
           </div>
           <p className="text-[11px] text-muted font-dm">

@@ -8,7 +8,7 @@ import {
   PieChart, Pie, Cell, Legend, LineChart, Line, ComposedChart,
 } from "recharts";
 
-const DONUT_COLORS = ["#7C3AED", "#3B82F6", "#10B981", "#1400FF"];
+const DONUT_COLORS = ["#0057FF", "#3B82F6", "#10B981", "#0057FF"];
 const REASON_LABELS: Record<string, string> = {
   financeiro: "Problemas financeiros",
   transferencia: "Transferido para filial EVO TRAINING CLUB - UND 2",
@@ -288,7 +288,7 @@ const Dashboard = () => {
                 <XAxis dataKey="month" tick={{ fontSize: 10 }} />
                 <YAxis tick={{ fontSize: 10 }} />
                 <Tooltip />
-                <Bar dataKey="aVencer" fill="#1400FF" radius={[3, 3, 0, 0]} name="A vencer" />
+                <Bar dataKey="aVencer" fill="#0057FF" radius={[3, 3, 0, 0]} name="A vencer" />
                 <Bar dataKey="renovados" fill="#10B981" radius={[3, 3, 0, 0]} name="Renovados" />
               </BarChart>
             </ResponsiveContainer>
@@ -452,7 +452,7 @@ const Dashboard = () => {
                   <XAxis dataKey="m" tick={{ fontSize: 9 }} />
                   <YAxis tick={{ fontSize: 9 }} />
                   <Tooltip formatter={(v: number) => `R$ ${v.toLocaleString("pt-BR")}`} />
-                  <Bar dataKey="meta" fill="#1400FF" radius={[2, 2, 0, 0]} name="Meta" />
+                  <Bar dataKey="meta" fill="#0057FF" radius={[2, 2, 0, 0]} name="Meta" />
                   <Bar dataKey="vendas" fill="#F97316" radius={[2, 2, 0, 0]} name="Vendas" />
                 </BarChart>
               </ResponsiveContainer>
@@ -492,7 +492,7 @@ const Dashboard = () => {
                   <YAxis tick={{ fontSize: 9 }} />
                   <Tooltip formatter={(v: number) => `R$ ${v.toFixed(2)}`} />
                   <Line dataKey="media" stroke="#F97316" strokeWidth={2} dot={{ r: 3 }} name="Média" />
-                  <Line dataKey="meta" stroke="#1400FF" strokeWidth={2} dot={{ r: 3 }} name="Meta" />
+                  <Line dataKey="meta" stroke="#0057FF" strokeWidth={2} dot={{ r: 3 }} name="Meta" />
                 </ComposedChart>
               </ResponsiveContainer>
             </div>
@@ -666,7 +666,7 @@ const Dashboard = () => {
                   <YAxis tick={{ fontSize: 10 }} tickFormatter={(v) => v >= 1000 ? `${(v/1000).toFixed(0)},000` : v} />
                   <Tooltip formatter={(v: number) => `R$ ${v.toLocaleString("pt-BR", { maximumFractionDigits: 0 })}`} />
                   <Line dataKey="recebimentos" stroke="#10B981" strokeWidth={2} dot={false} type="monotone" name="Recebimentos" />
-                  <Line dataKey="gastos" stroke="#1400FF" strokeWidth={2} dot={false} type="monotone" name="Gastos" />
+                  <Line dataKey="gastos" stroke="#0057FF" strokeWidth={2} dot={false} type="monotone" name="Gastos" />
                 </ComposedChart>
               </ResponsiveContainer>
             </div>

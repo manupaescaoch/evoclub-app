@@ -19,7 +19,7 @@ type Activity = {
 };
 
 const empty: Partial<Activity> = {
-  name: "", activity_group: "", color: "#1400FF", duration_min: 60, max_capacity: 14,
+  name: "", activity_group: "", color: "#0057FF", duration_min: 60, max_capacity: 14,
   description: "", allow_booking: true, visible_to_student: true, internal_notes: "", status: "active",
 };
 
@@ -127,7 +127,7 @@ export default function Atividades() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div className="md:col-span-2"><Label>Nome</Label><Input value={form.name || ""} onChange={e => setForm({ ...form, name: e.target.value })} /></div>
             <div><Label>Grupo</Label><Input value={form.activity_group || ""} onChange={e => setForm({ ...form, activity_group: e.target.value })} placeholder="Ex: Avaliações" /></div>
-            <div><Label>Cor</Label><Input type="color" value={form.color || "#1400FF"} onChange={e => setForm({ ...form, color: e.target.value })} /></div>
+            <div><Label>Cor</Label><Input type="color" value={form.color || "#0057FF"} onChange={e => setForm({ ...form, color: e.target.value })} /></div>
             <div><Label>Duração (min)</Label><Input type="number" value={form.duration_min ?? ""} onChange={e => setForm({ ...form, duration_min: Number(e.target.value) })} /></div>
             <div><Label>Capacidade máxima</Label><Input type="number" value={form.max_capacity ?? ""} onChange={e => setForm({ ...form, max_capacity: Number(e.target.value) })} /></div>
             <div className="md:col-span-2"><Label>Descrição</Label><Textarea rows={2} value={form.description || ""} onChange={e => setForm({ ...form, description: e.target.value })} /></div>
