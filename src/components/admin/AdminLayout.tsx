@@ -28,6 +28,7 @@ const navItems: NavItem[] = [
   { label: "Dashboard", icon: LayoutDashboard, path: "/admin", module: "dashboard" },
   { label: "Clientes", icon: Users, path: "/admin/clientes", module: "clientes" },
   { label: "Grade", icon: CalendarDays, path: "/admin/grade", module: "grade" },
+  { label: "Leads", icon: Inbox, path: "/admin/leads", module: "crm" },
   {
     label: "CRM", icon: Megaphone, path: "/admin/crm", module: "crm",
     children: [
