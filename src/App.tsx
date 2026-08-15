@@ -13,6 +13,7 @@ import Clientes from "./pages/admin/Clientes.tsx";
 import Grade from "./pages/admin/Grade.tsx";
 import CRM from "./pages/admin/CRM.tsx";
 import Leads from "./pages/admin/Leads.tsx";
+import LeadsDashboard from "./pages/admin/LeadsDashboard.tsx";
 import LeadDetalhe from "./pages/admin/LeadDetalhe.tsx";
 import FinanceiroLayout from "./components/admin/financeiro/FinanceiroLayout.tsx";
 import FinDashboard from "./pages/admin/financeiro/Dashboard.tsx";
