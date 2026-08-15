@@ -1039,25 +1039,26 @@ const TreinoTab = () => {
             <div className="rounded-2xl bg-card card-shadow p-4 mb-3">
               <div className="flex items-center justify-between mb-2">
                 <p className="text-[10px] font-barlow tracking-[1px] uppercase text-muted">Volume semanal (seg→dom)</p>
-                <span className="text-[9px] font-dm text-muted">realizado / prescrito</span>
+                <span className="text-[9px] font-dm text-muted">realizado / prescrito · meta</span>
               </div>
               <div className="space-y-2">
-                {plan.volume.slice(0, 6).map((v) => {
+                {plan.volume.map((v) => {
                   const max = Math.max(
-                    ...plan.volume.map((r) => Math.max(r.prescribed, r.done)),
+                    ...plan.volume.map((r) => Math.max(r.prescribed, r.done, r.target)),
                     1
                   );
                   return (
                     <div key={v.group} className="flex items-center gap-2">
-                      <span className="text-[11px] font-dm text-foreground w-24 truncate">{v.group}</span>
+                      <span className="text-[11px] font-dm text-foreground w-24 truncate" title={v.group}>{v.group}</span>
                       <div className="flex-1 h-2.5 rounded-full bg-secondary overflow-hidden relative">
                         <div className="absolute inset-y-0 left-0 rounded-full bg-primary/20"
                           style={{ width: `${(v.prescribed / max) * 100}%` }} />
                         <div className="absolute inset-y-0 left-0 rounded-full bg-primary"
                           style={{ width: `${(Math.min(v.done, max) / max) * 100}%` }} />
                       </div>
-                      <span className="text-[11px] font-dm font-semibold text-muted w-16 text-right">
+                      <span className="text-[11px] font-dm font-semibold text-muted w-20 text-right">
                         {v.done % 1 ? v.done.toFixed(1) : v.done}/{v.prescribed % 1 ? v.prescribed.toFixed(1) : v.prescribed}
+                        <span className="text-muted/70"> · {v.target}</span>
                       </span>
                     </div>
                   );
