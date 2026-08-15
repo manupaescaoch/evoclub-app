@@ -41,12 +41,12 @@ const AppShell = () => {
   const go = (t: string) => setActiveTab(t as Tab);
 
   return (
-    <div className="mx-auto max-w-[390px] min-h-screen bg-background relative">
+    <div className="mx-auto max-w-[390px] min-h-screen min-h-[100dvh] bg-background relative overflow-x-hidden safe-top">
       <OnboardingDialog />
       {onboarded && !isScreen && <DailyCheckinDialog />}
       {onboarded && !isScreen && <CicloEvoDialog onNavigate={go} />}
       {onboarded && <AchievementUnlockDialog />}
-      <div className="pb-24 overflow-y-auto min-h-screen">
+      <div className="pb-24 overflow-y-auto overflow-x-hidden min-h-screen min-h-[100dvh] momentum-scroll">
         {activeTab === "inicio" && <InicioTab onTabChange={go} />}
         {activeTab === "grade" && <GradeTab />}
         {activeTab === "treino" && <TreinoTab />}
