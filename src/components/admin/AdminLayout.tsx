@@ -127,6 +127,8 @@ const AdminLayout = () => {
   const isMobile = useIsMobile();
   const { can, loading: accessLoading, isAdmin, collaboratorId } = useAccess();
   const isStaffMobileUser = !!collaboratorId;
+  // null = ainda carregando o cargo do colaborador
+  const [isTrainerRole, setIsTrainerRole] = useState<boolean | null>(null);
   const [userName, setUserName] = useState("Admin");
   const [userEmail, setUserEmail] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -149,15 +151,36 @@ const AdminLayout = () => {
     });
   }, [location.pathname]);
 
+  // Cargo/perfil do colaborador logado (professor, estagiário, coordenador técnico)
+  useEffect(() => {
+    if (!collaboratorId) { setIsTrainerRole(false); return; }
+    let alive = true;
+    supabase
+      .from("collaborators")
+      .select("role_title, permission_profiles(name)")
+      .eq("id", collaboratorId)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (!alive) return;
+        const d = data as any;
+        const text = `${d?.role_title || ""} ${d?.permission_profiles?.name || ""}`.toLowerCase();
+        setIsTrainerRole(/professor|estagi|treinador|coach|coordenador t/.test(text));
+      });
+    return () => { alive = false; };
+  }, [collaboratorId]);
+
   // Professor/estagiário no celular entra direto no modo treinador (/pro),
   // a menos que tenha escolhido explicitamente a versão desktop.
   useEffect(() => {
     if (accessLoading || !isMobile) return;
     if (location.pathname !== "/admin") return;
-    if (isAdmin || !collaboratorId) return;
+    if (!collaboratorId || isTrainerRole === null) return;
+    // o papel "admin" no banco não deve mascarar o cargo real: só ignoramos o
+    // redirecionamento quando o colaborador não tem cargo de treinador.
+    if (!isTrainerRole && isAdmin) return;
     if (sessionStorage.getItem("evo_desktop_mode") === "1") return;
     navigate("/pro", { replace: true });
-  }, [accessLoading, isMobile, location.pathname, isAdmin, collaboratorId, navigate]);
+  }, [accessLoading, isMobile, location.pathname, isAdmin, isTrainerRole, collaboratorId, navigate]);
 
   useEffect(() => {
     const checkAuth = async () => {
