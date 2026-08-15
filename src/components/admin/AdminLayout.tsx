@@ -201,19 +201,28 @@ const AdminLayout = () => {
           const isActive = isExact || (item.path !== "/admin" && active);
 
           if (hasChildren) {
-            const expanded = openMenus.has(item.path);
+            const routeMatches = location.pathname.startsWith(item.path);
+            const expanded = (routeMatches && !closedMenus.has(item.path)) || openMenus.has(item.path);
             return (
               <div key={item.path}>
                 <button
                   type="button"
                   onClick={() => {
-                    setOpenMenus((prev) => {
-                      const next = new Set(prev);
-                      if (next.has(item.path)) next.delete(item.path);
-                      else next.add(item.path);
-                      return next;
-                    });
-                    if (isMobile) setSidebarOpen(false);
+                    if (expanded) {
+                      setOpenMenus((prev) => {
+                        const next = new Set(prev);
+                        next.delete(item.path);
+                        return next;
+                      });
+                      setClosedMenus((prev) => new Set(prev).add(item.path));
+                    } else {
+                      setOpenMenus((prev) => new Set(prev).add(item.path));
+                      setClosedMenus((prev) => {
+                        const next = new Set(prev);
+                        next.delete(item.path);
+                        return next;
+                      });
+                    }
                   }}
                   className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-dm transition-colors w-full text-left
                     ${isActive
