@@ -323,6 +323,13 @@ const Configuracoes = () => {
       {tab === "auditoria" && <AuditLogTab />}
 
       {tab === "unidades" && <UnidadesTab />}
+
+      {tab === "planos" && <PlanosTab />}
+      {tab === "grade" && <GradeConfigTab />}
+      {tab === "treinos" && <TreinosConfigTab />}
+      {tab === "avaliacoes" && <AvaliacoesConfigTab />}
+      {tab === "crm" && <CrmConfigTab />}
+      {tab === "notificacoes" && <NotificacoesTab />}
     </div>
   );
 };
