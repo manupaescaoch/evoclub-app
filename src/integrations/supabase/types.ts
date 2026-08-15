@@ -2316,6 +2316,83 @@ export type Database = {
         }
         Relationships: []
       }
+      financial_adjustments: {
+        Row: {
+          amount: number
+          client_id: number | null
+          client_name: string | null
+          coupon: string | null
+          created_at: string
+          created_by: string | null
+          created_by_name: string | null
+          id: string
+          kind: string
+          reason: string | null
+          status: string
+          transaction_id: string | null
+          unit_id: string | null
+        }
+        Insert: {
+          amount?: number
+          client_id?: number | null
+          client_name?: string | null
+          coupon?: string | null
+          created_at?: string
+          created_by?: string | null
+          created_by_name?: string | null
+          id?: string
+          kind?: string
+          reason?: string | null
+          status?: string
+          transaction_id?: string | null
+          unit_id?: string | null
+        }
+        Update: {
+          amount?: number
+          client_id?: number | null
+          client_name?: string | null
+          coupon?: string | null
+          created_at?: string
+          created_by?: string | null
+          created_by_name?: string | null
+          id?: string
+          kind?: string
+          reason?: string | null
+          status?: string
+          transaction_id?: string | null
+          unit_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "financial_adjustments_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "client_overview"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "financial_adjustments_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "financial_adjustments_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "financial_adjustments_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "units"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       financial_categories: {
         Row: {
           color: string | null
@@ -2357,6 +2434,62 @@ export type Database = {
           },
         ]
       }
+      financial_closings: {
+        Row: {
+          closed_at: string
+          closed_by: string | null
+          closed_by_name: string | null
+          created_at: string
+          id: string
+          notes: string | null
+          period_end: string
+          period_start: string
+          reopened_at: string | null
+          reopened_by_name: string | null
+          status: string
+          totals: Json
+          unit_id: string | null
+        }
+        Insert: {
+          closed_at?: string
+          closed_by?: string | null
+          closed_by_name?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          period_end: string
+          period_start: string
+          reopened_at?: string | null
+          reopened_by_name?: string | null
+          status?: string
+          totals?: Json
+          unit_id?: string | null
+        }
+        Update: {
+          closed_at?: string
+          closed_by?: string | null
+          closed_by_name?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          period_end?: string
+          period_start?: string
+          reopened_at?: string | null
+          reopened_by_name?: string | null
+          status?: string
+          totals?: Json
+          unit_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "financial_closings_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "units"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       financial_groups: {
         Row: {
           color: string | null
@@ -2386,6 +2519,68 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      forecast_scenarios: {
+        Row: {
+          base_revenue: number
+          churn_pct: number
+          created_at: string
+          created_by_name: string | null
+          fixed_cost: number
+          growth_pct: number
+          id: string
+          name: string
+          notes: string | null
+          tax_pct: number
+          ticket: number
+          unit_id: string | null
+          updated_at: string
+          variable_cost_pct: number
+          year: number
+        }
+        Insert: {
+          base_revenue?: number
+          churn_pct?: number
+          created_at?: string
+          created_by_name?: string | null
+          fixed_cost?: number
+          growth_pct?: number
+          id?: string
+          name: string
+          notes?: string | null
+          tax_pct?: number
+          ticket?: number
+          unit_id?: string | null
+          updated_at?: string
+          variable_cost_pct?: number
+          year: number
+        }
+        Update: {
+          base_revenue?: number
+          churn_pct?: number
+          created_at?: string
+          created_by_name?: string | null
+          fixed_cost?: number
+          growth_pct?: number
+          id?: string
+          name?: string
+          notes?: string | null
+          tax_pct?: number
+          ticket?: number
+          unit_id?: string | null
+          updated_at?: string
+          variable_cost_pct?: number
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "forecast_scenarios_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "units"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       form_links: {
         Row: {
@@ -4950,13 +5145,17 @@ export type Database = {
           amount: number
           category_id: string | null
           category_name: string | null
+          client_id: number | null
+          cost_center: string | null
           created_at: string
           date: string
           description: string
+          due_date: string | null
           group_id: string | null
           id: string
           kind: string
           notes: string | null
+          paid_at: string | null
           payment_method: string | null
           reference: string | null
           status: string
@@ -4967,13 +5166,17 @@ export type Database = {
           amount?: number
           category_id?: string | null
           category_name?: string | null
+          client_id?: number | null
+          cost_center?: string | null
           created_at?: string
           date?: string
           description: string
+          due_date?: string | null
           group_id?: string | null
           id?: string
           kind?: string
           notes?: string | null
+          paid_at?: string | null
           payment_method?: string | null
           reference?: string | null
           status?: string
@@ -4984,13 +5187,17 @@ export type Database = {
           amount?: number
           category_id?: string | null
           category_name?: string | null
+          client_id?: number | null
+          cost_center?: string | null
           created_at?: string
           date?: string
           description?: string
+          due_date?: string | null
           group_id?: string | null
           id?: string
           kind?: string
           notes?: string | null
+          paid_at?: string | null
           payment_method?: string | null
           reference?: string | null
           status?: string
@@ -5003,6 +5210,20 @@ export type Database = {
             columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "financial_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "client_overview"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
             referencedColumns: ["id"]
           },
           {
@@ -5782,6 +6003,60 @@ export type Database = {
         Returns: number
       }
       evo_cycle_state: { Args: never; Returns: Json }
+      fin_adjust: {
+        Args: {
+          _amount: number
+          _coupon?: string
+          _kind: string
+          _reason?: string
+          _transaction_id: string
+        }
+        Returns: string
+      }
+      fin_close_period: {
+        Args: { _end: string; _notes?: string; _start: string; _unit: string }
+        Returns: string
+      }
+      fin_delinquency: {
+        Args: { _ref?: string; _unit?: string }
+        Returns: {
+          amount: number
+          bucket: string
+          client_id: number
+          client_name: string
+          days_late: number
+          description: string
+          due_date: string
+          id: string
+          phone: string
+          status: string
+          unit_id: string
+          unit_name: string
+        }[]
+      }
+      fin_dre: {
+        Args: {
+          _allocate?: boolean
+          _end?: string
+          _start?: string
+          _unit?: string
+        }
+        Returns: {
+          allocated: number
+          amount: number
+          category_name: string
+          cost_center: string
+          group_name: string
+          kind: string
+          month: number
+          unit_id: string
+          unit_name: string
+        }[]
+      }
+      fin_reopen_period: {
+        Args: { _id: string; _reason?: string }
+        Returns: undefined
+      }
       form_link_open: { Args: { p_token: string }; Returns: Json }
       form_link_submit: {
         Args: { p_payload: Json; p_token: string }

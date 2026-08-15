@@ -1,7 +1,7 @@
 import { NavLink, Outlet, useLocation } from "react-router-dom";
 import {
   LayoutDashboard, TrendingUp, Wallet, Receipt, ArrowLeftRight,
-  Users, FileBarChart, BarChart3, Settings,
+  Users, FileBarChart, BarChart3, Settings, AlertTriangle, Percent, Lock, LineChart,
 } from "lucide-react";
 import { useUnit, CONSOLIDATED } from "@/contexts/UnitContext";
 
@@ -13,6 +13,7 @@ const sections = [
       { to: "/admin/financeiro/fluxo", label: "Fluxo de Caixa", icon: TrendingUp },
       { to: "/admin/financeiro/recebimentos", label: "Recebimentos", icon: Wallet },
       { to: "/admin/financeiro/contas-a-pagar", label: "Contas a Pagar", icon: Receipt },
+      { to: "/admin/financeiro/inadimplencia", label: "Inadimplência", icon: AlertTriangle },
     ],
   },
   {
@@ -20,18 +21,23 @@ const sections = [
     items: [
       { to: "/admin/financeiro/transacoes", label: "Transações", icon: ArrowLeftRight },
       { to: "/admin/financeiro/folha", label: "Folha de Pagamento", icon: Users },
+      { to: "/admin/financeiro/ajustes", label: "Descontos e Estornos", icon: Percent },
     ],
   },
   {
     label: "Análise",
     items: [
       { to: "/admin/financeiro/dre", label: "DRE", icon: FileBarChart },
+      { to: "/admin/financeiro/forecast", label: "Forecast", icon: LineChart },
       { to: "/admin/financeiro/relatorios", label: "Relatórios", icon: BarChart3 },
     ],
   },
   {
     label: "Sistema",
-    items: [{ to: "/admin/financeiro/configuracoes", label: "Configurações", icon: Settings }],
+    items: [
+      { to: "/admin/financeiro/fechamentos", label: "Fechamentos", icon: Lock },
+      { to: "/admin/financeiro/configuracoes", label: "Configurações", icon: Settings },
+    ],
   },
 ];
 
