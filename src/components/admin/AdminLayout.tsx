@@ -9,7 +9,7 @@ import {
   FileSignature, CalendarRange, UserCog, Truck, ShieldCheck, Tag, Ticket, TrendingUp,
   Gift, ListTodo, ClipboardCheck, CalendarClock, HeartPulse, AlertTriangle,
   Clock, Trophy, History, Inbox, Workflow, RefreshCw,
-  Wallet, Receipt, ArrowLeftRight, FileBarChart, Percent, Lock, LineChart,
+  Wallet, Receipt, ArrowLeftRight, FileBarChart, Percent, Lock, LineChart, Smartphone,
 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { logAudit } from "@/lib/audit";
@@ -121,7 +121,8 @@ const AdminLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const isMobile = useIsMobile();
-  const { can, loading: accessLoading } = useAccess();
+  const { can, loading: accessLoading, isAdmin, collaboratorId } = useAccess();
+  const isStaffMobileUser = !!collaboratorId;
   const [userName, setUserName] = useState("Admin");
   const [userEmail, setUserEmail] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -143,6 +144,16 @@ const AdminLayout = () => {
       return next;
     });
   }, [location.pathname]);
+
+  // Professor/estagiário no celular entra direto no modo treinador (/pro),
+  // a menos que tenha escolhido explicitamente a versão desktop.
+  useEffect(() => {
+    if (accessLoading || !isMobile) return;
+    if (location.pathname !== "/admin") return;
+    if (isAdmin || !collaboratorId) return;
+    if (sessionStorage.getItem("evo_desktop_mode") === "1") return;
+    navigate("/pro", { replace: true });
+  }, [accessLoading, isMobile, location.pathname, isAdmin, collaboratorId, navigate]);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -340,6 +351,17 @@ const AdminLayout = () => {
             <PeriodSelect />
           </div>
           <div className="flex items-center gap-3">
+            {isMobile && isStaffMobileUser && (
+              <button
+                onClick={() => {
+                  sessionStorage.removeItem("evo_desktop_mode");
+                  navigate("/pro");
+                }}
+                className="flex items-center gap-1.5 h-8 px-2.5 rounded-lg bg-primary/10 text-primary font-dm text-[11px] font-semibold"
+              >
+                <Smartphone size={14} /> Modo treinador
+              </button>
+            )}
             {!isMobile && (
               <div className="relative">
                 <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />

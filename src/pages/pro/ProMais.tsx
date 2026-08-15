@@ -46,7 +46,7 @@ export default function ProMais() {
         ))}
       </div>
 
-      <Link to="/admin" className="flex items-center justify-center gap-2 h-12 rounded-xl bg-card border border-border font-dm text-sm font-semibold">
+      <Link to="/admin" onClick={() => sessionStorage.setItem("evo_desktop_mode", "1")} className="flex items-center justify-center gap-2 h-12 rounded-xl bg-card border border-border font-dm text-sm font-semibold">
         <Monitor size={16} /> Abrir painel completo
       </Link>
 

@@ -86,7 +86,7 @@ export default function ProLayout() {
           ))}
         </nav>
         <div className="hidden md:flex justify-center border-t border-border py-1.5">
-          <Link to="/admin" className="flex items-center gap-1.5 text-[11px] font-dm text-muted-foreground">
+          <Link to="/admin" onClick={() => sessionStorage.setItem("evo_desktop_mode", "1")} className="flex items-center gap-1.5 text-[11px] font-dm text-muted-foreground">
             <Monitor size={13} /> {isAdmin ? "Abrir painel completo" : "Abrir versão desktop"}
           </Link>
         </div>
