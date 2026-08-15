@@ -92,8 +92,8 @@ export default function FormLink() {
     <main className="min-h-screen bg-background flex justify-center px-4 py-8">
       <div className="w-full max-w-[390px] space-y-5">
         <div className="flex items-center gap-3">
-          <img src={logoAsset.url} alt="EVO Training Club" className="w-10 h-10 rounded-lg" />
-          <h1 className="font-barlow font-bold text-xl uppercase">EVO Training Club</h1>
+          <img src={logoAsset.url} alt="EVO Club" className="w-10 h-10 rounded-lg" />
+          <h1 className="font-barlow font-bold text-xl uppercase">EVO Club</h1>
         </div>
         {children}
       </div>

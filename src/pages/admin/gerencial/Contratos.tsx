@@ -89,7 +89,7 @@ export default function Contratos() {
       description: `Contrato "${r.title}" enviado para assinatura de ${r.client?.name || r.client_id}`,
     });
     const url = publicUrl(res.token);
-    if (res.phone) openWhatsApp(res.phone, `Olá ${res.name || ""}! Seu contrato da EVO TRAINING CLUB está pronto para assinatura: ${url}`);
+    if (res.phone) openWhatsApp(res.phone, `Olá ${res.name || ""}! Seu contrato da EVO CLUB está pronto para assinatura: ${url}`);
     else { await navigator.clipboard.writeText(url); toast.success("Aluno sem telefone. Link copiado."); }
     loadIssued();
   };

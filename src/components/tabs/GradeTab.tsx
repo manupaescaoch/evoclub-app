@@ -141,7 +141,7 @@ const GradeTab = () => {
     <div>
       <div className="sticky top-0 bg-white z-10 px-4 pt-4 pb-3 border-b border-border">
         <h1 className="font-barlow font-bold text-xl text-foreground">GRADE DE AULAS</h1>
-        <p className="text-xs text-muted font-dm">EVO Training Club · agende seu treino</p>
+        <p className="text-xs text-muted font-dm">EVO Club · agende seu treino</p>
       </div>
 
       <div className="flex gap-2 px-4 py-3 overflow-x-auto no-scrollbar">

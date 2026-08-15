@@ -998,7 +998,7 @@ export function AnamneseTab({ c }: { c: OverviewRow }) {
     const url = `${window.location.origin}/f/${row.token}`;
     if (row.phone) {
       window.open(`https://wa.me/${String(row.phone).replace(/\D/g, "")}?text=${encodeURIComponent(
-        `Olá ${c.name}! Preencha sua anamnese da EVO TRAINING CLUB: ${url}`
+        `Olá ${c.name}! Preencha sua anamnese da EVO CLUB: ${url}`
       )}`, "_blank");
     } else {
       await navigator.clipboard.writeText(url);

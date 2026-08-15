@@ -42,7 +42,7 @@ type Integrations = {
 };
 
 const DEFAULT_COMPANY: CompanyData = {
-  legal_name: "", trade_name: "EVO Training Club", cnpj: "",
+  legal_name: "", trade_name: "EVO Club", cnpj: "",
   email: "", phone: "", whatsapp: "",
   address: "", city: "", state: "", zip: "",
   logo_url: "", site: "", instagram: "",
