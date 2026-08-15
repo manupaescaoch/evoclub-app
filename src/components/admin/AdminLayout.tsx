@@ -124,6 +124,21 @@ const AdminLayout = () => {
   const [userName, setUserName] = useState("Admin");
   const [userEmail, setUserEmail] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [openMenus, setOpenMenus] = useState<Set<string>>(new Set());
+  const [closedMenus, setClosedMenus] = useState<Set<string>>(new Set());
+
+  // Auto-expand menu when navigating to any of its child routes
+  useEffect(() => {
+    setClosedMenus((prev) => {
+      const next = new Set(prev);
+      navItems.forEach((item) => {
+        if (item.children && location.pathname.startsWith(item.path)) {
+          next.delete(item.path);
+        }
+      });
+      return next;
+    });
+  }, [location.pathname]);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -186,22 +201,39 @@ const AdminLayout = () => {
           const isActive = isExact || (item.path !== "/admin" && active);
 
           if (hasChildren) {
-            const expanded = location.pathname.startsWith(item.path);
+            const routeMatches = location.pathname.startsWith(item.path);
+            const expanded = (routeMatches && !closedMenus.has(item.path)) || openMenus.has(item.path);
             return (
               <div key={item.path}>
-                <Link
-                  to={item.path}
-                  onClick={() => isMobile && setSidebarOpen(false)}
-                  className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-dm transition-colors w-full
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (expanded) {
+                      setOpenMenus((prev) => {
+                        const next = new Set(prev);
+                        next.delete(item.path);
+                        return next;
+                      });
+                      setClosedMenus((prev) => new Set(prev).add(item.path));
+                    } else {
+                      setOpenMenus((prev) => new Set(prev).add(item.path));
+                      setClosedMenus((prev) => {
+                        const next = new Set(prev);
+                        next.delete(item.path);
+                        return next;
+                      });
+                    }
+                  }}
+                  className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-dm transition-colors w-full text-left
                     ${isActive
                       ? "bg-[rgba(20,0,255,0.13)] text-white border-l-[3px] border-l-primary"
                       : "text-gray-400 hover:text-white hover:bg-white/5 border-l-[3px] border-l-transparent"
                     }`}
                 >
                   <item.icon size={18} className={isActive ? "text-primary" : ""} />
-                  <span className="flex-1 text-left">{item.label}</span>
+                  <span className="flex-1">{item.label}</span>
                   <ChevronDown size={14} className={`transition-transform ${expanded ? "rotate-0" : "-rotate-90"}`} />
-                </Link>
+                </button>
                 {expanded && (
                   <div className="ml-4 mt-0.5 space-y-0.5 border-l border-white/10 pl-2">
                     {item.children!.map((child) => {
