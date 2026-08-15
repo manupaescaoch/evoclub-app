@@ -70,6 +70,13 @@ import EquipeHistorico from "./pages/admin/equipe/Historico.tsx";
 import ValidarResgate from "./pages/admin/club/ValidarResgate";
 import Configuracoes from "./pages/admin/Configuracoes.tsx";
 import AdminComunidade from "./pages/admin/Comunidade.tsx";
+import ProLayout from "./components/pro/ProLayout.tsx";
+import ProHoje from "./pages/pro/ProHoje.tsx";
+import ProEscala from "./pages/pro/ProEscala.tsx";
+import ProNotificacoes from "./pages/pro/ProNotificacoes.tsx";
+import ProComunidade from "./pages/pro/ProComunidade.tsx";
+import ProDesempenho from "./pages/pro/ProDesempenho.tsx";
+import ProMais from "./pages/pro/ProMais.tsx";
 import AlunoLogin from "./pages/aluno/Login.tsx";
 import AlunoCadastro from "./pages/aluno/Cadastro.tsx";
 import StudentGuard from "./components/auth/StudentGuard.tsx";
@@ -120,6 +127,16 @@ const App = () => (
 
           {/* Admin */}
           <Route path="/admin/login" element={<Login />} />
+
+          {/* Experiência mobile do treinador */}
+          <Route path="/pro" element={<ProLayout />}>
+            <Route index element={<ProHoje />} />
+            <Route path="escala" element={<ProEscala />} />
+            <Route path="notificacoes" element={<ProNotificacoes />} />
+            <Route path="comunidade" element={<ProComunidade />} />
+            <Route path="desempenho" element={<ProDesempenho />} />
+            <Route path="mais" element={<ProMais />} />
+          </Route>
           {/* Formulário público por link rastreável */}
           <Route path="/f/:token" element={<FormLink />} />
           <Route path="/admin" element={<AdminLayout />}>
