@@ -8,7 +8,7 @@ import {
   Search, Bell, ChevronDown, ClipboardList, Library, Wrench, Menu, X, ClipboardEdit,
   FileSignature, CalendarRange, UserCog, Truck, ShieldCheck, Tag, Ticket, TrendingUp,
   Gift, ListTodo, ClipboardCheck, CalendarClock, HeartPulse, AlertTriangle,
-  Clock, Trophy, History, Inbox, Workflow, RefreshCw,
+  Clock, Trophy, History, Inbox, Workflow, RefreshCw, Target,
   Wallet, Receipt, ArrowLeftRight, FileBarChart, Percent, Lock, LineChart,
 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
