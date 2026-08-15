@@ -72,7 +72,6 @@ export default {
           ring: "hsl(var(--sidebar-ring))",
         },
       },
-      borderRadius: {
       textColor: {
         // `text-muted` must resolve to the readable secondary foreground,
         // not the near-white muted surface used by `bg-muted`.
