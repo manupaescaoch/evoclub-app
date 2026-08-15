@@ -5,7 +5,7 @@ import { useStudentName } from "@/hooks/useStudentName";
 import { usePartners, useClubMember, useClubRedemptions, Partner, Redemption } from "@/hooks/useClub";
 import { fmtBRL } from "@/lib/finance";
 
-const STUDENT_UNIT = "Evo Club · Boa Viagem";
+const STUDENT_UNIT = "EVO Boa Viagem";
 
 const filters = ["Todos", "Saúde", "Lifestyle", "Negócios"] as const;
 const sections = ["Meu Cartão", "Parceiros", "Minha Economia"] as const;
