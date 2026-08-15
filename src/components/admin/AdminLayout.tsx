@@ -341,7 +341,7 @@ const AdminLayout = () => {
   );
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-screen min-h-[100dvh] w-full overflow-x-hidden">
       {/* Mobile overlay */}
       {isMobile && sidebarOpen && (
         <div
@@ -354,6 +354,7 @@ const AdminLayout = () => {
       <aside
         className={`
           w-[220px] bg-sidebar border-r border-sidebar-border flex flex-col fixed left-0 top-0 bottom-0 z-50
+          safe-top safe-bottom momentum-scroll
           transition-transform duration-200 ease-in-out
           ${isMobile ? (sidebarOpen ? "translate-x-0" : "-translate-x-full") : "translate-x-0"}
         `}
@@ -362,14 +363,15 @@ const AdminLayout = () => {
       </aside>
 
       {/* Main */}
-      <div className={`flex-1 flex flex-col ${isMobile ? "ml-0" : "ml-[220px]"}`}>
+      <div className={`flex-1 min-w-0 max-w-full flex flex-col ${isMobile ? "ml-0" : "ml-[220px]"}`}>
         {/* Topbar */}
-        <header className="h-14 bg-card border-b border-border flex items-center justify-between px-4 md:px-6 sticky top-0 z-30">
-          <div className="flex items-center gap-2">
+        <header className="min-h-14 bg-card border-b border-border flex items-center justify-between gap-2 px-3 md:px-6 sticky top-0 z-30 safe-top">
+          <div className="flex items-center gap-2 min-w-0 flex-1 overflow-x-auto no-scrollbar momentum-scroll py-2">
             {isMobile && (
               <button
                 onClick={() => setSidebarOpen(true)}
-                className="text-foreground p-1"
+                aria-label="Abrir menu"
+                className="text-foreground shrink-0 h-11 w-11 -ml-2 flex items-center justify-center"
               >
                 <Menu size={22} />
               </button>
@@ -377,16 +379,17 @@ const AdminLayout = () => {
             <UnitSelect />
             <PeriodSelect />
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1 md:gap-3 shrink-0">
             {isMobile && isStaffMobileUser && (
               <button
                 onClick={() => {
                   sessionStorage.removeItem("evo_desktop_mode");
                   navigate("/pro");
                 }}
-                className="flex items-center gap-1.5 h-8 px-2.5 rounded-lg bg-primary/10 text-primary font-dm text-[11px] font-semibold"
+                aria-label="Modo treinador"
+                className="flex items-center justify-center gap-1.5 h-11 w-11 rounded-lg bg-primary/10 text-primary font-dm text-[11px] font-semibold shrink-0"
               >
-                <Smartphone size={14} /> Modo treinador
+                <Smartphone size={18} />
               </button>
             )}
             {!isMobile && (
@@ -399,22 +402,22 @@ const AdminLayout = () => {
               </div>
             )}
             {isMobile && (
-              <button className="text-muted-foreground hover:text-foreground">
+              <button aria-label="Buscar" className="text-muted-foreground hover:text-foreground h-11 w-11 flex items-center justify-center shrink-0">
                 <Search size={20} />
               </button>
             )}
-            <button className="relative text-muted-foreground hover:text-foreground">
+            <button aria-label="Notificações" className="relative text-muted-foreground hover:text-foreground h-11 w-11 flex items-center justify-center shrink-0">
               <Bell size={20} />
-              <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full" />
+              <span className="absolute top-2 right-2 w-2.5 h-2.5 bg-red-500 rounded-full" />
             </button>
-            <div className="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center text-xs font-bold font-barlow">
+            <div className="w-8 h-8 shrink-0 rounded-full bg-primary text-white flex items-center justify-center text-xs font-bold font-barlow">
               {initials}
             </div>
           </div>
         </header>
 
         {/* Content */}
-        <main className="flex-1 p-4 md:p-6 bg-background overflow-y-auto">
+        <main className="flex-1 min-w-0 max-w-full p-4 md:p-6 bg-background overflow-y-auto overflow-x-hidden momentum-scroll safe-bottom">
           <Outlet />
         </main>
       </div>
