@@ -28,11 +28,11 @@ const navItems: NavItem[] = [
   { label: "Dashboard", icon: LayoutDashboard, path: "/admin", module: "dashboard" },
   { label: "Clientes", icon: Users, path: "/admin/clientes", module: "clientes" },
   { label: "Grade", icon: CalendarDays, path: "/admin/grade", module: "grade" },
-  { label: "Leads", icon: Inbox, path: "/admin/leads", module: "crm" },
   {
     label: "CRM", icon: Megaphone, path: "/admin/crm", module: "crm",
     children: [
       { label: "Dashboard", icon: LayoutDashboard, path: "/admin/crm" },
+      { label: "Leads", icon: Inbox, path: "/admin/leads" },
       { label: "Comissões", icon: DollarSign, path: "/admin/crm/comissoes" },
       { label: "Indicações", icon: Gift, path: "/admin/crm/indicacoes" },
       { label: "Tarefas", icon: ListTodo, path: "/admin/crm/tarefas" },
@@ -133,7 +133,10 @@ const AdminLayout = () => {
     setClosedMenus((prev) => {
       const next = new Set(prev);
       navItems.forEach((item) => {
-        if (item.children && location.pathname.startsWith(item.path)) {
+        const matches =
+          location.pathname.startsWith(item.path) ||
+          (item.children || []).some((c) => location.pathname.startsWith(c.path));
+        if (item.children && matches) {
           next.delete(item.path);
         }
       });
@@ -202,7 +205,9 @@ const AdminLayout = () => {
           const isActive = isExact || (item.path !== "/admin" && active);
 
           if (hasChildren) {
-            const routeMatches = location.pathname.startsWith(item.path);
+            const routeMatches =
+              location.pathname.startsWith(item.path) ||
+              (item.children || []).some((c) => location.pathname.startsWith(c.path));
             const expanded = (routeMatches && !closedMenus.has(item.path)) || openMenus.has(item.path);
             return (
               <div key={item.path}>
