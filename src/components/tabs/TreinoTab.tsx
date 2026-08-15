@@ -53,6 +53,16 @@ const fmtDate = (d: string | null) =>
 const isCardioType = (t: string | null) =>
   !!t && /cardio|corrida|inclina|tempo/i.test(t);
 
+/** Existe algum dado registrado pelo aluno nessa série? */
+const hasPerformedData = (s: {
+  performedSets: number | null; performedReps: string | null; performedLoad: string | null;
+  performedTime: number | null; performedDistance: string | null; performedSpeed: string | null;
+  performedIncline: string | null; performedCalories: string | null;
+}) =>
+  [s.performedSets, s.performedReps, s.performedLoad, s.performedTime,
+   s.performedDistance, s.performedSpeed, s.performedIncline, s.performedCalories]
+    .some((v) => v !== null && v !== undefined && String(v).trim() !== "");
+
 const XP_LOAD = 5;
 const XP_START = 10;
 const XP_COMPLETE = 25;
@@ -445,6 +455,14 @@ const TreinoTab = () => {
   const [showPostWorkout, setShowPostWorkout] = useState(false);
   const [saving, setSaving] = useState(false);
   const finishRef = useRef<(auto?: boolean) => void>(() => {});
+  const logPromiseRef = useRef<Promise<string | null> | null>(null);
+
+  /** Garante o id do registro mesmo que o INSERT do log ainda esteja em voo. */
+  const ensureLogId = useCallback(async () => {
+    if (logId) return logId;
+    if (logPromiseRef.current) return await logPromiseRef.current;
+    return null;
+  }, [logId]);
 
   const swap = swapStatus(plan?.expiresAt ?? null);
   const remaining = daysToSwap(plan?.expiresAt ?? null);
@@ -611,14 +629,17 @@ const TreinoTab = () => {
 
   const persistSerie = useCallback(
     async (log: string, ex: Exercise, exIdx: number, serie: Serie, sIdx: number) => {
-      await supabase
+      const keep = serie.completed || hasPerformedData(serie);
+      const { error: delError } = await supabase
         .from("workout_log_sets")
         .delete()
         .eq("workout_log_id", log)
         .eq("session_exercise_id", ex.sessionExerciseId)
         .eq("order_index", sIdx);
-      if (!serie.completed) return;
-      await supabase.from("workout_log_sets").insert({
+      if (delError) throw delError;
+      // Sem check e sem dado registrado: nada a guardar.
+      if (!keep) return;
+      const { error } = await supabase.from("workout_log_sets").insert({
         workout_log_id: log,
         session_exercise_id: ex.sessionExerciseId,
         prescribed_set_id: serie.setId,
@@ -635,10 +656,11 @@ const TreinoTab = () => {
         performed_speed: serie.performedSpeed ? Number(serie.performedSpeed) : null,
         performed_incline: serie.performedIncline ?? serie.prescribedIncline,
         performed_calories: serie.performedCalories ? parseInt(serie.performedCalories) : null,
-        completed: true,
+        completed: serie.completed,
         exercise_order: exIdx,
         order_index: sIdx,
       });
+      if (error) throw error;
     },
     []
   );
@@ -647,20 +669,29 @@ const TreinoTab = () => {
     setStarted(true);
     setStartedAt(Date.now());
     if (clientId && !logId) {
-      const { data } = await supabase
-        .from("workout_logs")
-        .insert({
-          client_id: clientId,
-          training_plan_id: plan?.id ?? null,
-          training_session_id: sessionId,
-          session_name: sessionName,
-          workout_date: brazilToday(),
-          status: "in_progress",
-          started_at: new Date().toISOString(),
-        })
-        .select("id")
-        .single();
-      if (data) setLogId(data.id);
+      const promise = (async () => {
+        const { data, error } = await supabase
+          .from("workout_logs")
+          .insert({
+            client_id: clientId,
+            training_plan_id: plan?.id ?? null,
+            training_session_id: sessionId,
+            session_name: sessionName,
+            workout_date: brazilToday(),
+            status: "in_progress",
+            started_at: new Date().toISOString(),
+          })
+          .select("id")
+          .single();
+        if (error || !data) {
+          toast.error("Não conseguimos iniciar o registro do treino. Verifique sua conexão.");
+          return null;
+        }
+        setLogId(data.id);
+        return data.id as string;
+      })();
+      logPromiseRef.current = promise;
+      await promise;
     }
     toast(`+${XP_START} XP — Treino iniciado!`, { icon: <Zap size={16} className="text-primary" /> });
   };
@@ -675,7 +706,14 @@ const TreinoTab = () => {
         i !== exIdx ? e : { ...e, series: e.series.map((s, j) => (j !== sIdx ? s : updatedSerie)) }
       )
     );
-    if (logId) await persistSerie(logId, ex, exIdx, updatedSerie, sIdx);
+    const log = await ensureLogId();
+    if (log) {
+      try {
+        await persistSerie(log, ex, exIdx, updatedSerie, sIdx);
+      } catch {
+        toast.error("Não conseguimos salvar essa série. Tentaremos de novo ao finalizar.");
+      }
+    }
     if (next) setRestSeconds(serie.rest);
   };
 
@@ -705,7 +743,14 @@ const TreinoTab = () => {
         i !== exIdx ? e : { ...e, series: e.series.map((s, j) => (j !== sIdx ? s : updated)) }
       )
     );
-    if (logId && updated.completed) await persistSerie(logId, ex, exIdx, updated, sIdx);
+    const log = await ensureLogId();
+    if (log) {
+      try {
+        await persistSerie(log, ex, exIdx, updated, sIdx);
+      } catch {
+        toast.error("Não conseguimos salvar esse registro. Tentaremos de novo ao finalizar.");
+      }
+    }
     if (v.load && v.load !== "0" && !serie.performedLoad) {
       setLoadAnnotations((n) => n + 1);
       toast(`+${XP_LOAD} XP — Carga anotada!`, { icon: <Zap size={16} className="text-primary" /> });
@@ -714,15 +759,28 @@ const TreinoTab = () => {
 
   const finishWorkout = useCallback(
     async (auto = false, answers?: PostWorkoutAnswers) => {
-      if (!logId) { setShowXpModal(true); return; }
+      const log = await ensureLogId();
+      if (!log) { setShowXpModal(true); return; }
       if (!auto && !answers) { setShowPostWorkout(true); return; }
       setSaving(true);
+      let failed = 0;
       for (let i = 0; i < exercises.length; i++) {
         for (let j = 0; j < exercises[i].series.length; j++) {
-          await persistSerie(logId, exercises[i], i, exercises[i].series[j], j);
+          try {
+            await persistSerie(log, exercises[i], i, exercises[i].series[j], j);
+          } catch {
+            failed++;
+          }
         }
       }
-      await supabase
+      if (failed > 0) {
+        setSaving(false);
+        toast.error(
+          `Não conseguimos salvar ${failed} série${failed > 1 ? "s" : ""}. Seu treino segue em andamento — verifique a conexão e finalize de novo.`
+        );
+        return;
+      }
+      const { error: logError } = await supabase
         .from("workout_logs")
         .update({
           status: "completed",
@@ -737,11 +795,16 @@ const TreinoTab = () => {
               }
             : {}),
         })
-        .eq("id", logId);
+        .eq("id", log);
+      if (logError) {
+        setSaving(false);
+        toast.error("Não conseguimos concluir o treino. Verifique a conexão e tente de novo.");
+        return;
+      }
       if (answers?.pain && clientId) {
         await supabase.from("pain_reports").insert({
           client_id: clientId,
-          workout_log_id: logId,
+          workout_log_id: log,
           note: answers.painNote,
           status: "novo",
         });
@@ -757,7 +820,7 @@ const TreinoTab = () => {
         setShowXpModal(true);
       }
     },
-    [logId, exercises, persistSerie, reload, clientId]
+    [ensureLogId, exercises, persistSerie, reload, clientId]
   );
 
   finishRef.current = (auto?: boolean) => { void finishWorkout(auto ?? false); };
