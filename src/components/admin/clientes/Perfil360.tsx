@@ -32,26 +32,26 @@ export default function Perfil360({ client, onClose, onSaved }: {
   return (
     <div className="fixed inset-0 z-50 flex justify-end">
       <div className="absolute inset-0 bg-black/25" onClick={onClose} />
-      <div className="relative w-full md:w-[860px] bg-background h-full shadow-xl overflow-y-auto animate-in slide-in-from-right">
-        <div className="sticky top-0 z-10 bg-card border-b border-border">
+      <div className="relative w-full md:w-[860px] bg-background h-full max-h-[100dvh] shadow-xl overflow-y-auto overflow-x-hidden momentum-scroll animate-in slide-in-from-right">
+        <div className="sticky top-0 z-10 bg-card border-b border-border safe-top">
           <div className="flex items-start justify-between p-4">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 min-w-0">
               <div className="w-11 h-11 rounded-full bg-muted flex items-center justify-center text-sm font-bold text-muted-foreground overflow-hidden">
                 {client.avatar_url ? <img src={client.avatar_url} alt={client.name} className="w-full h-full object-cover" /> : initials}
               </div>
-              <div>
-                <h2 className="font-barlow font-bold text-xl text-foreground leading-tight uppercase">{client.name}</h2>
+              <div className="min-w-0">
+                <h2 className="font-barlow font-bold text-lg md:text-xl text-foreground leading-tight uppercase break-words">{client.name}</h2>
                 <p className="text-[11px] font-dm text-muted-foreground">
                   #{client.id} · {client.plan || "sem plano"} · vence {fmtDate(client.contract_end)}
                 </p>
               </div>
             </div>
-            <button onClick={onClose} className="text-muted-foreground hover:text-foreground"><X size={20} /></button>
+            <button onClick={onClose} aria-label="Fechar" className="shrink-0 h-11 w-11 -mr-2 -mt-2 flex items-center justify-center text-muted-foreground hover:text-foreground"><X size={22} /></button>
           </div>
-          <div className="flex gap-4 px-4 overflow-x-auto no-scrollbar">
+          <div className="flex gap-4 px-4 overflow-x-auto no-scrollbar momentum-scroll">
             {TABS.map(t => (
               <button key={t.key} onClick={() => setTab(t.key)}
-                className={`pb-2 text-xs font-dm font-medium whitespace-nowrap transition-colors ${
+                className={`pb-2 min-h-11 shrink-0 text-xs font-dm font-medium whitespace-nowrap transition-colors ${
                   tab === t.key ? "text-primary border-b-2 border-primary" : "text-muted-foreground"}`}>
                 {t.label}
               </button>
@@ -59,7 +59,7 @@ export default function Perfil360({ client, onClose, onSaved }: {
           </div>
         </div>
 
-        <div className="p-4">
+        <div className="p-4 pb-24 safe-bottom">
           {tab === "resumo" && <ResumoTab c={client} onGoTab={setTab} />}
           {tab === "dados" && <DadosTab c={client} onSaved={onSaved} />}
           {tab === "frequencia" && <FrequenciaTab c={client} />}

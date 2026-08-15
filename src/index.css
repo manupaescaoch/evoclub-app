@@ -117,6 +117,24 @@
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
+/* Horizontal scroll containers without visible scrollbar */
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Tabelas largas: rolagem própria dentro do card, sem estourar a tela */
+.table-scroll {
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+}
+
 /* Legacy font utilities now map to the EVO typeface */
 .font-barlow,
 .font-dm {

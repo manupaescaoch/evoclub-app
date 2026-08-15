@@ -230,12 +230,12 @@ const Grade = () => {
       {viewMode === "semana" && (<>
       {/* Filters row */}
       <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
-        <div className="flex gap-2">
+        <div className="flex gap-2 overflow-x-auto no-scrollbar momentum-scroll max-w-full">
           {(["todos", "manha", "tarde", "noite"] as const).map(f => (
             <button
               key={f}
               onClick={() => setFilter(f)}
-              className={`px-4 py-1.5 rounded text-xs font-dm font-bold uppercase tracking-wide transition-colors
+              className={`px-4 min-h-11 shrink-0 rounded text-xs font-dm font-bold uppercase tracking-wide transition-colors
                 ${filter === f ? "bg-primary text-white" : "bg-card text-muted-foreground hover:bg-muted"}`}
             >
               {f === "todos" ? "TODOS" : f === "manha" ? "MANHÃ" : f === "tarde" ? "TARDE" : "NOITE"}
@@ -243,22 +243,22 @@ const Grade = () => {
           ))}
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 md:gap-3 min-w-0">
           <div className="flex items-center gap-1">
-            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setWeekOffset(o => o - 1)}>
+            <Button variant="ghost" size="icon" aria-label="Semana anterior" className="h-11 w-11 shrink-0" onClick={() => setWeekOffset(o => o - 1)}>
               <ChevronLeft size={16} />
             </Button>
-            <span className="text-sm font-dm text-foreground min-w-[180px] text-center">{formatWeekRange()}</span>
-            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setWeekOffset(o => o + 1)}>
+            <span className="text-xs md:text-sm font-dm text-foreground text-center min-w-0 md:min-w-[180px] flex-1">{formatWeekRange()}</span>
+            <Button variant="ghost" size="icon" aria-label="Próxima semana" className="h-11 w-11 shrink-0" onClick={() => setWeekOffset(o => o + 1)}>
               <ChevronRight size={16} />
             </Button>
           </div>
-          <Button variant="outline" size="sm" className="text-xs font-dm font-bold" onClick={() => setWeekOffset(0)}>
+          <Button variant="outline" size="sm" className="text-xs font-dm font-bold min-h-11 shrink-0" onClick={() => setWeekOffset(0)}>
             HOJE
           </Button>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="hidden md:flex items-center gap-3">
           <label className="flex items-center gap-1.5 text-xs font-dm text-muted-foreground cursor-pointer">
             <Eye size={14} /> Ver status
           </label>
@@ -266,7 +266,7 @@ const Grade = () => {
       </div>
 
       {/* Grid */}
-      <div className="bg-card rounded-xl card-shadow overflow-auto">
+      <div className="bg-card rounded-xl card-shadow max-w-full table-scroll">
         {loading ? (
           <div className="h-64 flex items-center justify-center text-muted-foreground font-dm">Carregando grade...</div>
         ) : (
