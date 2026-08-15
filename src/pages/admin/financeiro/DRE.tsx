@@ -182,12 +182,32 @@ const DRE = () => {
               { key: "tax", label: "(-) Impostos", className: "text-red-500" },
             ].map(row => {
               const total = periods.reduce((s, p) => s + (agg.get(p.label)?.[row.key as keyof Agg] || 0), 0);
+              const isOpen = drill === row.key;
               return (
-                <tr key={row.key} className="border-b border-border">
-                  <td className="px-3 py-2">{row.label}</td>
-                  {periods.map(p => <td key={p.label} className={`px-3 py-2 text-right ${row.className}`}>{fmtBRL(agg.get(p.label)?.[row.key as keyof Agg] || 0)}</td>)}
-                  <td className={`px-3 py-2 text-right font-semibold ${row.className}`}>{fmtBRL(total)}</td>
-                </tr>
+                <>
+                  <tr key={row.key} className="border-b border-border cursor-pointer hover:bg-background"
+                      onClick={() => setDrill(isOpen ? null : (row.key as "income" | "expense" | "tax"))}>
+                    <td className="px-3 py-2">
+                      <span className="flex items-center gap-1">
+                        {isOpen ? <ChevronDown size={13} /> : <ChevronRight size={13} />}{row.label}
+                      </span>
+                    </td>
+                    {periods.map(p => <td key={p.label} className={`px-3 py-2 text-right ${row.className}`}>{fmtBRL(agg.get(p.label)?.[row.key as keyof Agg] || 0)}</td>)}
+                    <td className={`px-3 py-2 text-right font-semibold ${row.className}`}>{fmtBRL(total)}</td>
+                  </tr>
+                  {isOpen && drillRows.map(d => (
+                    <tr key={`${row.key}-${d.cat}`} className="border-b border-border bg-background/50">
+                      <td className="px-3 py-1.5 pl-8 text-muted-foreground">{d.cat}</td>
+                      {periods.map(p => <td key={p.label} className="px-3 py-1.5 text-right text-muted-foreground">{fmtBRL(d.values.get(p.label) || 0)}</td>)}
+                      <td className="px-3 py-1.5 text-right text-muted-foreground">{fmtBRL(d.total)}</td>
+                    </tr>
+                  ))}
+                  {isOpen && drillRows.length === 0 && (
+                    <tr key={`${row.key}-empty`} className="border-b border-border bg-background/50">
+                      <td colSpan={periods.length + 2} className="px-3 py-2 pl-8 text-muted-foreground">Sem lançamentos nesta linha</td>
+                    </tr>
+                  )}
+                </>
               );
             })}
             <tr className="bg-background">
