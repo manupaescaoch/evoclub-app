@@ -9,6 +9,7 @@ import {
   FileSignature, CalendarRange, UserCog, Truck, ShieldCheck, Tag, Ticket, TrendingUp,
   Gift, ListTodo, ClipboardCheck, CalendarClock, HeartPulse, AlertTriangle,
   Clock, Trophy, History, Inbox, Workflow, RefreshCw,
+  Wallet, Receipt, ArrowLeftRight, FileBarChart, Percent, Lock, LineChart,
 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { logAudit } from "@/lib/audit";
@@ -37,7 +38,24 @@ const navItems: NavItem[] = [
       { label: "Renovações", icon: RefreshCw, path: "/admin/crm/renovacoes" },
     ],
   },
-  { label: "Financeiro", icon: DollarSign, path: "/admin/financeiro", module: "financeiro" },
+  {
+    label: "Financeiro", icon: DollarSign, path: "/admin/financeiro", module: "financeiro",
+    children: [
+      { label: "Dashboard", icon: LayoutDashboard, path: "/admin/financeiro" },
+      { label: "Fluxo de Caixa", icon: TrendingUp, path: "/admin/financeiro/fluxo" },
+      { label: "Recebimentos", icon: Wallet, path: "/admin/financeiro/recebimentos" },
+      { label: "Contas a Pagar", icon: Receipt, path: "/admin/financeiro/contas-a-pagar" },
+      { label: "Inadimplência", icon: AlertTriangle, path: "/admin/financeiro/inadimplencia" },
+      { label: "Transações", icon: ArrowLeftRight, path: "/admin/financeiro/transacoes" },
+      { label: "Folha de Pagamento", icon: Users, path: "/admin/financeiro/folha" },
+      { label: "Descontos e Estornos", icon: Percent, path: "/admin/financeiro/ajustes" },
+      { label: "DRE", icon: FileBarChart, path: "/admin/financeiro/dre" },
+      { label: "Forecast", icon: LineChart, path: "/admin/financeiro/forecast" },
+      { label: "Relatórios", icon: BarChart3, path: "/admin/financeiro/relatorios" },
+      { label: "Fechamentos", icon: Lock, path: "/admin/financeiro/fechamentos" },
+      { label: "Configurações", icon: Settings, path: "/admin/financeiro/configuracoes" },
+    ],
+  },
   {
     label: "Gerencial", icon: BarChart3, path: "/admin/gerencial", module: "gerencial",
     children: [
@@ -171,12 +189,7 @@ const AdminLayout = () => {
           if (hasChildren) {
             const isGerencialSection = location.pathname.startsWith("/admin/gerencial");
             const isCrmSection = location.pathname.startsWith("/admin/crm");
-            const expanded =
-              (item.path === "/admin/treinos" && isTreinosSection) ||
-              (item.path === "/admin/gerencial" && isGerencialSection) ||
-              (item.path === "/admin/crm" && isCrmSection) ||
-              (item.path === "/admin/equipe" && location.pathname.startsWith("/admin/equipe")) ||
-              (item.path === "/admin/club" && location.pathname.startsWith("/admin/club"));
+            const expanded = location.pathname.startsWith(item.path);
             return (
               <div key={item.path}>
                 <Link
