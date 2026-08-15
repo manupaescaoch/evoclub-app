@@ -5755,28 +5755,37 @@ export type Database = {
       }
       training_methods: {
         Row: {
+          category: string | null
           created_at: string
           created_by: string | null
           description: string | null
+          display_template: string | null
           id: string
           is_global: boolean
           name: string
+          params: Json
         }
         Insert: {
+          category?: string | null
           created_at?: string
           created_by?: string | null
           description?: string | null
+          display_template?: string | null
           id?: string
           is_global?: boolean
           name: string
+          params?: Json
         }
         Update: {
+          category?: string | null
           created_at?: string
           created_by?: string | null
           description?: string | null
+          display_template?: string | null
           id?: string
           is_global?: boolean
           name?: string
+          params?: Json
         }
         Relationships: []
       }
