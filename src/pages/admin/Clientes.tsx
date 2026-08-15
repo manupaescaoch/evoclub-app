@@ -125,12 +125,12 @@ const Clientes = () => {
             Base de alunos e oportunidades com perfil 360º, frequência e pendências.
           </p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" className="gap-2 font-dm" onClick={reload}>
+        <div className="flex gap-2 shrink-0">
+          <Button variant="outline" className="gap-2 font-dm flex-1 md:flex-none min-h-11" onClick={reload}>
             <RefreshCw size={15} /> ATUALIZAR
           </Button>
           {canCreate && (
-            <Button className="gap-2 font-dm" onClick={() => setShowDrawer(true)}>
+            <Button className="gap-2 font-dm flex-1 md:flex-none min-h-11" onClick={() => setShowDrawer(true)}>
               <Plus size={16} /> NOVO CADASTRO
             </Button>
           )}
@@ -152,10 +152,10 @@ const Clientes = () => {
             placeholder="Pesquise por nome, e-mail, CPF ou telefone"
             value={search}
             onChange={e => setSearch(e.target.value)}
-            className="pl-9 h-9 font-dm"
+            className="pl-9 h-11 md:h-9 font-dm"
           />
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2 min-w-0">
           <select value={fVisit} onChange={e => setFVisit(e.target.value)} className={selectClass}>
             <option value="">Todos os tipos</option>
             <option value="presencial">Presencial</option>
@@ -193,24 +193,24 @@ const Clientes = () => {
       </div>
 
       {/* Tabs */}
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex gap-6 border-b border-border">
+      <div className="flex items-center justify-between gap-3 mb-4">
+        <div className="flex gap-5 md:gap-6 border-b border-border overflow-x-auto no-scrollbar momentum-scroll">
           {([["todos", "Todos"], ["clientes", "Clientes"], ["oportunidades", "Oportunidades"]] as const).map(([key, label]) => (
             <button
               key={key}
               onClick={() => setTab(key)}
-              className={`pb-2 text-sm font-dm font-medium transition-colors
+              className={`pb-2 shrink-0 min-h-11 text-sm font-dm font-medium transition-colors
                 ${tab === key ? "text-primary border-b-2 border-primary" : "text-muted-foreground"}`}
             >
               {label}
             </button>
           ))}
         </div>
-        <span className="text-sm font-dm font-bold text-foreground">{filtered.length} <span className="font-normal text-muted-foreground">resultados</span></span>
+        <span className="text-sm font-dm font-bold text-foreground shrink-0 whitespace-nowrap">{filtered.length} <span className="font-normal text-muted-foreground hidden sm:inline">resultados</span></span>
       </div>
 
       {/* Tabela */}
-      <div className="bg-card rounded-xl card-shadow overflow-x-auto">
+      <div className="bg-card rounded-xl card-shadow max-w-full table-scroll">
         <table className="w-full text-sm font-dm min-w-[840px]">
           <thead>
             <tr className="border-b border-border">
