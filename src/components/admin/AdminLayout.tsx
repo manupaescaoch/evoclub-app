@@ -200,22 +200,30 @@ const AdminLayout = () => {
           const isActive = isExact || (item.path !== "/admin" && active);
 
           if (hasChildren) {
-            const expanded = location.pathname.startsWith(item.path);
+            const expanded = openMenus.has(item.path);
             return (
               <div key={item.path}>
-                <Link
-                  to={item.path}
-                  onClick={() => isMobile && setSidebarOpen(false)}
-                  className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-dm transition-colors w-full
+                <button
+                  type="button"
+                  onClick={() => {
+                    setOpenMenus((prev) => {
+                      const next = new Set(prev);
+                      if (next.has(item.path)) next.delete(item.path);
+                      else next.add(item.path);
+                      return next;
+                    });
+                    if (isMobile) setSidebarOpen(false);
+                  }}
+                  className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-dm transition-colors w-full text-left
                     ${isActive
                       ? "bg-[rgba(20,0,255,0.13)] text-white border-l-[3px] border-l-primary"
                       : "text-gray-400 hover:text-white hover:bg-white/5 border-l-[3px] border-l-transparent"
                     }`}
                 >
                   <item.icon size={18} className={isActive ? "text-primary" : ""} />
-                  <span className="flex-1 text-left">{item.label}</span>
+                  <span className="flex-1">{item.label}</span>
                   <ChevronDown size={14} className={`transition-transform ${expanded ? "rotate-0" : "-rotate-90"}`} />
-                </Link>
+                </button>
                 {expanded && (
                   <div className="ml-4 mt-0.5 space-y-0.5 border-l border-white/10 pl-2">
                     {item.children!.map((child) => {
