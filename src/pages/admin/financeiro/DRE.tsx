@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useUnit } from "@/contexts/UnitContext";
 import { fmtBRL, fmtBRLShort, monthName, yearRange } from "@/lib/finance";
@@ -184,8 +184,8 @@ const DRE = () => {
               const total = periods.reduce((s, p) => s + (agg.get(p.label)?.[row.key as keyof Agg] || 0), 0);
               const isOpen = drill === row.key;
               return (
-                <>
-                  <tr key={row.key} className="border-b border-border cursor-pointer hover:bg-background"
+                <Fragment key={row.key}>
+                  <tr className="border-b border-border cursor-pointer hover:bg-background"
                       onClick={() => setDrill(isOpen ? null : (row.key as "income" | "expense" | "tax"))}>
                     <td className="px-3 py-2">
                       <span className="flex items-center gap-1">
@@ -207,7 +207,7 @@ const DRE = () => {
                       <td colSpan={periods.length + 2} className="px-3 py-2 pl-8 text-muted-foreground">Sem lançamentos nesta linha</td>
                     </tr>
                   )}
-                </>
+                </Fragment>
               );
             })}
             <tr className="bg-background">
@@ -222,6 +222,25 @@ const DRE = () => {
           </tbody>
         </table>}
       </div>
+
+      {byCostCenter.length > 0 && (
+        <div className="bg-card rounded-xl card-shadow overflow-x-auto">
+          <div className="px-4 py-3 border-b border-border"><p className="text-sm font-dm font-semibold text-foreground">Por centro de custo</p></div>
+          <table className="w-full text-xs font-dm">
+            <thead><tr className="border-b border-border text-left">{["Centro de custo", "Receita", "Despesa", "Resultado"].map(h => <th key={h} className="px-3 py-2 text-muted-foreground font-medium">{h}</th>)}</tr></thead>
+            <tbody>
+              {byCostCenter.map(c => (
+                <tr key={c.name} className="border-b border-border">
+                  <td className="px-3 py-2 text-foreground">{c.name}</td>
+                  <td className="px-3 py-2 text-green-600">{fmtBRL(c.income)}</td>
+                  <td className="px-3 py-2 text-red-500">{fmtBRL(c.expense)}</td>
+                  <td className={`px-3 py-2 font-semibold ${c.net < 0 ? "text-red-500" : "text-foreground"}`}>{fmtBRL(c.net)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
 
       {isConsolidated && byUnit.length > 0 && (
         <div className="bg-card rounded-xl card-shadow overflow-x-auto">
