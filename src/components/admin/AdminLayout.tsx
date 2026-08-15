@@ -181,14 +181,11 @@ const AdminLayout = () => {
       <nav className="flex-1 px-3 mt-2 space-y-0.5 overflow-y-auto">
         {visibleItems.map((item) => {
           const hasChildren = !!item.children;
-          const isTreinosSection = location.pathname.startsWith("/admin/treinos");
           const active = location.pathname === item.path || (item.path !== "/admin" && location.pathname.startsWith(item.path));
           const isExact = item.path === "/admin" && location.pathname === "/admin";
           const isActive = isExact || (item.path !== "/admin" && active);
 
           if (hasChildren) {
-            const isGerencialSection = location.pathname.startsWith("/admin/gerencial");
-            const isCrmSection = location.pathname.startsWith("/admin/crm");
             const expanded = location.pathname.startsWith(item.path);
             return (
               <div key={item.path}>
