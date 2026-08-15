@@ -17,7 +17,7 @@ interface BottomNavProps {
 const BottomNav = ({ activeTab, onTabChange }: BottomNavProps) => {
   return (
     <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[390px] bg-white border-t border-border nav-shadow z-50"
-      style={{ paddingBottom: "env(safe-area-inset-bottom, 8px)" }}>
+      style={{ paddingBottom: "max(env(safe-area-inset-bottom, 0px), 8px)", touchAction: "manipulation" }}>
       <div className="flex items-center justify-around h-16">
         {navItems.map(({ id, label, icon: Icon }) => {
           const isActive = activeTab === id;

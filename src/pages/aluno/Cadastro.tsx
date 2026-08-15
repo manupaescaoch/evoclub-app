@@ -63,7 +63,7 @@ const AlunoCadastro = () => {
   };
 
   return (
-    <div className="mx-auto max-w-[390px] min-h-screen bg-background flex flex-col justify-center px-6">
+    <div className="mx-auto max-w-[390px] min-h-screen min-h-[100dvh] bg-background flex flex-col justify-center px-6">
       <div className="flex flex-col items-center mb-8">
         <img src={logoAsset.url} alt="EVO Club" className="w-16 h-16 rounded-2xl mb-3 hero-shadow" />
         <h1 className="font-barlow font-bold text-2xl text-foreground">CRIAR CONTA</h1>
