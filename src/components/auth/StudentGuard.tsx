@@ -6,7 +6,7 @@ const StudentGuard = ({ children }: { children: React.ReactNode }) => {
 
   if (loading) {
     return (
-      <div className="mx-auto max-w-[390px] min-h-screen bg-background flex items-center justify-center">
+      <div className="mx-auto max-w-[390px] min-h-screen min-h-[100dvh] bg-background flex items-center justify-center">
         <p className="text-sm font-dm text-muted-foreground">Carregando...</p>
       </div>
     );
@@ -16,7 +16,7 @@ const StudentGuard = ({ children }: { children: React.ReactNode }) => {
 
   if (!client) {
     return (
-      <div className="mx-auto max-w-[390px] min-h-screen bg-background flex flex-col items-center justify-center px-6 text-center">
+      <div className="mx-auto max-w-[390px] min-h-screen min-h-[100dvh] bg-background flex flex-col items-center justify-center px-6 text-center">
         <h1 className="font-barlow font-bold text-xl text-foreground">CADASTRO NÃO VINCULADO</h1>
         <p className="text-sm font-dm text-muted-foreground mt-2">
           Não encontramos seu cadastro de aluno com este e-mail. Fale com a recepção da sua unidade
