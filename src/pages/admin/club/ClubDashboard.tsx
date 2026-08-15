@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import PageShell, { EmptyState, LoadingState, SummaryCard } from "@/components/admin/gerencial/PageShell";
-import { UnitSelect, PeriodSelect } from "@/components/admin/ScopeSelectors";
 import { useUnit } from "@/contexts/UnitContext";
 import { usePeriod } from "@/contexts/PeriodContext";
 import { fmtBRL } from "@/lib/finance";
@@ -25,7 +24,7 @@ type Alert = {
 const dateBR = (d: string) => new Date(`${d}T12:00:00`).toLocaleDateString("pt-BR");
 
 export default function ClubDashboard() {
-  const { filterId, selected } = useUnit();
+  const { filterId } = useUnit();
   const { from, to, label } = usePeriod();
   const [data, setData] = useState<Dash | null>(null);
   const [alerts, setAlerts] = useState<Alert[]>([]);
@@ -63,7 +62,6 @@ export default function ClubDashboard() {
     <PageShell
       title="EVO Club"
       description="Resgates, economia gerada e desempenho dos parceiros no período."
-      filters={<><UnitSelect /><PeriodSelect /></>}
       summary={data && !loading ? (
         <>
           <SummaryCard label="Resgates no período" value={data.redemptions} accent="blue" />
@@ -114,7 +112,7 @@ export default function ClubDashboard() {
               <p className="font-barlow font-bold text-base text-foreground">Ranking de parceiros por uso</p>
             </div>
             {data!.partner_ranking.length === 0 ? (
-              <EmptyState message={`Nenhum resgate confirmado ${selected ? "" : ""}neste período.`} />
+              <EmptyState message="Nenhum resgate confirmado neste período." />
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-sm font-dm">
