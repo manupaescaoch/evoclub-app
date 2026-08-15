@@ -99,8 +99,8 @@ const Leads = () => {
       const { data: { session } } = await supabase.auth.getSession();
       const email = session?.user?.email || "";
       if (!email) return;
-      const { data } = await supabase.from("collaborators").select("name").eq("email", email).maybeSingle();
-      setMe((data as any)?.name || email.split("@")[0]);
+      const { data } = await supabase.from("collaborators").select("full_name").eq("email", email).maybeSingle();
+      setMe((data as any)?.full_name || email.split("@")[0]);
     })();
   }, []);
 
