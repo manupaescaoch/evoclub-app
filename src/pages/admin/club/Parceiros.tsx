@@ -83,6 +83,7 @@ export default function Parceiros() {
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [busy, setBusy] = useState(false);
+  const [tokens, setTokens] = useState<Record<string, string>>({});
 
   const [pOpen, setPOpen] = useState(false);
   const [pForm, setPForm] = useState<any>(emptyPartner());
@@ -95,11 +96,15 @@ export default function Parceiros() {
 
   const load = useCallback(async () => {
     setLoading(true); setError(null);
-    const [p, b] = await Promise.all([
+    const [p, b, t] = await Promise.all([
       supabase.from("partners").select("*").order("name"),
       supabase.from("partner_benefits").select("*").order("label"),
+      supabase.from("partner_portal_access").select("partner_id, token"),
     ]);
     if (p.error || b.error) { setError((p.error || b.error)!.message); setLoading(false); return; }
+    const tk: Record<string, string> = {};
+    ((t.data || []) as any[]).forEach(x => { if (x.token) tk[x.partner_id] = x.token; });
+    setTokens(tk);
     setPartners(((p.data || []) as any[]).map(x => ({ ...x, unit_ids: x.unit_ids || [] })) as Partner[]);
     setBenefits(((b.data || []) as any[]).map(x => ({ ...x, value: x.value === null ? null : Number(x.value) })) as Benefit[]);
     setLoading(false);
@@ -179,7 +184,7 @@ export default function Parceiros() {
   };
 
   const rotateToken = async (p: Partner) => {
-    if (!confirm(p.portal_token
+    if (!confirm(tokens[p.id]
       ? `Gerar um novo link do portal para "${p.name}"? O link anterior deixa de funcionar.`
       : `Gerar o link de acesso ao portal para "${p.name}"?`)) return;
     setBusy(true);
@@ -190,7 +195,7 @@ export default function Parceiros() {
     await navigator.clipboard?.writeText(url).catch(() => {});
     logAudit({
       action: "update", module: "club", entity: "partners", entity_id: p.id,
-      description: `Link do portal do parceiro ${p.portal_token ? "regenerado" : "gerado"} — ${p.name}`,
+      description: `Link do portal do parceiro ${tokens[p.id] ? "regenerado" : "gerado"} — ${p.name}`,
       metadata: { sensitive: true },
     });
     toast.success("Link gerado e copiado para a área de transferência.");
@@ -198,8 +203,9 @@ export default function Parceiros() {
   };
 
   const copyLink = async (p: Partner) => {
-    if (!p.portal_token) return;
-    await navigator.clipboard?.writeText(`${window.location.origin}/parceiro/${p.portal_token}`).catch(() => {});
+    const tok = tokens[p.id];
+    if (!tok) return;
+    await navigator.clipboard?.writeText(`${window.location.origin}/parceiro/${tok}`).catch(() => {});
     toast.success("Link do portal copiado.");
   };
 
@@ -332,13 +338,13 @@ export default function Parceiros() {
                         <Button size="sm" variant="outline" className="font-dm" onClick={() => openPartner(p)}>
                           <Pencil size={14} className="mr-1" /> Editar
                         </Button>
-                        {p.portal_token && (
+                        {tokens[p.id] && (
                           <Button size="sm" variant="ghost" className="font-dm" onClick={() => copyLink(p)}>
                             <Copy size={14} className="mr-1" /> Copiar link
                           </Button>
                         )}
                         <Button size="sm" variant="ghost" className="font-dm" disabled={busy} onClick={() => rotateToken(p)}>
-                          <KeyRound size={14} className="mr-1" /> {p.portal_token ? "Novo link" : "Gerar link"}
+                          <KeyRound size={14} className="mr-1" /> {tokens[p.id] ? "Novo link" : "Gerar link"}
                         </Button>
                       </>
                     )}
