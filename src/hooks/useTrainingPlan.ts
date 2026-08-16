@@ -135,41 +135,6 @@ export const useTrainingPlan = (clientId: number | null) => {
             .in("training_session_id", sessionIds)
         : { data: [] as { id: string; training_session_id: string; exercise_id: string | null }[] };
 
-      const exIds = (exs || []).map((e) => e.id);
-      const { data: sets } = exIds.length
-        ? await supabase
-            .from("training_exercise_sets")
-            .select("id, session_exercise_id, sets")
-            .in("session_exercise_id", exIds)
-        : { data: [] as { id: string; session_exercise_id: string; sets: number | null }[] };
-
-      const libIds = [...new Set((exs || []).map((e) => e.exercise_id).filter(Boolean))] as string[];
-      const { data: lib } = libIds.length
-        ? await supabase
-            .from("exercise_library")
-            .select("id, muscle_group, secondary_muscle, secondary_muscle_2")
-            .in("id", libIds)
-        : { data: [] as any[] };
-      const groupsById = new Map(
-        (lib || []).map((l) => [
-          l.id,
-          {
-            primary: l.muscle_group || "Outros",
-            aux: [
-              ...String(l.secondary_muscle || "").split(",").map((s: string) => s.trim()),
-              l.secondary_muscle_2,
-            ]
-              .filter(Boolean)
-              .slice(0, 2) as string[],
-          },
-        ])
-      );
-      const groupsForExercise = (sessionExerciseId: string) => {
-        const ex = (exs || []).find((e) => e.id === sessionExerciseId);
-        const g = ex?.exercise_id ? groupsById.get(ex.exercise_id) : undefined;
-        return g ?? { primary: "Outros", aux: [] as string[] };
-      };
-
       const { data: logs } = await supabase
         .from("workout_logs")
         .select("training_session_id, status")
@@ -188,49 +153,9 @@ export const useTrainingPlan = (clientId: number | null) => {
         exerciseCount: (exs || []).filter((e) => e.training_session_id === s.id).length,
         doneToday: doneIds.has(s.id),
       }));
-
-      const prescribed = new Map<string, number>();
-      const done = new Map<string, number>();
-      const add = (m: Map<string, number>, sessionExerciseId: string, qty: number) => {
-        const g = groupsForExercise(sessionExerciseId);
-        m.set(g.primary, (m.get(g.primary) || 0) + qty);
-        g.aux.forEach((a) => m.set(a, (m.get(a) || 0) + qty * 0.5));
-      };
-
-      (sets || []).forEach((st) => add(prescribed, st.session_exercise_id, st.sets || 1));
-
-      // Realizado na semana atual (seg→dom), só séries concluídas
-      const { from, to } = brazilWeekRange();
-      const { data: weekLogs } = await supabase
-        .from("workout_logs")
-        .select("id")
-        .eq("client_id", clientId)
-        .gte("workout_date", from)
-        .lte("workout_date", to);
-      const logIds = (weekLogs || []).map((l) => l.id);
-      const { data: doneSets } = logIds.length
-        ? await supabase
-            .from("workout_log_sets")
-            .select("session_exercise_id, performed_sets, prescribed_sets, completed")
-            .in("workout_log_id", logIds)
-            .eq("completed", true)
-        : { data: [] as any[] };
-      (doneSets || []).forEach((st) => {
-        if (!st.session_exercise_id) return;
-        add(done, st.session_exercise_id, st.performed_sets ?? st.prescribed_sets ?? 1);
-      });
-
-      volume = [...new Set([...prescribed.keys(), ...done.keys()])]
-        .filter((g) => g && !NON_STRENGTH_GROUPS.includes(g))
-        .map((group) => ({
-          group,
-          prescribed: prescribed.get(group) || 0,
-          done: done.get(group) || 0,
-          target: weeklyTarget(group),
-        }))
-        .filter((r) => r.prescribed > 0 || r.done > 0)
-        .sort((a, b) => b.prescribed - a.prescribed || b.done - a.done);
     }
+
+    volume = await loadVolume(clientId);
 
     setPlan({
       id: active.id,
