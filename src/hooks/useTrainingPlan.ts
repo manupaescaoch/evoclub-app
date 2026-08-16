@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { NON_STRENGTH_GROUPS, weeklyTarget } from "@/lib/muscleVolume";
+import { OFFICIAL_MUSCLE_GROUPS, toOfficialGroup, weeklyTarget } from "@/lib/muscleVolume";
 
 export interface PlanSession {
   id: string;
@@ -23,12 +23,24 @@ export interface ActivePlan {
 
 export interface VolumeRow {
   group: string;
-  /** Séries prescritas na semana (auxiliar conta 0,5). */
-  prescribed: number;
-  /** Séries concluídas na semana (auxiliar conta 0,5). */
-  done: number;
+  /** Séries realizadas em que o grupo é o principal (1,0 cada). */
+  direct: number;
+  /** Séries equivalentes indiretas (grupo como acessório, 0,5 cada). */
+  indirect: number;
+  /** direct + indirect. */
+  total: number;
   /** Meta semanal de séries para o grupo. */
   target: number;
+  /** Dias distintos da semana em que o grupo foi trabalhado. */
+  days: number;
+  /** Sessões (treinos registrados) que trabalharam o grupo na semana. */
+  sessions: number;
+  /** Total da semana anterior. */
+  prevTotal: number;
+  /** Média das últimas 4 semanas (anteriores à atual). */
+  avg4: number;
+  /** Histórico das últimas semanas (mais antiga → atual). */
+  history: { week: string; total: number }[];
 }
 
 export interface ArchivedPlan {
