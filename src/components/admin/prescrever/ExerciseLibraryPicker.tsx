@@ -5,6 +5,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Search, Play, Plus, Star } from "lucide-react";
 import { toast } from "sonner";
+import { OFFICIAL_MUSCLE_GROUPS } from "@/lib/muscleVolume";
 
 type LibraryExercise = {
   id: string;
@@ -49,7 +50,7 @@ const ExerciseLibraryPicker = ({ open, onClose, onSelect }: Props) => {
     localStorage.setItem(FAVS_KEY, JSON.stringify(next));
   };
 
-  const muscleGroups = Array.from(new Set(exercises.map(e => e.muscle_group).filter(Boolean))) as string[];
+  const muscleGroups = [...OFFICIAL_MUSCLE_GROUPS, "Cardio"];
   const equipments = Array.from(new Set(exercises.map(e => e.equipment).filter(Boolean))) as string[];
 
   const filtered = exercises.filter(e => {

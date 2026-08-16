@@ -11,13 +11,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Search, Plus, Play, Pencil, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
+import { OFFICIAL_MUSCLE_GROUPS } from "@/lib/muscleVolume";
 
-const MUSCLE_GROUPS = [
-  "Peito", "Costas", "Ombros", "Bíceps", "Tríceps", "Antebraço",
-  "Quadríceps", "Posterior", "Glúteos", "Panturrilha", "Abdômen", "Core",
-  "Cardio", "Deltóide Anterior", "Deltóide Posterior", "Deltóide Lateral",
-  "Trapézio", "Lombar", "Adutores", "Abdutores"
-];
+const MUSCLE_GROUPS = [...OFFICIAL_MUSCLE_GROUPS, "Cardio"];
 
 const EQUIPMENT_OPTIONS = [
   "Barra", "Halter", "Máquina", "Cabo/Polia", "Peso Corporal", "Kettlebell",
@@ -25,26 +21,19 @@ const EQUIPMENT_OPTIONS = [
 ];
 
 const MUSCLE_COLORS: Record<string, string> = {
-  "Peito": "bg-red-100 text-red-700",
-  "Costas": "bg-blue-100 text-blue-700",
-  "Ombros": "bg-orange-100 text-orange-700",
-  "Bíceps": "bg-blue-100 text-blue-700",
-  "Tríceps": "bg-pink-100 text-pink-700",
+  "Peitoral": "bg-red-100 text-red-700",
+  "Dorsal": "bg-blue-100 text-blue-700",
   "Quadríceps": "bg-green-100 text-green-700",
+  "Deltóides": "bg-orange-100 text-orange-700",
   "Posterior": "bg-teal-100 text-teal-700",
   "Glúteos": "bg-yellow-100 text-yellow-700",
+  "Adutores": "bg-emerald-100 text-emerald-700",
   "Panturrilha": "bg-cyan-100 text-cyan-700",
   "Abdômen": "bg-sky-100 text-sky-700",
-  "Core": "bg-cyan-100 text-cyan-700",
-  "Antebraço": "bg-amber-100 text-amber-700",
-  "Cardio": "bg-rose-100 text-rose-700",
-  "Deltóide Anterior": "bg-orange-100 text-orange-700",
-  "Deltóide Posterior": "bg-orange-100 text-orange-700",
-  "Deltóide Lateral": "bg-orange-100 text-orange-700",
+  "Bíceps": "bg-indigo-100 text-indigo-700",
+  "Tríceps": "bg-pink-100 text-pink-700",
   "Trapézio": "bg-slate-100 text-slate-700",
-  "Lombar": "bg-stone-100 text-stone-700",
-  "Adutores": "bg-emerald-100 text-emerald-700",
-  "Abdutores": "bg-lime-100 text-lime-700",
+  "Cardio": "bg-rose-100 text-rose-700",
 };
 
 type Exercise = {

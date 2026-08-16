@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { NON_STRENGTH_GROUPS, weeklyTarget } from "@/lib/muscleVolume";
+import { OFFICIAL_MUSCLE_GROUPS, toOfficialGroup, weeklyTarget } from "@/lib/muscleVolume";
 
 export interface PlanSession {
   id: string;
@@ -23,12 +23,24 @@ export interface ActivePlan {
 
 export interface VolumeRow {
   group: string;
-  /** Séries prescritas na semana (auxiliar conta 0,5). */
-  prescribed: number;
-  /** Séries concluídas na semana (auxiliar conta 0,5). */
-  done: number;
+  /** Séries realizadas em que o grupo é o principal (1,0 cada). */
+  direct: number;
+  /** Séries equivalentes indiretas (grupo como acessório, 0,5 cada). */
+  indirect: number;
+  /** direct + indirect. */
+  total: number;
   /** Meta semanal de séries para o grupo. */
   target: number;
+  /** Dias distintos da semana em que o grupo foi trabalhado. */
+  days: number;
+  /** Sessões (treinos registrados) que trabalharam o grupo na semana. */
+  sessions: number;
+  /** Total da semana anterior. */
+  prevTotal: number;
+  /** Média das últimas 4 semanas (anteriores à atual). */
+  avg4: number;
+  /** Histórico das últimas semanas (mais antiga → atual). */
+  history: { week: string; total: number }[];
 }
 
 export interface ArchivedPlan {
@@ -69,6 +81,154 @@ export const brazilWeekRange = () => {
 };
 
 export const useTrainingPlan = (clientId: number | null) => {
+  return useTrainingPlanImpl(clientId);
+};
+
+/** Início (segunda) da semana, N semanas atrás, no fuso de Brasília. */
+const weekStartOffset = (weeksAgo: number) => {
+  const { from } = brazilWeekRange();
+  const d = new Date(`${from}T00:00:00`);
+  return new Date(d.getTime() - weeksAgo * 7 * 86400000).toISOString().slice(0, 10);
+};
+
+/** Volume semanal realizado por grupo oficial, com histórico das últimas 5 semanas. */
+export const loadVolume = async (clientId: number): Promise<VolumeRow[]> => {
+  const WEEKS = 5; // atual + 4 anteriores
+  const histFrom = weekStartOffset(WEEKS - 1);
+  const { to: curTo, from: curFrom } = brazilWeekRange();
+
+  const { data: logs } = await supabase
+    .from("workout_logs")
+    .select("id, workout_date")
+    .eq("client_id", clientId)
+    .gte("workout_date", histFrom)
+    .lte("workout_date", curTo);
+
+  const empty = () =>
+    OFFICIAL_MUSCLE_GROUPS.map((group) => ({
+      group,
+      direct: 0,
+      indirect: 0,
+      total: 0,
+      target: weeklyTarget(group),
+      days: 0,
+      sessions: 0,
+      prevTotal: 0,
+      avg4: 0,
+      history: Array.from({ length: WEEKS }, (_, i) => ({
+        week: weekStartOffset(WEEKS - 1 - i),
+        total: 0,
+      })),
+    }));
+
+  const logIds = (logs || []).map((l) => l.id);
+  if (!logIds.length) return empty();
+
+  const { data: rawSets } = await supabase
+    .from("workout_log_sets")
+    .select("workout_log_id, session_exercise_id, performed_sets, prescribed_sets, completed")
+    .in("workout_log_id", logIds);
+
+  // Só séries efetivamente realizadas
+  const sets = (rawSets || []).filter(
+    (s) => s.session_exercise_id && (s.completed || (s.performed_sets ?? 0) > 0)
+  );
+  if (!sets.length) return empty();
+
+  const seIds = [...new Set(sets.map((s) => s.session_exercise_id as string))];
+  const { data: seRows } = await supabase
+    .from("training_session_exercises")
+    .select("id, exercise_id")
+    .in("id", seIds);
+  const exerciseIdBySe = new Map((seRows || []).map((r) => [r.id, r.exercise_id]));
+
+  const libIds = [...new Set((seRows || []).map((r) => r.exercise_id).filter(Boolean))] as string[];
+  const { data: lib } = libIds.length
+    ? await supabase
+        .from("exercise_library")
+        .select("id, muscle_group, secondary_muscle, secondary_muscle_2")
+        .in("id", libIds)
+    : { data: [] as any[] };
+  const groupsById = new Map<string, { primary: string | null; aux: string[] }>(
+    (lib || []).map((l: any) => {
+      const primary = toOfficialGroup(l.muscle_group);
+      const aux = [
+        ...String(l.secondary_muscle || "").split(","),
+        l.secondary_muscle_2 || "",
+      ]
+        .map((s: string) => toOfficialGroup(s))
+        .filter((g): g is string => !!g && g !== primary);
+      return [l.id, { primary, aux: [...new Set(aux)].slice(0, 2) }];
+    })
+  );
+
+  const curStart = new Date(`${curFrom}T00:00:00`).getTime();
+  const weekIndexOf = (date: string) => {
+    const t = new Date(`${date}T00:00:00`).getTime();
+    const diffWeeks = Math.floor((t - curStart) / (7 * 86400000));
+    return WEEKS - 1 + diffWeeks; // índice 0 = mais antiga, WEEKS-1 = atual
+  };
+  const logInfo = new Map((logs || []).map((l) => [l.id, l.workout_date as string]));
+
+  const direct = new Map<string, number[]>();
+  const indirect = new Map<string, number[]>();
+  const daysByGroup = new Map<string, Set<string>>();
+  const sessionsByGroup = new Map<string, Set<string>>();
+  const bump = (m: Map<string, number[]>, group: string, wi: number, qty: number) => {
+    const arr = m.get(group) || Array.from({ length: WEEKS }, () => 0);
+    arr[wi] += qty;
+    m.set(group, arr);
+  };
+
+  sets.forEach((s) => {
+    const date = logInfo.get(s.workout_log_id);
+    if (!date) return;
+    const wi = weekIndexOf(date);
+    if (wi < 0 || wi >= WEEKS) return;
+    const exId = exerciseIdBySe.get(s.session_exercise_id as string);
+    const g = exId ? groupsById.get(exId) : undefined;
+    if (!g) return;
+    const qty = s.performed_sets ?? s.prescribed_sets ?? 1;
+    const touch = (group: string) => {
+      if (wi !== WEEKS - 1) return;
+      const d = daysByGroup.get(group) || new Set<string>();
+      d.add(date);
+      daysByGroup.set(group, d);
+      const ss = sessionsByGroup.get(group) || new Set<string>();
+      ss.add(s.workout_log_id);
+      sessionsByGroup.set(group, ss);
+    };
+    if (g.primary) {
+      bump(direct, g.primary, wi, qty);
+      touch(g.primary);
+    }
+    g.aux.forEach((a) => {
+      bump(indirect, a, wi, qty * 0.5);
+      touch(a);
+    });
+  });
+
+  return OFFICIAL_MUSCLE_GROUPS.map((group) => {
+    const d = direct.get(group) || Array.from({ length: WEEKS }, () => 0);
+    const ind = indirect.get(group) || Array.from({ length: WEEKS }, () => 0);
+    const totals = d.map((v, i) => v + ind[i]);
+    const prev4 = totals.slice(0, WEEKS - 1);
+    return {
+      group,
+      direct: d[WEEKS - 1],
+      indirect: ind[WEEKS - 1],
+      total: totals[WEEKS - 1],
+      target: weeklyTarget(group),
+      days: daysByGroup.get(group)?.size || 0,
+      sessions: sessionsByGroup.get(group)?.size || 0,
+      prevTotal: totals[WEEKS - 2],
+      avg4: prev4.reduce((a, b) => a + b, 0) / prev4.length,
+      history: totals.map((total, i) => ({ week: weekStartOffset(WEEKS - 1 - i), total })),
+    };
+  });
+};
+
+const useTrainingPlanImpl = (clientId: number | null) => {
   const [plan, setPlan] = useState<ActivePlan | null>(null);
   const [archived, setArchived] = useState<ArchivedPlan[]>([]);
   const [loading, setLoading] = useState(true);
@@ -123,41 +283,6 @@ export const useTrainingPlan = (clientId: number | null) => {
             .in("training_session_id", sessionIds)
         : { data: [] as { id: string; training_session_id: string; exercise_id: string | null }[] };
 
-      const exIds = (exs || []).map((e) => e.id);
-      const { data: sets } = exIds.length
-        ? await supabase
-            .from("training_exercise_sets")
-            .select("id, session_exercise_id, sets")
-            .in("session_exercise_id", exIds)
-        : { data: [] as { id: string; session_exercise_id: string; sets: number | null }[] };
-
-      const libIds = [...new Set((exs || []).map((e) => e.exercise_id).filter(Boolean))] as string[];
-      const { data: lib } = libIds.length
-        ? await supabase
-            .from("exercise_library")
-            .select("id, muscle_group, secondary_muscle, secondary_muscle_2")
-            .in("id", libIds)
-        : { data: [] as any[] };
-      const groupsById = new Map(
-        (lib || []).map((l) => [
-          l.id,
-          {
-            primary: l.muscle_group || "Outros",
-            aux: [
-              ...String(l.secondary_muscle || "").split(",").map((s: string) => s.trim()),
-              l.secondary_muscle_2,
-            ]
-              .filter(Boolean)
-              .slice(0, 2) as string[],
-          },
-        ])
-      );
-      const groupsForExercise = (sessionExerciseId: string) => {
-        const ex = (exs || []).find((e) => e.id === sessionExerciseId);
-        const g = ex?.exercise_id ? groupsById.get(ex.exercise_id) : undefined;
-        return g ?? { primary: "Outros", aux: [] as string[] };
-      };
-
       const { data: logs } = await supabase
         .from("workout_logs")
         .select("training_session_id, status")
@@ -176,49 +301,9 @@ export const useTrainingPlan = (clientId: number | null) => {
         exerciseCount: (exs || []).filter((e) => e.training_session_id === s.id).length,
         doneToday: doneIds.has(s.id),
       }));
-
-      const prescribed = new Map<string, number>();
-      const done = new Map<string, number>();
-      const add = (m: Map<string, number>, sessionExerciseId: string, qty: number) => {
-        const g = groupsForExercise(sessionExerciseId);
-        m.set(g.primary, (m.get(g.primary) || 0) + qty);
-        g.aux.forEach((a) => m.set(a, (m.get(a) || 0) + qty * 0.5));
-      };
-
-      (sets || []).forEach((st) => add(prescribed, st.session_exercise_id, st.sets || 1));
-
-      // Realizado na semana atual (seg→dom), só séries concluídas
-      const { from, to } = brazilWeekRange();
-      const { data: weekLogs } = await supabase
-        .from("workout_logs")
-        .select("id")
-        .eq("client_id", clientId)
-        .gte("workout_date", from)
-        .lte("workout_date", to);
-      const logIds = (weekLogs || []).map((l) => l.id);
-      const { data: doneSets } = logIds.length
-        ? await supabase
-            .from("workout_log_sets")
-            .select("session_exercise_id, performed_sets, prescribed_sets, completed")
-            .in("workout_log_id", logIds)
-            .eq("completed", true)
-        : { data: [] as any[] };
-      (doneSets || []).forEach((st) => {
-        if (!st.session_exercise_id) return;
-        add(done, st.session_exercise_id, st.performed_sets ?? st.prescribed_sets ?? 1);
-      });
-
-      volume = [...new Set([...prescribed.keys(), ...done.keys()])]
-        .filter((g) => g && !NON_STRENGTH_GROUPS.includes(g))
-        .map((group) => ({
-          group,
-          prescribed: prescribed.get(group) || 0,
-          done: done.get(group) || 0,
-          target: weeklyTarget(group),
-        }))
-        .filter((r) => r.prescribed > 0 || r.done > 0)
-        .sort((a, b) => b.prescribed - a.prescribed || b.done - a.done);
     }
+
+    volume = await loadVolume(clientId);
 
     setPlan({
       id: active.id,
