@@ -7086,6 +7086,7 @@ export type Database = {
         Returns: Json
       }
       is_staff: { Args: { _user_id: string }; Returns: boolean }
+      is_top_management: { Args: { _user_id: string }; Returns: boolean }
       join_waitlist: {
         Args: { _class_date: string; _class_id: string; _muscle_group: string }
         Returns: Json
