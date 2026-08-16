@@ -1036,8 +1036,6 @@ const TreinoTab = () => {
             </div>
           </div>
 
-          <VolumeSemanalCard volume={plan.volume} />
-
           <p className="text-[10px] font-barlow tracking-[1px] uppercase text-muted mb-2">Sessões</p>
           <div className="space-y-2">
             {plan.sessions.length === 0 && (
@@ -1057,6 +1055,8 @@ const TreinoTab = () => {
               </button>
             ))}
           </div>
+
+          <VolumeSemanalCard volume={plan.volume} />
 
           {archived.length > 0 && (
             <div className="mt-5">
