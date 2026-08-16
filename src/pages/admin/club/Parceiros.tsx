@@ -21,7 +21,7 @@ type Partner = {
   location: string | null; description: string | null; redeem_instructions: string | null;
   contact_name: string | null; contact_phone: string | null; contact_email: string | null;
   unit_ids: string[]; contract_starts_at: string | null; contract_ends_at: string | null;
-  notes: string | null; active: boolean; portal_token: string | null; portal_last_seen_at: string | null;
+  notes: string | null; active: boolean; portal_last_seen_at: string | null;
 };
 
 type Benefit = {
