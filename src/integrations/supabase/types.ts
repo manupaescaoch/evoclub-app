@@ -4132,6 +4132,35 @@ export type Database = {
           },
         ]
       }
+      partner_portal_access: {
+        Row: {
+          created_at: string
+          partner_id: string
+          token: string | null
+          token_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          partner_id: string
+          token?: string | null
+          token_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          partner_id?: string
+          token?: string | null
+          token_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_portal_access_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: true
+            referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       partners: {
         Row: {
           active: boolean
@@ -4151,8 +4180,6 @@ export type Database = {
           name: string
           notes: string | null
           portal_last_seen_at: string | null
-          portal_token: string | null
-          portal_token_at: string | null
           redeem_instructions: string | null
           tag: string | null
           unit_ids: string[]
@@ -4176,8 +4203,6 @@ export type Database = {
           name: string
           notes?: string | null
           portal_last_seen_at?: string | null
-          portal_token?: string | null
-          portal_token_at?: string | null
           redeem_instructions?: string | null
           tag?: string | null
           unit_ids?: string[]
@@ -4201,8 +4226,6 @@ export type Database = {
           name?: string
           notes?: string | null
           portal_last_seen_at?: string | null
-          portal_token?: string | null
-          portal_token_at?: string | null
           redeem_instructions?: string | null
           tag?: string | null
           unit_ids?: string[]
