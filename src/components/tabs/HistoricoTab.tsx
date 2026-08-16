@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
-import { ChevronLeft, Loader2, Dumbbell, HeartPulse, CalendarCheck } from "lucide-react";
+import { ChevronLeft, Loader2, HeartPulse, CalendarCheck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useStudent } from "@/contexts/StudentContext";
+import { useWorkoutHistory } from "@/hooks/useWorkoutHistory";
+import { LastWorkoutCard, WorkoutLogItem } from "@/components/shared/WorkoutHistoryViews";
 
 type Tab = "treinos" | "checkins" | "agendas";
 
-type WorkoutRow = { id: string; workout_date: string; session_name: string | null; status: string; rpe: number | null; pain: boolean | null };
 type CheckinRow = { id: string; checkin_date: string; sleep_hours: number; sleep_quality: number; energy: number; mood: number };
 type BookingRow = { id: string; class_date: string | null; status: string | null; muscle_group: string | null; kind: string };
 
@@ -19,20 +20,15 @@ const HistoricoTab = ({ onBack }: { onBack: () => void }) => {
   const { client } = useStudent();
   const [tab, setTab] = useState<Tab>("treinos");
   const [loading, setLoading] = useState(true);
-  const [workouts, setWorkouts] = useState<WorkoutRow[]>([]);
   const [checkins, setCheckins] = useState<CheckinRow[]>([]);
   const [bookings, setBookings] = useState<BookingRow[]>([]);
+  const { logs: workouts, lastCompleted, loading: loadingWorkouts, error: workoutsError, reload } =
+    useWorkoutHistory(client?.id, 50);
 
   useEffect(() => {
     if (!client?.id) return;
     setLoading(true);
     Promise.all([
-      supabase
-        .from("workout_logs")
-        .select("id, workout_date, session_name, status, rpe, pain")
-        .eq("client_id", client.id)
-        .order("workout_date", { ascending: false })
-        .limit(100),
       supabase
         .from("daily_checkins")
         .select("id, checkin_date, sleep_hours, sleep_quality, energy, mood")
@@ -45,8 +41,7 @@ const HistoricoTab = ({ onBack }: { onBack: () => void }) => {
         .eq("client_id", client.id)
         .order("class_date", { ascending: false })
         .limit(100),
-    ]).then(([w, c, b]) => {
-      setWorkouts((w.data || []) as WorkoutRow[]);
+    ]).then(([c, b]) => {
       setCheckins((c.data || []) as CheckinRow[]);
       setBookings((b.data || []) as BookingRow[]);
       setLoading(false);
@@ -82,32 +77,36 @@ const HistoricoTab = ({ onBack }: { onBack: () => void }) => {
         ))}
       </div>
 
-      {loading ? (
+      {(tab === "treinos" ? loadingWorkouts : loading) ? (
         <div className="flex justify-center py-10">
           <Loader2 className="animate-spin text-primary" size={22} />
         </div>
       ) : (
         <div className="space-y-2">
-          {tab === "treinos" &&
+          {tab === "treinos" && workoutsError && (
+            <div className="rounded-2xl bg-white p-4 card-shadow text-center">
+              <p className="text-xs font-dm text-muted">Não foi possível carregar seus treinos.</p>
+              <button onClick={reload} className="mt-3 h-10 w-full rounded-xl bg-primary text-primary-foreground font-dm font-semibold text-xs">
+                Tentar de novo
+              </button>
+            </div>
+          )}
+
+          {tab === "treinos" && !workoutsError &&
             (workouts.length === 0 ? (
               <p className="text-xs font-dm text-muted text-center py-8">Nenhum treino registrado ainda.</p>
             ) : (
-              workouts.map((w) => (
-                <div key={w.id} className="rounded-2xl bg-white p-4 card-shadow flex items-center gap-3">
-                  <Dumbbell size={16} className="text-primary shrink-0" />
-                  <div className="flex-1">
-                    <p className="text-sm font-dm font-semibold text-foreground">{w.session_name || "Treino"}</p>
-                    <p className="text-[11px] font-dm text-muted">
-                      {fmt(w.workout_date)}
-                      {w.rpe ? ` · PSE ${w.rpe}` : ""}
-                      {w.pain ? " · dor relatada" : ""}
-                    </p>
+              <>
+                {lastCompleted && (
+                  <div className="mb-3">
+                    <p className="font-barlow font-bold text-xs text-muted mb-2">ÚLTIMO TREINO REALIZADO</p>
+                    <LastWorkoutCard log={lastCompleted} maxExercises={8} />
                   </div>
-                  <span className="text-[10px] font-dm text-muted">
-                    {w.status === "completed" ? "Concluído" : "Em andamento"}
-                  </span>
-                </div>
-              ))
+                )}
+                {workouts.map((w) => (
+                  <WorkoutLogItem key={w.id} log={w} className="bg-white card-shadow" />
+                ))}
+              </>
             ))}
 
           {tab === "checkins" &&
