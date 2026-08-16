@@ -4,7 +4,9 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "
 import { supabase } from "@/integrations/supabase/client";
 import { GradeStudent } from "@/hooks/useGradeDay";
 import { useAccess } from "@/contexts/AccessContext";
-import { AlertTriangle, ClipboardEdit, FileText, RefreshCw } from "lucide-react";
+import { AlertTriangle, ClipboardEdit, Dumbbell, FileText, RefreshCw } from "lucide-react";
+import { useWorkoutHistory } from "@/hooks/useWorkoutHistory";
+import { LastWorkoutCard, WorkoutLogItem } from "@/components/shared/WorkoutHistoryViews";
 
 type Summary = {
   client: any;
@@ -45,6 +47,7 @@ export default function ProStudentSheet({
   const [data, setData] = useState<Summary | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const history = useWorkoutHistory(open ? student?.client_id : null, 8);
 
   const load = useCallback(async () => {
     if (!student?.client_id) return;
@@ -163,6 +166,38 @@ export default function ProStudentSheet({
                 </p>
               ) : (
                 <p className="font-dm text-xs text-muted-foreground">Nenhuma ficha ativa.</p>
+              )}
+            </div>
+
+            <div>
+              <p className="font-barlow font-bold text-sm mb-2 flex items-center gap-1.5">
+                <Dumbbell size={14} /> ÚLTIMO TREINO REALIZADO
+              </p>
+              {history.loading ? (
+                <p className="font-dm text-xs text-muted-foreground">Carregando histórico...</p>
+              ) : history.error ? (
+                <div className="rounded-xl border border-red-200 bg-red-50 p-3">
+                  <p className="font-dm text-xs text-red-700">Não foi possível carregar o histórico de treinos.</p>
+                  <button onClick={history.reload} className="mt-2 h-9 w-full rounded-lg bg-white border border-red-200 font-dm text-xs font-semibold flex items-center justify-center gap-2">
+                    <RefreshCw size={13} /> Tentar de novo
+                  </button>
+                </div>
+              ) : history.lastCompleted ? (
+                <>
+                  <LastWorkoutCard log={history.lastCompleted} maxExercises={8} />
+                  {history.logs.length > 1 && (
+                    <>
+                      <p className="font-barlow font-bold text-xs text-muted-foreground mt-3 mb-1.5">TREINOS ANTERIORES</p>
+                      <div className="space-y-1.5">
+                        {history.logs.filter(l => l.id !== history.lastCompleted!.id).slice(0, 5).map(l => (
+                          <WorkoutLogItem key={l.id} log={l} className="bg-card" />
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </>
+              ) : (
+                <p className="font-dm text-xs text-muted-foreground">Nenhum treino executado registrado ainda.</p>
               )}
             </div>
 
