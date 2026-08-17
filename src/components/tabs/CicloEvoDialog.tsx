@@ -20,7 +20,7 @@ const CicloEvoDialog = ({ onNavigate }: { onNavigate?: (s: string) => void }) =>
     { icon: CalendarCheck, label: "Presenças na grade", value: s?.class_checkins ?? 0 },
     { icon: HeartPulse, label: "Check-ins diários", value: s?.daily_checkins ?? 0 },
     { icon: MessageSquare, label: "Posts na comunidade", value: s?.posts ?? 0 },
-    { icon: Zap, label: "XP do ciclo", value: xp },
+    { icon: Zap, label: "Score do ciclo", value: xp },
   ];
 
   const finish = async () => {

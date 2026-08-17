@@ -97,7 +97,7 @@ const PerfilTab = ({ onBack, onNavigate }: PerfilTabProps) => {
   const cards = [
     { label: "Treinos", value: String(stats.totalWorkouts), icon: Dumbbell },
     { label: "Sequência", value: String(stats.streak), icon: Flame },
-    { label: "XP total", value: String(stats.xpTotal), icon: Zap },
+    { label: "Score total", value: String(stats.xpTotal), icon: Zap },
     { label: "Média/sem", value: stats.weeklyAverage != null ? String(stats.weeklyAverage) : "—", icon: Trophy },
   ];
 

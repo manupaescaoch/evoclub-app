@@ -8,7 +8,7 @@ const CATEGORY_LABELS: Record<string, string> = {
   "bem-estar": "Bem-estar",
   presenca: "Presença nas aulas",
   comunidade: "Comunidade",
-  xp: "Marcos de XP",
+  xp: "Marcos de Score",
 };
 
 const ConquistasTab = ({ onBack }: { onBack: () => void }) => {
@@ -38,7 +38,7 @@ const ConquistasTab = ({ onBack }: { onBack: () => void }) => {
           <div className="h-full bg-white rounded-full transition-all" style={{ width: `${g.levelPct}%` }} />
         </div>
         <p className="text-white/70 text-xs font-dm mt-2">
-          {g.xp} XP · faltam {g.xpToNext} XP para o nível {g.level + 1}
+          {g.xp} Score · faltam {g.xpToNext} Score para o nível {g.level + 1}
         </p>
         <p className="text-white/70 text-xs font-dm mt-1">
           {g.unlockedCount} de {g.achievements.length} conquistas desbloqueadas
@@ -80,7 +80,7 @@ const ConquistasTab = ({ onBack }: { onBack: () => void }) => {
                         </div>
                         <p className="text-muted text-[11px] font-dm mt-1">
                           {a.progress}/{a.threshold}
-                          {a.xp_bonus > 0 ? ` · +${a.xp_bonus} XP ao concluir` : ""}
+                          {a.xp_bonus > 0 ? ` · +${a.xp_bonus} Score ao concluir` : ""}
                         </p>
                       </>
                     ) : (
