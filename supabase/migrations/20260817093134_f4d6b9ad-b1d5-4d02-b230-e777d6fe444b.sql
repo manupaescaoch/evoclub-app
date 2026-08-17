@@ -1,0 +1,1 @@
+update public.achievements set name = replace(name,'XP','Score'), description = replace(description,'XP','Score') where name like '%XP%' or description like '%XP%';
