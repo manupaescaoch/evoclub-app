@@ -404,24 +404,24 @@ const XpCompletionModal = ({
           {xpBreakdown.start && (
             <div className="flex items-center justify-between bg-secondary rounded-xl px-4 py-2.5">
               <span className="text-sm font-dm text-foreground">Início do treino</span>
-              <span className="font-barlow font-bold text-primary">+{XP_START} XP</span>
+              <span className="font-barlow font-bold text-primary">+{XP_START} Score</span>
             </div>
           )}
           {xpBreakdown.loads > 0 && (
             <div className="flex items-center justify-between bg-secondary rounded-xl px-4 py-2.5">
               <span className="text-sm font-dm text-foreground">Cargas anotadas ({xpBreakdown.loads}x)</span>
-              <span className="font-barlow font-bold text-primary">+{loadXp} XP</span>
+              <span className="font-barlow font-bold text-primary">+{loadXp} Score</span>
             </div>
           )}
           {xpBreakdown.complete && (
             <div className="flex items-center justify-between bg-secondary rounded-xl px-4 py-2.5">
               <span className="text-sm font-dm text-foreground">Treino completo</span>
-              <span className="font-barlow font-bold text-primary">+{XP_COMPLETE} XP</span>
+              <span className="font-barlow font-bold text-primary">+{XP_COMPLETE} Score</span>
             </div>
           )}
         </div>
         <div className="rounded-2xl p-4 mb-5" style={{ background: "linear-gradient(135deg, #0057FF 0%, #0043C4 100%)" }}>
-          <p className="text-white/70 text-[10px] font-barlow tracking-[2px] uppercase">XP TOTAL GANHO</p>
+          <p className="text-white/70 text-[10px] font-barlow tracking-[2px] uppercase">SCORE TOTAL GANHO</p>
           <p className="font-barlow font-[800] text-4xl text-white">+{total}</p>
         </div>
         <button onClick={onClose}
@@ -694,7 +694,7 @@ const TreinoTab = () => {
       logPromiseRef.current = promise;
       await promise;
     }
-    toast(`+${XP_START} XP — Treino iniciado!`, { icon: <Zap size={16} className="text-primary" /> });
+    toast(`+${XP_START} Score — Treino iniciado!`, { icon: <Zap size={16} className="text-primary" /> });
   };
 
   const toggleSerie = async (exIdx: number, sIdx: number) => {
@@ -754,7 +754,7 @@ const TreinoTab = () => {
     }
     if (v.load && v.load !== "0" && !serie.performedLoad) {
       setLoadAnnotations((n) => n + 1);
-      toast(`+${XP_LOAD} XP — Carga anotada!`, { icon: <Zap size={16} className="text-primary" /> });
+      toast(`+${XP_LOAD} Score — Carga anotada!`, { icon: <Zap size={16} className="text-primary" /> });
     }
   };
 

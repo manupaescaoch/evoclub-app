@@ -6,7 +6,7 @@ const FAQ = [
   { q: "Como agendo meu treino?", a: "Na aba Grade, escolha o dia e o horário e toque em Agendar. O agendamento abre 12 horas antes da aula e você pode ter 1 treino por dia." },
   { q: "Até quando posso cancelar?", a: "Até 20 minutos antes do horário. Depois disso, fale com a recepção." },
   { q: "O que é a lista de espera?", a: "Se o horário estiver lotado, você entra na fila (máximo 5 alunos). Se alguém cancelar, o primeiro da fila é promovido automaticamente e recebe um aviso." },
-  { q: "Como funciona o XP e a sequência?", a: "Você ganha XP com check-in diário, treinos concluídos e participação na comunidade. A sequência conta dias seguidos com atividade registrada." },
+  { q: "Como funciona o Score e a sequência?", a: "Você ganha Score com check-in diário, treinos concluídos e participação na comunidade. A sequência conta dias seguidos com atividade registrada." },
   { q: "Quando meu treino é trocado?", a: "Cada ficha tem previsão de troca. Você é avisado 7 dias antes e o treino antigo é arquivado automaticamente quando o novo é publicado." },
   { q: "Como uso o Club de vantagens?", a: "Na aba Club, escolha o parceiro e gere o QR Code do seu cartão. A equipe do parceiro valida o resgate na hora." },
   { q: "Minhas fotos de evolução são privadas?", a: "Sim. Ficam em armazenamento privado e só você tem acesso. Nada é compartilhado sem a sua confirmação." },

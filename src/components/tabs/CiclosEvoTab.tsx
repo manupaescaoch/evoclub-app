@@ -65,7 +65,7 @@ const CiclosEvoTab = ({ onBack }: { onBack: () => void }) => {
                   { icon: Dumbbell, v: s?.workouts ?? 0, l: "Treinos" },
                   { icon: CalendarCheck, v: s?.class_checkins ?? 0, l: "Presenças" },
                   { icon: HeartPulse, v: s?.daily_checkins ?? 0, l: "Check-ins" },
-                  { icon: Zap, v: cycleXp(s ?? undefined), l: "XP" },
+                  { icon: Zap, v: cycleXp(s ?? undefined), l: "Score" },
                 ].map((c) => (
                   <div key={c.l} className="p-2 rounded-xl bg-secondary text-center">
                     <c.icon size={14} className="text-primary mx-auto" />

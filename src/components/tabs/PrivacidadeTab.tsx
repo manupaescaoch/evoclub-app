@@ -7,7 +7,7 @@ import { useStudent } from "@/contexts/StudentContext";
 type PrefKey = "ranking_opt_out" | "community_hide_name" | "share_photos_optin";
 
 const ITEMS: { key: PrefKey; title: string; desc: string }[] = [
-  { key: "ranking_opt_out", title: "Não aparecer no ranking", desc: "Você continua ganhando XP, mas seu nome não é exibido na lista da unidade." },
+  { key: "ranking_opt_out", title: "Não aparecer no ranking", desc: "Você continua ganhando Score, mas seu nome não é exibido na lista da unidade." },
   { key: "community_hide_name", title: "Ocultar meu nome nas curtidas", desc: "Suas curtidas passam a contar sem exibir seu nome para os outros alunos." },
   { key: "share_photos_optin", title: "Permitir uso das minhas fotos", desc: "Autoriza a equipe a usar suas fotos de evolução em materiais internos. Desativado por padrão." },
 ];

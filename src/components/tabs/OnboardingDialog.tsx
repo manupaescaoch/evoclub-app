@@ -31,7 +31,7 @@ const slides = [
   {
     emoji: "🤝",
     title: "COMUNIDADE E RANKING",
-    text: "Acompanhe a galera, ganhe XP nos treinos e dispute o topo do ranking da unidade.",
+    text: "Acompanhe a galera, ganhe Score nos treinos e dispute o topo do ranking da unidade.",
   },
   {
     emoji: "🔔",

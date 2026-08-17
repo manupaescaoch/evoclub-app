@@ -26,7 +26,7 @@ const AchievementUnlockDialog = () => {
                   <p className="font-barlow font-bold text-sm text-foreground">{a.name}</p>
                   <p className="text-muted text-xs font-dm">
                     {a.description}
-                    {a.xp_bonus > 0 ? ` · +${a.xp_bonus} XP` : ""}
+                    {a.xp_bonus > 0 ? ` · +${a.xp_bonus} Score` : ""}
                   </p>
                 </div>
               </div>

@@ -137,7 +137,7 @@ const RankingTab = () => {
               {optOut
                 ? "Você optou por não aparecer no ranking."
                 : me
-                ? `#${me.pos} · ${me.points} XP · ${me.streak} dias de streak`
+                ? `#${me.pos} · ${me.points} Score · ${me.streak} dias de streak`
                 : "Sem pontos neste período — treine e registre para pontuar!"}
             </p>
           </div>
@@ -154,7 +154,7 @@ const RankingTab = () => {
                 {initials(ranking[1].name)}
               </div>
               <p className="text-[10px] font-dm font-semibold text-foreground">{ranking[1].name.split(" ")[0]}</p>
-              <p className="text-[10px] font-barlow font-bold text-muted">{ranking[1].points} XP</p>
+              <p className="text-[10px] font-barlow font-bold text-muted">{ranking[1].points} Score</p>
               <div className="w-16 h-16 rounded-t-lg bg-gray-300 flex items-center justify-center mt-1">
                 <span className="text-lg">🥈</span>
               </div>
@@ -166,7 +166,7 @@ const RankingTab = () => {
                 {initials(ranking[0].name)}
               </div>
               <p className="text-[10px] font-dm font-semibold text-foreground">{ranking[0].name.split(" ")[0]}</p>
-              <p className="text-[10px] font-barlow font-bold text-muted">{ranking[0].points} XP</p>
+              <p className="text-[10px] font-barlow font-bold text-muted">{ranking[0].points} Score</p>
               <div className="w-16 h-24 rounded-t-lg bg-yellow-400 flex items-center justify-center mt-1">
                 <span className="text-2xl">🥇</span>
               </div>
@@ -177,7 +177,7 @@ const RankingTab = () => {
                 {initials(ranking[2].name)}
               </div>
               <p className="text-[10px] font-dm font-semibold text-foreground">{ranking[2].name.split(" ")[0]}</p>
-              <p className="text-[10px] font-barlow font-bold text-muted">{ranking[2].points} XP</p>
+              <p className="text-[10px] font-barlow font-bold text-muted">{ranking[2].points} Score</p>
               <div className="w-16 h-12 rounded-t-lg bg-amber-600/70 flex items-center justify-center mt-1">
                 <span className="text-lg">🥉</span>
               </div>
@@ -264,7 +264,7 @@ const RankingTab = () => {
                 />
               </div>
             </div>
-            <span className="font-barlow font-[800] text-sm text-foreground shrink-0">{r.points} XP</span>
+            <span className="font-barlow font-[800] text-sm text-foreground shrink-0">{r.points} Score</span>
           </div>
         ))}
       </div>

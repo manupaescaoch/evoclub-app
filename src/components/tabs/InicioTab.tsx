@@ -88,7 +88,7 @@ const InicioTab = ({ onTabChange }: InicioTabProps) => {
         <div className="flex mt-4 rounded-xl overflow-hidden bg-white/10">
           {[
             { label: "Peso atual", value: weight != null ? `${weight}kg` : "—" },
-            { label: "XP Total", value: `${stats.xpTotal}pts` },
+            { label: "Score Total", value: `${stats.xpTotal}pts` },
             { label: "Streak", value: `${stats.streak} dia${stats.streak === 1 ? "" : "s"}` },
           ].map((s, i) => (
             <div key={i} className="flex-1 text-center py-2.5">
@@ -115,7 +115,7 @@ const InicioTab = ({ onTabChange }: InicioTabProps) => {
             <div className="h-full bg-primary rounded-full transition-all" style={{ width: `${gam.levelPct}%` }} />
           </div>
           <p className="text-muted text-[11px] font-dm mt-1">
-            {gam.unlockedCount} conquistas · faltam {gam.xpToNext} XP
+            {gam.unlockedCount} conquistas · faltam {gam.xpToNext} Score
           </p>
         </div>
         <ChevronRight size={18} className="text-muted shrink-0" />
@@ -159,7 +159,7 @@ const InicioTab = ({ onTabChange }: InicioTabProps) => {
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between mb-1">
-            <p className="font-barlow text-[10px] tracking-[2px] uppercase text-muted font-bold">XP DO DIA</p>
+            <p className="font-barlow text-[10px] tracking-[2px] uppercase text-muted font-bold">SCORE DO DIA</p>
             <span className="font-barlow font-[800] text-sm text-primary">+{stats.xpToday} pts</span>
           </div>
           <div className="w-full h-2 rounded-full bg-secondary overflow-hidden mb-1">
