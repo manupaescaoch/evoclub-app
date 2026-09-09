@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Outlet, useNavigate, useLocation, Link } from "react-router-dom";
 import logoAsset from "@/assets/logo-evo.png.asset.json";
 import { supabase } from "@/integrations/supabase/client";
@@ -134,6 +134,31 @@ const AdminLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [openMenus, setOpenMenus] = useState<Set<string>>(new Set());
   const [closedMenus, setClosedMenus] = useState<Set<string>>(new Set());
+  const navRef = useRef<HTMLElement | null>(null);
+  const [indicator, setIndicator] = useState<{ top: number; height: number; show: boolean }>({ top: 0, height: 0, show: false });
+
+  // Indicador elástico que desliza até o item ativo
+  useLayoutEffect(() => {
+    const nav = navRef.current;
+    if (!nav) return;
+    const measure = () => {
+      const el = nav.querySelector<HTMLElement>('[data-nav-active="true"]');
+      if (!el) {
+        setIndicator((p) => (p.show ? { ...p, show: false } : p));
+        return;
+      }
+      const top = el.offsetTop;
+      const height = el.offsetHeight;
+      setIndicator((p) => (p.show && p.top === top && p.height === height ? p : { top, height, show: true }));
+    };
+    measure();
+    const t = setTimeout(measure, 60);
+    window.addEventListener("resize", measure);
+    return () => {
+      clearTimeout(t);
+      window.removeEventListener("resize", measure);
+    };
+  });
 
   // Auto-expand menu when navigating to any of its child routes
   useEffect(() => {
@@ -235,7 +260,18 @@ const AdminLayout = () => {
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 px-3 mt-2 space-y-0.5 overflow-y-auto">
+      <nav ref={navRef} className="relative flex-1 px-3 mt-2 space-y-0.5 overflow-y-auto">
+        {/* Indicador elástico */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute left-3 right-3 top-0 rounded-lg bg-[rgba(0,87,255,0.16)] border-l-[3px] border-l-primary"
+          style={{
+            height: indicator.height,
+            opacity: indicator.show ? 1 : 0,
+            transform: `translateY(${indicator.top}px)`,
+            transition: "transform 0.5s cubic-bezier(0.68,-0.55,0.265,1.55), height 0.35s ease, opacity 0.2s ease",
+          }}
+        />
         {visibleItems.map((item) => {
           const hasChildren = !!item.children;
           const active = location.pathname === item.path || (item.path !== "/admin" && location.pathname.startsWith(item.path));
@@ -268,10 +304,11 @@ const AdminLayout = () => {
                       });
                     }
                   }}
-                  className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-dm transition-colors w-full text-left
+                  data-nav-active={isActive ? "true" : undefined}
+                  className={`relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-dm transition-colors w-full text-left border-l-[3px] border-l-transparent
                     ${isActive
-                      ? "bg-[rgba(0,87,255,0.16)] text-white border-l-[3px] border-l-primary"
-                      : "text-gray-400 hover:text-white hover:bg-white/5 border-l-[3px] border-l-transparent"
+                      ? "text-white"
+                      : "text-gray-400 hover:text-white hover:bg-white/5"
                     }`}
                 >
                   <item.icon size={18} className={isActive ? "text-primary" : ""} />
@@ -309,10 +346,11 @@ const AdminLayout = () => {
               key={item.path}
               to={item.path}
               onClick={() => isMobile && setSidebarOpen(false)}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-dm transition-colors
+              data-nav-active={isActive ? "true" : undefined}
+              className={`relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-dm transition-colors border-l-[3px] border-l-transparent
                 ${isActive
-                  ? "bg-[rgba(0,87,255,0.16)] text-white border-l-[3px] border-l-primary"
-                  : "text-gray-400 hover:text-white hover:bg-white/5 border-l-[3px] border-l-transparent"
+                  ? "text-white"
+                  : "text-gray-400 hover:text-white hover:bg-white/5"
                 }`}
             >
               <item.icon size={18} className={isActive ? "text-primary" : ""} />
