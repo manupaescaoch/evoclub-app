@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { Lock, AlertTriangle, Download } from "lucide-react";
+import { Lock, AlertTriangle, Download, Pencil } from "lucide-react";
 import { printContract, CONTRACT_STATUS_LABEL, contractStatusClass } from "@/lib/contractPdf";
 import { EmptyState, LoadingState, SummaryCard } from "@/components/admin/gerencial/PageShell";
 import { useAccess } from "@/contexts/AccessContext";
