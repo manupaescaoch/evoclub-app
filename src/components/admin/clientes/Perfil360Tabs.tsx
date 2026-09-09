@@ -271,7 +271,7 @@ export function DadosTab({ c, onSaved }: { c: OverviewRow; onSaved: () => void }
     <div className="space-y-4">
       {!canSensitive && (
         <div className="rounded-lg bg-amber-50 border border-amber-200 p-3 text-xs font-dm text-amber-800 flex items-center gap-2">
-          <Lock size={14} /> Dados cadastrais sensíveis são editáveis apenas por Gerência e Recepção.
+          <Lock size={14} /> Dados pessoais (nome, CPF, nascimento, contato, unidade, plano e situação) só podem ser editados por quem tem essa permissão. Dados de saúde, objetivos e limitações seguem liberados.
         </div>
       )}
 
