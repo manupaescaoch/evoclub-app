@@ -381,7 +381,7 @@ const AdminLayout = () => {
   );
 
   return (
-    <div className="flex min-h-screen min-h-[100dvh] w-full overflow-x-hidden">
+    <div className="flex h-screen h-[100dvh] w-full overflow-hidden">
       {/* Mobile overlay */}
       {isMobile && sidebarOpen && (
         <div
@@ -403,7 +403,7 @@ const AdminLayout = () => {
       </aside>
 
       {/* Main */}
-      <div className={`flex-1 min-w-0 max-w-full flex flex-col ${isMobile ? "ml-0" : "ml-[220px]"}`}>
+      <div className={`flex-1 min-w-0 max-w-full min-h-0 flex flex-col ${isMobile ? "ml-0" : "ml-[220px]"}`}>
         {/* Topbar */}
         <header className="min-h-14 bg-card border-b border-border flex items-center justify-between gap-2 px-3 md:px-6 sticky top-0 z-30 safe-top">
           <div className="flex items-center gap-2 min-w-0 flex-1 overflow-x-auto no-scrollbar momentum-scroll py-2">
@@ -448,7 +448,7 @@ const AdminLayout = () => {
         </header>
 
         {/* Content */}
-        <main className="flex-1 min-w-0 max-w-full p-4 md:p-6 pb-24 md:pb-6 bg-background overflow-y-auto overflow-x-hidden momentum-scroll safe-bottom">
+        <main className="flex-1 min-w-0 max-w-full min-h-0 p-4 md:p-6 pb-24 md:pb-6 bg-background overflow-y-auto overflow-x-hidden momentum-scroll safe-bottom">
           <Outlet />
         </main>
       </div>
