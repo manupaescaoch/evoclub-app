@@ -50,6 +50,8 @@ const REASONS: Record<string, string> = {
 const GradeTab = () => {
   const { name: authName, clientId } = useStudentName();
   const { plan } = usePlanState();
+  const { unit } = useStudentUnit();
+
   const [offset, setOffset] = useState(0);
   const [classes, setClasses] = useState<ClassRow[]>([]);
   const [status, setStatus] = useState<Record<string, Status>>({});
