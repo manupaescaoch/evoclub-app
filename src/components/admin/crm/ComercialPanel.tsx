@@ -247,11 +247,12 @@ export default function ComercialPanel({ indicadores }: { indicadores?: ReactNod
             <Target size={16} className="text-primary" />
             <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">Metas do mês</p>
           </div>
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
             {([
               ["Matrículas", "meta_matriculas"],
               ["Exp.", "meta_experimentais"],
               ["Ativos", "alunos_ativos"],
+              ["Meta ativos", "meta_alunos_ativos"],
             ] as [string, keyof Meta][]).map(([label, key]) => (
               <label key={key} className="text-[11px] text-muted-foreground">
                 {label}
