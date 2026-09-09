@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { X } from "lucide-react";
+import { ArrowLeft, X } from "lucide-react";
 import { OverviewRow } from "@/hooks/useClient360";
 import {
   ResumoTab, DadosTab, FrequenciaTab, HistoricoTab, TreinosTab, SaudeTab,
@@ -23,16 +23,19 @@ const TABS = [
   { key: "historico", label: "Histórico" },
 ];
 
-export default function Perfil360({ client, onClose, onSaved }: {
-  client: OverviewRow; onClose: () => void; onSaved: () => void;
+export default function Perfil360({ client, onClose, onSaved, variant = "overlay" }: {
+  client: OverviewRow; onClose: () => void; onSaved: () => void; variant?: "overlay" | "page";
 }) {
   const [tab, setTab] = useState("resumo");
   const initials = client.name.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase();
+  const isPage = variant === "page";
 
   return (
-    <div className="fixed inset-0 z-50 flex justify-end">
-      <div className="absolute inset-0 bg-black/25" onClick={onClose} />
-      <div className="relative w-full md:w-[860px] bg-background h-full max-h-[100dvh] shadow-xl overflow-y-auto overflow-x-hidden momentum-scroll animate-in slide-in-from-right">
+    <div className={isPage ? "" : "fixed inset-0 z-50 flex justify-end"}>
+      {!isPage && <div className="absolute inset-0 bg-black/25" onClick={onClose} />}
+      <div className={isPage
+        ? "relative w-full bg-background"
+        : "relative w-full md:w-[860px] bg-background h-full max-h-[100dvh] shadow-xl overflow-y-auto overflow-x-hidden momentum-scroll animate-in slide-in-from-right"}>
         <div className="sticky top-0 z-10 bg-card border-b border-border safe-top">
           <div className="flex items-start justify-between p-4">
             <div className="flex items-center gap-3 min-w-0">
