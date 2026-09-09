@@ -16,7 +16,7 @@ import NotificacoesTab from "@/pages/admin/configuracoes/NotificacoesTab";
 import IntegracoesStatus from "@/pages/admin/configuracoes/IntegracoesStatus";
 import { GradeConfigTab, TreinosConfigTab, AvaliacoesConfigTab, CrmConfigTab } from "@/pages/admin/configuracoes/RegrasTabs";
 
-type TabKey = "empresa" | "unidades" | "planos" | "grade" | "treinos" | "avaliacoes" | "crm" | "notificacoes" | "sistema" | "integracoes" | "conta" | "auditoria";
+type TabKey = "empresa" | "unidades" | "planos" | "grade" | "treinos" | "avaliacoes" | "crm" | "notificacoes" | "sistema" | "integracoes" | "catraca" | "conta" | "auditoria";
 
 const TABS: { key: TabKey; label: string; icon: any }[] = [
   { key: "empresa", label: "Dados da empresa", icon: Building2 },
@@ -29,6 +29,7 @@ const TABS: { key: TabKey; label: string; icon: any }[] = [
   { key: "notificacoes", label: "Notificações", icon: Bell },
   { key: "sistema", label: "Preferências do sistema", icon: Sliders },
   { key: "integracoes", label: "Integrações", icon: Plug },
+  { key: "catraca", label: "Catraca", icon: DoorOpen },
   { key: "conta", label: "Conta e segurança", icon: User },
   { key: "auditoria", label: "Auditoria", icon: ScrollText },
 ];
@@ -328,6 +329,8 @@ const Configuracoes = () => {
           </div>
         </div>
       )}
+
+      {tab === "catraca" && <CatracaTab />}
 
       {tab === "auditoria" && <AuditLogTab />}
 
