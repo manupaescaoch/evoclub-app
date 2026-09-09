@@ -137,6 +137,29 @@ const AdminLayout = () => {
   const navRef = useRef<HTMLElement | null>(null);
   const [indicator, setIndicator] = useState<{ top: number; height: number; show: boolean }>({ top: 0, height: 0, show: false });
 
+  // Indicador elástico que desliza até o item ativo
+  useLayoutEffect(() => {
+    const nav = navRef.current;
+    if (!nav) return;
+    const measure = () => {
+      const el = nav.querySelector<HTMLElement>('[data-nav-active="true"]');
+      if (!el) {
+        setIndicator((p) => (p.show ? { ...p, show: false } : p));
+        return;
+      }
+      const top = el.offsetTop;
+      const height = el.offsetHeight;
+      setIndicator((p) => (p.show && p.top === top && p.height === height ? p : { top, height, show: true }));
+    };
+    measure();
+    const t = setTimeout(measure, 60);
+    window.addEventListener("resize", measure);
+    return () => {
+      clearTimeout(t);
+      window.removeEventListener("resize", measure);
+    };
+  });
+
   // Auto-expand menu when navigating to any of its child routes
   useEffect(() => {
     setClosedMenus((prev) => {
