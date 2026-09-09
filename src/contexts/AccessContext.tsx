@@ -80,13 +80,16 @@ export const AccessProvider = ({ children }: { children: ReactNode }) => {
   }, [load]);
 
   const can = useCallback((module: string, action: ActionKey = "view") => {
-    if (fallback || state.isAdmin) return true;
+    // Se a checagem de permissão falhar, nada é liberado (fail-closed).
+    if (fallback) return false;
+    if (state.isAdmin) return true;
     const actions = state.modules[module] || [];
     if (actions.includes(action)) return true;
     // "approve"/"export" legados contam como ação sensível
     if (action === "sensitive") return actions.includes("approve");
     return false;
   }, [fallback, state]);
+
 
   return (
     <Ctx.Provider value={{
