@@ -1,1 +1,4 @@
 project_id = "tmjeemmczgexzaflzmhj"
+
+[functions.catraca-agent]
+verify_jwt = false
