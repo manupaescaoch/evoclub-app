@@ -260,7 +260,18 @@ const AdminLayout = () => {
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 px-3 mt-2 space-y-0.5 overflow-y-auto">
+      <nav ref={navRef} className="relative flex-1 px-3 mt-2 space-y-0.5 overflow-y-auto">
+        {/* Indicador elástico */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute left-3 right-3 top-0 rounded-lg bg-[rgba(0,87,255,0.16)] border-l-[3px] border-l-primary"
+          style={{
+            height: indicator.height,
+            opacity: indicator.show ? 1 : 0,
+            transform: `translateY(${indicator.top}px)`,
+            transition: "transform 0.5s cubic-bezier(0.68,-0.55,0.265,1.55), height 0.35s ease, opacity 0.2s ease",
+          }}
+        />
         {visibleItems.map((item) => {
           const hasChildren = !!item.children;
           const active = location.pathname === item.path || (item.path !== "/admin" && location.pathname.startsWith(item.path));
