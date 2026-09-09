@@ -27,7 +27,7 @@ export default function ComercialFilters({
   collabs: Collab[];
   range: Range;
 }) {
-  const { units, selected, setSelected, canChoose } = { ...useUnit(), canChoose: true } as any;
+  const { units, selected, setSelected } = useUnit();
   const [open, setOpen] = useState(false);
   const set = (patch: Partial<FilterState>) => onChange({ ...state, ...patch });
 
