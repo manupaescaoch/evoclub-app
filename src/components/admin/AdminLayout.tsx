@@ -134,6 +134,8 @@ const AdminLayout = () => {
   const [userName, setUserName] = useState("Admin");
   const [userEmail, setUserEmail] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [navQuery, setNavQuery] = useState("");
+
   const [openMenus, setOpenMenus] = useState<Set<string>>(new Set());
   const [closedMenus, setClosedMenus] = useState<Set<string>>(new Set());
   const navRef = useRef<HTMLElement | null>(null);
