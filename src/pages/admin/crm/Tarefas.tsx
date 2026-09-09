@@ -104,21 +104,57 @@ export default function Tarefas() {
     doneMonth: tasks.filter(t => t.status === "done").length,
   };
 
+  /** data de hoje no fuso de Brasília — a tarefa sempre nasce com a data de criação */
+  const hojeBR = () =>
+    new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo" }).format(new Date());
+
+  /** dispara a notificação push no celular do responsável */
+  const notificar = async (collaboratorId: string, titulo: string, prioridade: string, quando: string) => {
+    try {
+      const { data, error } = await supabase.functions.invoke("push-staff", {
+        body: {
+          collaborator_id: collaboratorId,
+          title: `Nova tarefa: ${titulo}`,
+          body: [PRIORITIES.find(p => p.value === prioridade)?.label, quando].filter(Boolean).join(" · "),
+          url: "/pro",
+          kind: "tarefa",
+        },
+      });
+      if (error) throw error;
+      if ((data as any)?.message) toast.info((data as any).message);
+      else if ((data as any)?.sent) toast.success("Responsável notificado no celular");
+    } catch {
+      toast.info("Tarefa salva, mas não foi possível notificar o celular do responsável.");
+    }
+  };
+
   const submit = async () => {
     if (!form.title) return toast.error("Título obrigatório");
-    const payload: any = { ...form, unit_id: form.unit_id ?? filterId ?? null };
+    const payload: any = {
+      ...form,
+      unit_id: form.unit_id ?? filterId ?? null,
+      due_date: form.due_date || hojeBR(),
+      responsible_name: collabs.find(c => c.id === form.responsible_id)?.full_name ?? form.responsible_name ?? null,
+      responsible_phone: collabs.find(c => c.id === form.responsible_id)?.phone ?? form.responsible_phone ?? null,
+    };
     if (editing) {
       const { error } = await supabase.from("crm_tasks").update(payload).eq("id", editing.id);
       if (error) return toast.error(error.message);
       await logAudit({ action: "update", entity: "crm_tasks", entity_id: editing.id, module: "operacional",
         description: `Tarefa atualizada: ${form.title}`, before: editing as any, after: payload });
       toast.success("Tarefa atualizada");
+      if (payload.responsible_id && payload.responsible_id !== editing.responsible_id) {
+        await notificar(payload.responsible_id, payload.title, payload.priority || "medium", payload.due_date);
+      }
     } else {
       const { data, error } = await supabase.from("crm_tasks").insert(payload).select().single();
       if (error) return toast.error(error.message);
       await logAudit({ action: "create", entity: "crm_tasks", entity_id: (data as Task).id, module: "operacional",
         description: `Tarefa criada: ${form.title}`, after: payload });
       toast.success("Tarefa criada");
+      if (payload.responsible_id) {
+        await notificar(payload.responsible_id, payload.title, payload.priority || "medium", payload.due_date);
+      }
     }
     setOpen(false); setEditing(null); setForm({ priority: "medium", status: "todo" });
     load();
