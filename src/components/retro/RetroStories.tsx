@@ -61,9 +61,12 @@ export default function RetroStories(p: Props) {
   const isLast = i === stories.length - 1;
 
   return (
-    <div className="relative mx-auto w-full max-w-[390px]">
+    <div className={p.fullscreen
+      ? "fixed inset-0 z-50 mx-auto w-full max-w-[430px] overflow-hidden bg-black"
+      : "relative mx-auto w-full max-w-[390px]"}>
       <div
-        className={`relative aspect-[9/16] w-full overflow-hidden rounded-3xl bg-gradient-to-b ${GRADIENTS[i % GRADIENTS.length]} text-white`}
+        className={`relative w-full overflow-hidden bg-gradient-to-b ${GRADIENTS[i % GRADIENTS.length]} text-white ${
+          p.fullscreen ? "h-[100dvh] rounded-none" : "aspect-[9/16] rounded-3xl"}`}
       >
         {/* progresso */}
         <div className="absolute left-0 right-0 top-0 z-20 flex gap-1 p-3">
