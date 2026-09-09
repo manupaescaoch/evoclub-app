@@ -34,7 +34,7 @@ type Task = {
   due_time: string | null;
   archived: boolean;
 };
-type Collab = { id: string; full_name: string; phone: string | null; unit_id: string | null };
+type Collab = { id: string; full_name: string; phone: string | null; unit_id: string | null; role_title: string | null };
 type ChecklistItem = { id: string; task_id: string; title: string; completed: boolean };
 
 const STATUSES = [
@@ -77,7 +77,7 @@ export default function Tarefas() {
     if (filterId) q = q.eq("unit_id", filterId);
     const [t, c] = await Promise.all([
       q,
-      supabase.from("collaborators").select("id,full_name,phone,unit_id").eq("status", "active").order("full_name"),
+      supabase.from("collaborators").select("id,full_name,phone,unit_id,role_title").eq("status", "active").order("full_name"),
     ]);
     if (t.error) toast.error("Erro ao carregar tarefas: " + t.error.message);
     setTasks((t.data as Task[]) || []);
