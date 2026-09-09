@@ -34,7 +34,7 @@ type Task = {
   due_time: string | null;
   archived: boolean;
 };
-type Collab = { id: string; full_name: string; phone: string | null; unit_id: string | null };
+type Collab = { id: string; full_name: string; phone: string | null; unit_id: string | null; role_title: string | null };
 type ChecklistItem = { id: string; task_id: string; title: string; completed: boolean };
 
 const STATUSES = [
@@ -49,7 +49,7 @@ const PRIORITIES = [
   { value: "high", label: "Alta", color: "bg-amber-100 text-amber-700" },
   { value: "urgent", label: "Urgente", color: "bg-red-100 text-red-700" },
 ];
-const CATEGORIES = ["Comercial","Financeiro","Operacional","Marketing","Manutenção","Cobrança","Atendimento","Treinos","Outros"];
+
 const SECTORS = ["Recepção","Técnico","Comercial","Gerência","Manutenção","Limpeza"];
 const RECURRENCES = [
   { value: "none", label: "Única" },
@@ -77,7 +77,7 @@ export default function Tarefas() {
     if (filterId) q = q.eq("unit_id", filterId);
     const [t, c] = await Promise.all([
       q,
-      supabase.from("collaborators").select("id,full_name,phone,unit_id").eq("status", "active").order("full_name"),
+      supabase.from("collaborators").select("id,full_name,phone,unit_id,role_title").eq("status", "active").order("full_name"),
     ]);
     if (t.error) toast.error("Erro ao carregar tarefas: " + t.error.message);
     setTasks((t.data as Task[]) || []);
@@ -104,21 +104,57 @@ export default function Tarefas() {
     doneMonth: tasks.filter(t => t.status === "done").length,
   };
 
+  /** data de hoje no fuso de Brasília — a tarefa sempre nasce com a data de criação */
+  const hojeBR = () =>
+    new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo" }).format(new Date());
+
+  /** dispara a notificação push no celular do responsável */
+  const notificar = async (collaboratorId: string, titulo: string, prioridade: string, quando: string) => {
+    try {
+      const { data, error } = await supabase.functions.invoke("push-staff", {
+        body: {
+          collaborator_id: collaboratorId,
+          title: `Nova tarefa: ${titulo}`,
+          body: [PRIORITIES.find(p => p.value === prioridade)?.label, quando].filter(Boolean).join(" · "),
+          url: "/pro",
+          kind: "tarefa",
+        },
+      });
+      if (error) throw error;
+      if ((data as any)?.message) toast.info((data as any).message);
+      else if ((data as any)?.sent) toast.success("Responsável notificado no celular");
+    } catch {
+      toast.info("Tarefa salva, mas não foi possível notificar o celular do responsável.");
+    }
+  };
+
   const submit = async () => {
     if (!form.title) return toast.error("Título obrigatório");
-    const payload: any = { ...form, unit_id: form.unit_id ?? filterId ?? null };
+    const payload: any = {
+      ...form,
+      unit_id: form.unit_id ?? filterId ?? null,
+      due_date: form.due_date || hojeBR(),
+      responsible_name: collabs.find(c => c.id === form.responsible_id)?.full_name ?? form.responsible_name ?? null,
+      responsible_phone: collabs.find(c => c.id === form.responsible_id)?.phone ?? form.responsible_phone ?? null,
+    };
     if (editing) {
       const { error } = await supabase.from("crm_tasks").update(payload).eq("id", editing.id);
       if (error) return toast.error(error.message);
       await logAudit({ action: "update", entity: "crm_tasks", entity_id: editing.id, module: "operacional",
         description: `Tarefa atualizada: ${form.title}`, before: editing as any, after: payload });
       toast.success("Tarefa atualizada");
+      if (payload.responsible_id && payload.responsible_id !== editing.responsible_id) {
+        await notificar(payload.responsible_id, payload.title, payload.priority || "medium", payload.due_date);
+      }
     } else {
       const { data, error } = await supabase.from("crm_tasks").insert(payload).select().single();
       if (error) return toast.error(error.message);
       await logAudit({ action: "create", entity: "crm_tasks", entity_id: (data as Task).id, module: "operacional",
         description: `Tarefa criada: ${form.title}`, after: payload });
       toast.success("Tarefa criada");
+      if (payload.responsible_id) {
+        await notificar(payload.responsible_id, payload.title, payload.priority || "medium", payload.due_date);
+      }
     }
     setOpen(false); setEditing(null); setForm({ priority: "medium", status: "todo" });
     load();
@@ -165,14 +201,23 @@ export default function Tarefas() {
   const openEdit = (t: Task) => { setEditing(t); setForm(t); setChecklist([]); loadChecklist(t.id); setOpen(true); };
   const openNew = () => {
     setEditing(null); setChecklist([]);
-    setForm({ priority: "medium", status: "todo", unit_id: filterId, recurrence: "none" });
+    setForm({ priority: "medium", status: "todo", unit_id: filterId, recurrence: "none", due_date: hojeBR() });
     setOpen(true);
   };
 
   const pickCollab = (id: string) => {
     const c = collabs.find(x => x.id === id);
-    setForm({ ...form, responsible_id: id, responsible_name: c?.full_name || form.responsible_name, responsible_phone: c?.phone || form.responsible_phone });
+    setForm({ ...form, responsible_id: id, responsible_name: c?.full_name || null, responsible_phone: c?.phone || null });
   };
+
+  /** colaboradores do setor escolhido (casa com o cargo cadastrado); sem correspondência, mostra todos */
+  const collabsDoSetor = (() => {
+    const base = form.unit_id ? collabs.filter(c => !c.unit_id || c.unit_id === form.unit_id) : collabs;
+    if (!form.sector) return base;
+    const alvo = form.sector.toLowerCase();
+    const doSetor = base.filter(c => (c.role_title || "").toLowerCase().includes(alvo.slice(0, 5)));
+    return doSetor.length ? doSetor : base;
+  })();
 
   const renderCard = (t: Task) => {
     const prio = PRIORITIES.find(p => p.value === t.priority);
@@ -274,15 +319,22 @@ export default function Tarefas() {
                 </Select>
               </div>
             </div>
-            <div><Label>Colaborador responsável</Label>
-              <Select value={form.responsible_id || ""} onValueChange={pickCollab}>
-                <SelectTrigger><SelectValue placeholder="Selecione (opcional)" /></SelectTrigger>
-                <SelectContent>{collabs.map(c => <SelectItem key={c.id} value={c.id}>{c.full_name}</SelectItem>)}</SelectContent>
-              </Select>
-            </div>
             <div className="grid grid-cols-2 gap-2">
-              <div><Label>Responsável</Label><Input value={form.responsible_name || ""} onChange={e => setForm({ ...form, responsible_name: e.target.value })} /></div>
-              <div><Label>WhatsApp (com DDD)</Label><Input value={form.responsible_phone || ""} onChange={e => setForm({ ...form, responsible_phone: e.target.value })} placeholder="55119..." /></div>
+              <div><Label>Responsável</Label>
+                <Select value={form.responsible_id || ""} onValueChange={pickCollab}>
+                  <SelectTrigger><SelectValue placeholder={form.sector ? `Equipe · ${form.sector}` : "Selecione o responsável"} /></SelectTrigger>
+                  <SelectContent>
+                    {collabsDoSetor.map(c => (
+                      <SelectItem key={c.id} value={c.id}>
+                        {c.full_name}{c.role_title ? ` — ${c.role_title}` : ""}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div><Label>WhatsApp</Label>
+                <Input value={form.responsible_phone || ""} readOnly placeholder="Do cadastro do funcionário" className="bg-muted/50" />
+              </div>
             </div>
             <div className="grid grid-cols-2 gap-2">
               <div><Label>Prioridade</Label>
@@ -298,14 +350,10 @@ export default function Tarefas() {
                 </Select>
               </div>
             </div>
-            <div className="grid grid-cols-3 gap-2">
-              <div><Label>Categoria</Label>
-                <Select value={form.category || ""} onValueChange={v => setForm({ ...form, category: v })}>
-                  <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
-                  <SelectContent>{CATEGORIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
-                </Select>
+            <div className="grid grid-cols-2 gap-2">
+              <div><Label>Data</Label>
+                <Input value={new Date(`${form.due_date || hojeBR()}T12:00:00`).toLocaleDateString("pt-BR")} readOnly className="bg-muted/50" />
               </div>
-              <div><Label>Data</Label><Input type="date" value={form.due_date || ""} onChange={e => setForm({ ...form, due_date: e.target.value })} /></div>
               <div><Label>Hora</Label><Input type="time" value={form.due_time || ""} onChange={e => setForm({ ...form, due_time: e.target.value })} /></div>
             </div>
             <div className="grid grid-cols-2 gap-2">
