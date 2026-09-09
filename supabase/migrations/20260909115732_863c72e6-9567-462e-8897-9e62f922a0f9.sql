@@ -1,0 +1,1 @@
+ALTER FUNCTION public.retro_compute(integer, date, date) VOLATILE;
