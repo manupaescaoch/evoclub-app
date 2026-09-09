@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { ChevronLeft, ChevronDown, MessageCircle } from "lucide-react";
 import { openWhatsApp } from "@/lib/whatsapp";
+import { useStudentUnit } from "@/hooks/useStudentUnit";
 
 const FAQ = [
   { q: "Como agendo meu treino?", a: "Na aba Grade, escolha o dia e o horário e toque em Agendar. O agendamento abre 12 horas antes da aula e você pode ter 1 treino por dia." },
@@ -13,10 +14,11 @@ const FAQ = [
   { q: "Como renovo meu plano?", a: "Em Perfil › Meu plano e contrato, toque em Quero renovar. A recepção recebe o pedido e entra em contato." },
 ];
 
-const RECEPTION_PHONE = "5581999999999";
 
 const AjudaTab = ({ onBack }: { onBack: () => void }) => {
   const [open, setOpen] = useState<number | null>(0);
+  const { unit } = useStudentUnit();
+  const receptionPhone = (unit?.phone || "").replace(/\D/g, "");
 
   return (
     <div className="px-4 pt-4 pb-8">
@@ -49,7 +51,8 @@ const AjudaTab = ({ onBack }: { onBack: () => void }) => {
         <p className="font-barlow text-[10px] tracking-[2px] uppercase text-muted font-bold mb-1">AINDA COM DÚVIDA?</p>
         <p className="text-xs font-dm text-muted mb-3">Fale direto com a recepção da sua unidade.</p>
         <button
-          onClick={() => openWhatsApp(RECEPTION_PHONE, "Olá! Preciso de ajuda com o app EVO Club.")}
+          disabled={!receptionPhone}
+          onClick={() => openWhatsApp(receptionPhone, "Olá! Preciso de ajuda com o app EVO Club.")}
           className="w-full py-3 rounded-2xl bg-primary text-primary-foreground font-dm font-semibold text-sm cta-shadow flex items-center justify-center gap-2"
         >
           <MessageCircle size={16} />

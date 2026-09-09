@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import CheckInDialog from "./CheckInDialog";
 import { useStudentName } from "@/hooks/useStudentName";
 import { usePlanState, planMessage } from "@/hooks/usePlanState";
+import { useStudentUnit } from "@/hooks/useStudentUnit";
 
 type ClassRow = {
   id: string;
@@ -49,6 +50,8 @@ const REASONS: Record<string, string> = {
 const GradeTab = () => {
   const { name: authName, clientId } = useStudentName();
   const { plan } = usePlanState();
+  const { unit } = useStudentUnit();
+
   const [offset, setOffset] = useState(0);
   const [classes, setClasses] = useState<ClassRow[]>([]);
   const [status, setStatus] = useState<Record<string, Status>>({});
@@ -181,10 +184,10 @@ const GradeTab = () => {
         )}
         {classes.map((c) => {
           const s = status[c.id];
-          const max = c.max_slots || 14;
+          const max = c.max_slots ?? unit?.default_capacity ?? null;
           const booked = s?.booked ?? 0;
-          const remaining = Math.max(0, max - booked);
-          const full = remaining === 0;
+          const remaining = max === null ? null : Math.max(0, max - booked);
+          const full = remaining !== null && remaining === 0;
           const mine = s?.my_booking_id || null;
           const myWait = s?.my_waitlist_position || null;
           const mins = minutesUntil(c);
@@ -245,7 +248,7 @@ const GradeTab = () => {
                     <div className="flex items-center gap-1 mt-1.5">
                       <div className={`w-2 h-2 rounded-full ${full ? "bg-red-500" : "bg-green-500"}`} />
                       <span className={`text-[11px] font-dm ${full ? "text-red-600" : "text-green-600"}`}>
-                        {full ? `Lotada · ${s?.waiting ?? 0}/5 na espera` : `${remaining} vagas`}
+                        {full ? `Lotada · ${s?.waiting ?? 0}/5 na espera` : remaining === null ? `${booked} agendados` : `${remaining} vagas`}
                       </span>
                     </div>
                   </div>

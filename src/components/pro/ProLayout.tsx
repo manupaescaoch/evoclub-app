@@ -32,6 +32,13 @@ export default function ProLayout() {
     return () => { alive = false; };
   }, [navigate]);
 
+  // Somente colaboradores (ou administradores) podem usar o Modo treinador
+  useEffect(() => {
+    if (checking || loading) return;
+    if (!collaboratorId && !isAdmin) navigate("/", { replace: true });
+  }, [checking, loading, collaboratorId, isAdmin, navigate]);
+
+
   useEffect(() => {
     if (!collaboratorId) return;
     supabase.from("collaborators").select("full_name, role_title").eq("id", collaboratorId).maybeSingle()

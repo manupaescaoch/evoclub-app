@@ -4,8 +4,8 @@ import { QRCodeSVG } from "qrcode.react";
 import { useStudentName } from "@/hooks/useStudentName";
 import { usePartners, useClubMember, useClubRedemptions, Partner, Redemption } from "@/hooks/useClub";
 import { fmtBRL } from "@/lib/finance";
+import { useStudentUnit } from "@/hooks/useStudentUnit";
 
-const STUDENT_UNIT = "EVO Boa Viagem";
 
 const filters = ["Todos", "Saúde", "Lifestyle", "Negócios"] as const;
 const sections = ["Meu Cartão", "Parceiros", "Minha Economia"] as const;
@@ -21,7 +21,9 @@ const ClubTab = () => {
   const [selected, setSelected] = useState<Partner | null>(null);
   const [section, setSection] = useState<(typeof sections)[number]>("Meu Cartão");
   const { name } = useStudentName();
-  const { studentId, memberCode } = useClubMember(name, STUDENT_UNIT);
+  const { unit } = useStudentUnit();
+  const unitName = unit?.name || "EVO Club";
+  const { studentId, memberCode } = useClubMember(name, unitName);
   const { partners } = usePartners();
   const { items, total, request } = useClubRedemptions(studentId);
 
@@ -124,6 +126,8 @@ const ClubTab = () => {
 const MemberCard = ({
   name, memberId, studentId, total,
 }: { name: string; memberId: string; studentId: string | null; total: number }) => {
+  const { unit } = useStudentUnit();
+  const unitName = unit?.name || "EVO Club";
   const [full, setFull] = useState(false);
   const value = studentId ? `EVOCLUB-MEMBER|${studentId}` : "";
 
@@ -136,7 +140,7 @@ const MemberCard = ({
         <h2 className="font-barlow font-bold text-2xl text-primary-foreground mt-2 leading-none">
           {name.toUpperCase()}
         </h2>
-        <p className="text-xs font-dm text-primary-foreground/80 mt-2">{STUDENT_UNIT}</p>
+        <p className="text-xs font-dm text-primary-foreground/80 mt-2">{unitName}</p>
         <div className="flex items-end justify-between mt-5">
           <div>
             <p className="text-[10px] font-dm uppercase tracking-wide text-primary-foreground/70">ID de membro</p>
@@ -180,7 +184,7 @@ const MemberCard = ({
             <X size={18} className="text-foreground" />
           </button>
           <p className="font-barlow font-bold text-xl text-foreground">{name.toUpperCase()}</p>
-          <p className="text-xs font-dm text-muted mt-1">{STUDENT_UNIT}</p>
+          <p className="text-xs font-dm text-muted mt-1">{unitName}</p>
           <div className="mt-6 p-5 rounded-3xl bg-card card-shadow">
             <QRCodeSVG value={value} size={240} bgColor="transparent" fgColor="#0057FF" />
           </div>
