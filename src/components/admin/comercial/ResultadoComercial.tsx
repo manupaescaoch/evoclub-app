@@ -1,7 +1,8 @@
 import { useMemo } from "react";
 import { AlertTriangle, CheckCircle2, Info } from "lucide-react";
 import { fmtInt, fmtMoney0, fmtPct1, monthInfo, orDash, pct, safeDiv, variation } from "@/lib/comercial";
-import { Box, Mini } from "./OperacaoComercial";
+import { Box } from "./TabelasComercial";
+import { Mini } from "./OperacaoComercial";
 import type { Snapshot } from "@/hooks/useComercial";
 
 export function ReceitaBox({
