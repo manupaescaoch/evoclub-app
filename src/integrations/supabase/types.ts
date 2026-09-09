@@ -7939,6 +7939,11 @@ export type Database = {
       }
       retro_approve: { Args: { _id: string }; Returns: Json }
       retro_auto_generate: { Args: never; Returns: Json }
+      retro_body: {
+        Args: { _client_id: number; _from: string; _to: string }
+        Returns: Json
+      }
+      retro_body_fill: { Args: { _retro_id: string }; Returns: Json }
       retro_can_read: { Args: { _client_id: number }; Returns: boolean }
       retro_compute: {
         Args: { _client_id: number; _from: string; _to: string }

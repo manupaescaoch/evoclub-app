@@ -289,7 +289,7 @@ export default function Renovacoes() {
                       const dl = daysLeft(r.cycle_end);
                       return (
                         <TableRow key={r.id}>
-                          <TableCell className="font-medium">{r.client?.name || `#${r.client_id}`}</TableCell>
+                          <TableCell className="font-medium"><a href={`/admin/clientes/${r.client_id}?tab=retrospectiva`} className="hover:text-primary hover:underline">{r.client?.name || `#${r.client_id}`}</a></TableCell>
                           <TableCell>{fmtDate(r.cycle_end)}</TableCell>
                           <TableCell className={dl != null && dl <= 7 ? "text-red-600 font-medium" : ""}>{dl ?? "—"}</TableCell>
                           <TableCell>{r.current_plan || "—"}{r.current_value ? ` · ${fmtBRL(Number(r.current_value))}` : ""}</TableCell>

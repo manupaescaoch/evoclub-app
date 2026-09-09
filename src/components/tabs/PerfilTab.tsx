@@ -102,6 +102,7 @@ const PerfilTab = ({ onBack, onNavigate }: PerfilTabProps) => {
   ];
 
   const menu = [
+    { label: "Retrospectiva EVO", icon: Sparkles, screen: "retrospectiva" },
     { label: "Conquistas e nível", icon: Trophy, screen: "conquistas" },
     { label: "Meu plano e contrato", icon: CreditCard, screen: "plano", hint: left != null ? `${left} dia(s)` : undefined },
     { label: "Meus contratos", icon: FileText, screen: "contratos" },
