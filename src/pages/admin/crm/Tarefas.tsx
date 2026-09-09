@@ -201,14 +201,23 @@ export default function Tarefas() {
   const openEdit = (t: Task) => { setEditing(t); setForm(t); setChecklist([]); loadChecklist(t.id); setOpen(true); };
   const openNew = () => {
     setEditing(null); setChecklist([]);
-    setForm({ priority: "medium", status: "todo", unit_id: filterId, recurrence: "none" });
+    setForm({ priority: "medium", status: "todo", unit_id: filterId, recurrence: "none", due_date: hojeBR() });
     setOpen(true);
   };
 
   const pickCollab = (id: string) => {
     const c = collabs.find(x => x.id === id);
-    setForm({ ...form, responsible_id: id, responsible_name: c?.full_name || form.responsible_name, responsible_phone: c?.phone || form.responsible_phone });
+    setForm({ ...form, responsible_id: id, responsible_name: c?.full_name || null, responsible_phone: c?.phone || null });
   };
+
+  /** colaboradores do setor escolhido (casa com o cargo cadastrado); sem correspondência, mostra todos */
+  const collabsDoSetor = (() => {
+    const base = form.unit_id ? collabs.filter(c => !c.unit_id || c.unit_id === form.unit_id) : collabs;
+    if (!form.sector) return base;
+    const alvo = form.sector.toLowerCase();
+    const doSetor = base.filter(c => (c.role_title || "").toLowerCase().includes(alvo.slice(0, 5)));
+    return doSetor.length ? doSetor : base;
+  })();
 
   const renderCard = (t: Task) => {
     const prio = PRIORITIES.find(p => p.value === t.priority);
