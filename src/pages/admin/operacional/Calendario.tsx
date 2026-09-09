@@ -3,10 +3,11 @@ import { supabase } from "@/integrations/supabase/client";
 import PageShell, { LoadingState } from "@/components/admin/gerencial/PageShell";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { useUnit } from "@/contexts/UnitContext";
 import { brToday } from "@/contexts/PeriodContext";
+import NovaAtividadeDialog from "@/components/admin/operacional/NovaAtividadeDialog";
 
 type Task = {
   id: string; title: string; sector: string | null; category: string | null;
@@ -45,6 +46,8 @@ export default function OperacionalCalendario() {
   const [view, setView] = useState<View>("semana");
   const [cursor, setCursor] = useState<Date>(() => brToday());
   const [detail, setDetail] = useState<Task | null>(null);
+  const [novo, setNovo] = useState(false);
+  const [reload, setReload] = useState(0);
 
   const range = useMemo(() => {
     if (view === "dia") return { days: [cursor], from: cursor, to: cursor };
@@ -76,7 +79,7 @@ export default function OperacionalCalendario() {
       setLoading(false);
     })();
     return () => { alive = false; };
-  }, [filterId, view, range.from.getTime(), range.to.getTime()]);
+  }, [filterId, view, range.from.getTime(), range.to.getTime(), reload]);
 
   const unitName = (id: string | null) => units.find(u => u.id === id)?.name || "—";
   const byDay = (d: Date) => tasks.filter(t => t.due_date === iso(d));
@@ -227,6 +230,9 @@ export default function OperacionalCalendario() {
     <PageShell
       title="CALENDÁRIO"
       description="Agenda operacional em dia, semana e mês. Os dados vêm do módulo Tarefas, sem cadastro duplicado."
+      primaryAction={
+        <Button className="gap-2" onClick={() => setNovo(true)}><Plus size={14} /> Novo</Button>
+      }
       filters={
         <div className="flex flex-wrap items-center gap-2">
           <Button size="sm" variant="outline" onClick={() => setCursor(brToday())}>Hoje</Button>
@@ -248,6 +254,14 @@ export default function OperacionalCalendario() {
       {loading ? <LoadingState /> : (
         view === "mes" ? <MonthGrid /> : <TimeGrid days={range.days} />
       )}
+
+      <NovaAtividadeDialog
+        open={novo}
+        onOpenChange={setNovo}
+        unitId={filterId ?? null}
+        defaultDate={iso(view === "mes" ? brToday() : cursor)}
+        onCreated={() => setReload(r => r + 1)}
+      />
 
       <Dialog open={!!detail} onOpenChange={o => !o && setDetail(null)}>
         <DialogContent className="max-w-md">
