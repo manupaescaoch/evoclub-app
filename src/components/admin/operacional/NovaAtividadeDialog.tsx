@@ -22,10 +22,13 @@ const PRIORITIES = [
 ];
 const RECURRENCES = [
   { value: "once", label: "Sem recorrência (uma vez)" },
-  { value: "daily", label: "Diária (30 dias)" },
-  { value: "weekly", label: "Semanal (8 semanas)" },
-  { value: "monthly", label: "Mensal (6 meses)" },
+  { value: "daily", label: "Diária (todos os dias)" },
+  { value: "weekly", label: "Semanal (dias escolhidos)" },
+  { value: "monthly", label: "Mensal (sempre no mesmo dia)" },
 ];
+// Sem data de fim: geramos 12 meses à frente e a agenda segue sendo renovada.
+const HORIZON_DAYS = 365;
+const HORIZON_MONTHS = 12;
 
 const iso = (d: Date) =>
   `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
@@ -87,16 +90,19 @@ export default function NovaAtividadeDialog({
     const start = new Date(`${date}T12:00:00`);
     if (recurrence === "once") return [iso(start)];
     if (recurrence === "monthly") {
-      return Array.from({ length: 6 }, (_, i) => {
-        const d = new Date(start.getFullYear(), start.getMonth() + i, start.getDate(), 12);
-        return iso(d);
+      const dayOfMonth = start.getDate();
+      return Array.from({ length: HORIZON_MONTHS }, (_, i) => {
+        const lastDay = new Date(start.getFullYear(), start.getMonth() + i + 1, 0).getDate();
+        return iso(new Date(start.getFullYear(), start.getMonth() + i, Math.min(dayOfMonth, lastDay), 12));
       });
     }
-    const span = recurrence === "daily" ? 30 : 56;
     const out: string[] = [];
-    for (let i = 0; i < span; i++) {
+    for (let i = 0; i < HORIZON_DAYS; i++) {
       const d = addDays(start, i);
-      if (recurrence === "weekly" && days.length && !days.includes(d.getDay())) continue;
+      if (recurrence === "weekly") {
+        const alvo = days.length ? days : [start.getDay()];
+        if (!alvo.includes(d.getDay())) continue;
+      }
       out.push(iso(d));
     }
     return out;
@@ -183,9 +189,18 @@ export default function NovaAtividadeDialog({
                 ))}
               </div>
               <p className="mt-1 text-xs font-dm text-muted-foreground">
-                Nenhum dia selecionado: valerá para todos os dias.
+                Sem data de fim. Nenhum dia marcado: repete no mesmo dia da semana da data inicial.
               </p>
             </div>
+          )}
+
+          {recurrence === "daily" && (
+            <p className="text-xs font-dm text-muted-foreground">Repete todos os dias, sem data de fim.</p>
+          )}
+          {recurrence === "monthly" && (
+            <p className="text-xs font-dm text-muted-foreground">
+              Repete todo mês no dia {new Date(`${date}T12:00:00`).getDate()}, sem data de fim.
+            </p>
           )}
 
           <div>
