@@ -94,7 +94,8 @@ export default function RetroStories(p: Props) {
         <button aria-label="Próximo" onClick={() => setI((v) => Math.min(v + 1, stories.length - 1))}
           className="absolute bottom-0 right-0 top-0 z-10 w-2/3" />
 
-        <div className="relative z-0 flex h-full flex-col justify-end gap-4 p-6 pb-10">
+        <div className={`relative z-0 flex h-full flex-col justify-end gap-4 overflow-hidden p-6 ${
+          p.fullscreen ? "safe-top pb-[calc(2.5rem+env(safe-area-inset-bottom))]" : "pb-10"}`}>
           {cur.kicker && (
             <p className="font-dm text-[11px] font-semibold uppercase tracking-[0.18em] text-white/70">{cur.kicker}</p>
           )}
