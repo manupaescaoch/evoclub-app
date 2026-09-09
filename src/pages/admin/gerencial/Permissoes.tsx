@@ -23,7 +23,7 @@ const GROUPS: { key: string; label: string; items: string[] }[] = [
   { key: "avaliacao", label: "Avaliações", items: ["Avaliações físicas", "Bioimpedância e medidas"] },
   { key: "financeiro", label: "Financeiro", items: ["Dashboard", "Transações", "Fluxo de caixa", "Recebimentos", "Contas a pagar", "Inadimplência", "Folha de pagamento", "Descontos e estornos", "Conciliação bancária", "DRE", "Forecast", "Relatórios", "Fechamentos", "Configurações"] },
   { key: "equipe", label: "Equipe", items: ["Visão geral", "Colaboradores", "Escala", "Ponto e jornada", "Desempenho", "Histórico"] },
-  { key: "operacional", label: "Operacional", items: ["Operação do dia", "Dashboard", "Calendário", "Formulários", "Encerramento de turno", "Respostas e pendências", "Automações"] },
+  { key: "operacional", label: "Operacional", items: ["Operação do dia", "Calendário", "Formulários", "Encerramento de turno", "Respostas e pendências", "Automações"] },
   { key: "gerencial", label: "Gerencial", items: ["Contratos", "Atividades na grade", "Fornecedores", "Permissões", "Serviços", "Cupons de desconto", "Crescimento"] },
   { key: "club", label: "EVO Club", items: ["Visão geral", "Parceiros e benefícios", "Validar resgate"] },
   { key: "comunidade", label: "Comunidade", items: ["Feed e publicações", "Moderação", "Comunicados"] },
