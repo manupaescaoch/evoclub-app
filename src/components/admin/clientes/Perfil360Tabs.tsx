@@ -354,10 +354,11 @@ export function DadosTab({ c, onSaved }: { c: OverviewRow; onSaved: () => void }
         </div>
       </Section>
 
-      {canEdit && (
+      {canEdit && editing && (
         <div className="flex gap-2">
           <Button onClick={save} disabled={saving} className="font-dm">{saving ? "SALVANDO..." : "SALVAR"}</Button>
-          <Button variant="ghost" className="font-dm text-muted-foreground" onClick={() => setForm(row)}>DESCARTAR</Button>
+          <Button variant="ghost" className="font-dm text-muted-foreground"
+            onClick={() => { setForm(row); setEditing(false); }}>CANCELAR</Button>
         </div>
       )}
     </div>
