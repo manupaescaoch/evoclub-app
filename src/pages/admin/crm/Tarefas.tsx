@@ -49,7 +49,7 @@ const PRIORITIES = [
   { value: "high", label: "Alta", color: "bg-amber-100 text-amber-700" },
   { value: "urgent", label: "Urgente", color: "bg-red-100 text-red-700" },
 ];
-const CATEGORIES = ["Comercial","Financeiro","Operacional","Marketing","Manutenção","Cobrança","Atendimento","Treinos","Outros"];
+
 const SECTORS = ["Recepção","Técnico","Comercial","Gerência","Manutenção","Limpeza"];
 const RECURRENCES = [
   { value: "none", label: "Única" },
