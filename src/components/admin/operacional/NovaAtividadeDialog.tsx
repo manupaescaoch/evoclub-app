@@ -90,16 +90,19 @@ export default function NovaAtividadeDialog({
     const start = new Date(`${date}T12:00:00`);
     if (recurrence === "once") return [iso(start)];
     if (recurrence === "monthly") {
-      return Array.from({ length: 6 }, (_, i) => {
-        const d = new Date(start.getFullYear(), start.getMonth() + i, start.getDate(), 12);
-        return iso(d);
+      const dayOfMonth = start.getDate();
+      return Array.from({ length: HORIZON_MONTHS }, (_, i) => {
+        const lastDay = new Date(start.getFullYear(), start.getMonth() + i + 1, 0).getDate();
+        return iso(new Date(start.getFullYear(), start.getMonth() + i, Math.min(dayOfMonth, lastDay), 12));
       });
     }
-    const span = recurrence === "daily" ? 30 : 56;
     const out: string[] = [];
-    for (let i = 0; i < span; i++) {
+    for (let i = 0; i < HORIZON_DAYS; i++) {
       const d = addDays(start, i);
-      if (recurrence === "weekly" && days.length && !days.includes(d.getDay())) continue;
+      if (recurrence === "weekly") {
+        const alvo = days.length ? days : [start.getDay()];
+        if (!alvo.includes(d.getDay())) continue;
+      }
       out.push(iso(d));
     }
     return out;
