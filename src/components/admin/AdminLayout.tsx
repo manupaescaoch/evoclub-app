@@ -159,7 +159,7 @@ const AdminLayout = () => {
       clearTimeout(t);
       window.removeEventListener("resize", measure);
     };
-  });
+  }, [location.pathname, accessLoading]);
 
   // Auto-expand menu when navigating to any of its child routes
   useEffect(() => {
