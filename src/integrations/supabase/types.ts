@@ -6109,6 +6109,127 @@ export type Database = {
           },
         ]
       }
+      turnstile_access_events: {
+        Row: {
+          allowed: boolean
+          client_id: number | null
+          created_at: string
+          device_id: string | null
+          direction: string
+          event_at: string
+          id: string
+          identifier: string | null
+          method: string | null
+          raw: Json | null
+          reason: string | null
+          unit_id: string | null
+        }
+        Insert: {
+          allowed?: boolean
+          client_id?: number | null
+          created_at?: string
+          device_id?: string | null
+          direction?: string
+          event_at?: string
+          id?: string
+          identifier?: string | null
+          method?: string | null
+          raw?: Json | null
+          reason?: string | null
+          unit_id?: string | null
+        }
+        Update: {
+          allowed?: boolean
+          client_id?: number | null
+          created_at?: string
+          device_id?: string | null
+          direction?: string
+          event_at?: string
+          id?: string
+          identifier?: string | null
+          method?: string | null
+          raw?: Json | null
+          reason?: string | null
+          unit_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "turnstile_access_events_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "client_overview"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "turnstile_access_events_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "turnstile_access_events_device_id_fkey"
+            columns: ["device_id"]
+            isOneToOne: false
+            referencedRelation: "turnstile_devices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "turnstile_access_events_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "units"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      turnstile_devices: {
+        Row: {
+          active: boolean
+          agent_key: string
+          created_at: string
+          endpoint: string | null
+          id: string
+          last_seen_at: string | null
+          model: string | null
+          name: string
+          unit_id: string | null
+          vendor: string
+        }
+        Insert: {
+          active?: boolean
+          agent_key?: string
+          created_at?: string
+          endpoint?: string | null
+          id?: string
+          last_seen_at?: string | null
+          model?: string | null
+          name: string
+          unit_id?: string | null
+          vendor?: string
+        }
+        Update: {
+          active?: boolean
+          agent_key?: string
+          created_at?: string
+          endpoint?: string | null
+          id?: string
+          last_seen_at?: string | null
+          model?: string | null
+          name?: string
+          unit_id?: string | null
+          vendor?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "turnstile_devices_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "units"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       units: {
         Row: {
           address: string | null
@@ -7321,6 +7442,16 @@ export type Database = {
           unit_id: string
           unit_name: string
           within_radius: boolean
+        }[]
+      }
+      turnstile_roster: {
+        Args: { _unit: string }
+        Returns: {
+          allowed: boolean
+          client_id: number
+          cpf: string
+          name: string
+          reason: string
         }[]
       }
       unassign_professor: { Args: { _booking_id: string }; Returns: Json }

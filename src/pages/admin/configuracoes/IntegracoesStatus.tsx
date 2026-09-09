@@ -18,7 +18,7 @@ const ITEMS: { name: string; status: St; where: string; note: string }[] = [
   { name: "E-mail (SMTP)", status: "pending", where: "Notificações e recibos", note: "Preencha o servidor abaixo e cadastre a senha nos segredos do backend." },
   { name: "Bioimpedância", status: "manual", where: "Avaliações › Realizar avaliação", note: "Dados digitados manualmente; sem leitura direta da balança." },
   { name: "Apple Health / Health Connect", status: "pending", where: "App do aluno › Saúde e Evolução", note: "Peso e métricas ainda registrados manualmente pelo aluno." },
-  { name: "Catraca / controle de acesso", status: "pending", where: "Entrada da unidade (Bloco 12)", note: "Não implementada. Campos abaixo servem apenas para registro do equipamento." },
+  { name: "Catraca / controle de acesso", status: "pending", where: "Configurações › Catraca e entrada da unidade", note: "Lado do sistema pronto: cadastro da catraca, chave do agente e registro de acessos. Falta instalar o agente local na academia." },
 ];
 
 export default function IntegracoesStatus() {

@@ -6,7 +6,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { Building2, Sliders, Plug, User, KeyRound, LogOut, Save, ScrollText, MapPin, Layers, CalendarClock, Dumbbell, ClipboardList, Users, Bell } from "lucide-react";
+import { Building2, Sliders, Plug, User, KeyRound, LogOut, Save, ScrollText, MapPin, Layers, CalendarClock, Dumbbell, ClipboardList, Users, Bell, DoorOpen } from "lucide-react";
+import CatracaTab from "@/pages/admin/configuracoes/CatracaTab";
 import AuditLogTab from "@/components/admin/AuditLogTab";
 import { logSensitive } from "@/lib/audit";
 import UnidadesTab from "@/pages/admin/configuracoes/UnidadesTab";
@@ -15,7 +16,7 @@ import NotificacoesTab from "@/pages/admin/configuracoes/NotificacoesTab";
 import IntegracoesStatus from "@/pages/admin/configuracoes/IntegracoesStatus";
 import { GradeConfigTab, TreinosConfigTab, AvaliacoesConfigTab, CrmConfigTab } from "@/pages/admin/configuracoes/RegrasTabs";
 
-type TabKey = "empresa" | "unidades" | "planos" | "grade" | "treinos" | "avaliacoes" | "crm" | "notificacoes" | "sistema" | "integracoes" | "conta" | "auditoria";
+type TabKey = "empresa" | "unidades" | "planos" | "grade" | "treinos" | "avaliacoes" | "crm" | "notificacoes" | "sistema" | "integracoes" | "catraca" | "conta" | "auditoria";
 
 const TABS: { key: TabKey; label: string; icon: any }[] = [
   { key: "empresa", label: "Dados da empresa", icon: Building2 },
@@ -28,6 +29,7 @@ const TABS: { key: TabKey; label: string; icon: any }[] = [
   { key: "notificacoes", label: "Notificações", icon: Bell },
   { key: "sistema", label: "Preferências do sistema", icon: Sliders },
   { key: "integracoes", label: "Integrações", icon: Plug },
+  { key: "catraca", label: "Catraca", icon: DoorOpen },
   { key: "conta", label: "Conta e segurança", icon: User },
   { key: "auditoria", label: "Auditoria", icon: ScrollText },
 ];
@@ -327,6 +329,8 @@ const Configuracoes = () => {
           </div>
         </div>
       )}
+
+      {tab === "catraca" && <CatracaTab />}
 
       {tab === "auditoria" && <AuditLogTab />}
 
