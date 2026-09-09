@@ -126,6 +126,8 @@ const ClubTab = () => {
 const MemberCard = ({
   name, memberId, studentId, total,
 }: { name: string; memberId: string; studentId: string | null; total: number }) => {
+  const { unit } = useStudentUnit();
+  const unitName = unit?.name || "EVO Club";
   const [full, setFull] = useState(false);
   const value = studentId ? `EVOCLUB-MEMBER|${studentId}` : "";
 
