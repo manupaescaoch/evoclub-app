@@ -16,7 +16,7 @@ import ExperimentaisHoje from "./ExperimentaisHoje";
 import FollowUpReguas, { RULES, type RuleKey } from "./FollowUpReguas";
 import RankingsComerciais, { type RankRow } from "./RankingsComerciais";
 
-type Meta = { meta_matriculas: number; meta_experimentais: number; alunos_ativos: number };
+type Meta = { meta_matriculas: number; meta_experimentais: number; alunos_ativos: number; meta_alunos_ativos: number };
 
 const pad = (n: number) => String(n).padStart(2, "0");
 const isoDay = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
