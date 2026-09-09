@@ -36,6 +36,7 @@ const selectClass =
   "h-9 px-2 rounded-md border border-input bg-background text-xs font-dm text-foreground focus:outline-none focus:ring-1 focus:ring-primary";
 
 const Clientes = () => {
+  const navigate = useNavigate();
   const { units, filterId } = useUnit();
   const { can, isAdmin } = useAccess();
   const canCreate = isAdmin || can("clientes", "create");
