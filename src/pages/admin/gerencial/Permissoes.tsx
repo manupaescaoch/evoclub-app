@@ -35,7 +35,7 @@ const ACTIONS = [
   { key: "create", label: "Criar" },
   { key: "edit", label: "Editar" },
   { key: "delete", label: "Excluir" },
-  { key: "sensitive", label: "Sensível" },
+  { key: "sensitive", label: "Dados pessoais" },
 ];
 
 

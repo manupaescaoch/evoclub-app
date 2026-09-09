@@ -13,7 +13,7 @@ export const ACTION_LABEL: Record<string, string> = {
   create: "Criar",
   edit: "Editar",
   delete: "Excluir",
-  sensitive: "Ação sensível",
+  sensitive: "Dados pessoais",
 };
 
 type AccessCtx = {
