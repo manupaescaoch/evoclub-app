@@ -234,9 +234,6 @@ const GradeTab = () => {
                   <div>
                     <div className="flex items-center gap-2 flex-wrap">
                       <p className="font-dm font-semibold text-sm text-foreground">{c.name || "Musculação"}</p>
-                      {isPeak && (
-                        <span className="text-[9px] font-barlow font-bold tracking-[1px] uppercase bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full">HORÁRIO NOBRE</span>
-                      )}
                       {tag && (
                         <span className="text-[9px] font-barlow font-bold tracking-[1px] uppercase bg-primary/10 text-primary px-2 py-0.5 rounded-full">{tag}</span>
                       )}
