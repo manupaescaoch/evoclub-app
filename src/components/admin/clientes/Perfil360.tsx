@@ -49,7 +49,9 @@ export default function Perfil360({ client, onClose, onSaved, variant = "overlay
                 </p>
               </div>
             </div>
-            <button onClick={onClose} aria-label="Fechar" className="shrink-0 h-11 w-11 -mr-2 -mt-2 flex items-center justify-center text-muted-foreground hover:text-foreground"><X size={22} /></button>
+            <button onClick={onClose} aria-label={isPage ? "Voltar" : "Fechar"} className="shrink-0 h-11 w-11 -mr-2 -mt-2 flex items-center justify-center text-muted-foreground hover:text-foreground">
+              {isPage ? <ArrowLeft size={22} /> : <X size={22} />}
+            </button>
           </div>
           <div className="flex gap-4 px-4 overflow-x-auto no-scrollbar momentum-scroll">
             {TABS.map(t => (
