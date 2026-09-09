@@ -157,6 +157,7 @@ const App = () => (
             <Route path="leads/dashboard" element={<Navigate to="/admin/crm" replace />} />
             <Route path="leads/:id" element={<ModuleGuard module="crm"><LeadDetalhe /></ModuleGuard>} />
             <Route path="crm" element={<ModuleGuard module="crm"><CRM /></ModuleGuard>} />
+            <Route path="comercial" element={<ModuleGuard module="crm"><Comercial /></ModuleGuard>} />
             <Route path="crm/comissoes" element={<ModuleGuard module="crm"><Comissoes /></ModuleGuard>} />
             <Route path="crm/indicacoes" element={<ModuleGuard module="crm"><Indicacoes /></ModuleGuard>} />
             <Route path="crm/tarefas" element={<ModuleGuard module="crm"><Tarefas /></ModuleGuard>} />
