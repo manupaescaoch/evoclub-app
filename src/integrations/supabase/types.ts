@@ -5214,6 +5214,274 @@ export type Database = {
           },
         ]
       }
+      retro_badge_rules: {
+        Row: {
+          active: boolean
+          code: string
+          created_at: string
+          description: string | null
+          label: string
+          metric: string
+          sort_order: number
+          threshold: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          code: string
+          created_at?: string
+          description?: string | null
+          label: string
+          metric: string
+          sort_order?: number
+          threshold: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          code?: string
+          created_at?: string
+          description?: string | null
+          label?: string
+          metric?: string
+          sort_order?: number
+          threshold?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      retro_consents: {
+        Row: {
+          allow_photos: boolean
+          allow_public_share: boolean
+          client_id: number
+          created_at: string
+          ranking_opt_out: boolean
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          allow_photos?: boolean
+          allow_public_share?: boolean
+          client_id: number
+          created_at?: string
+          ranking_opt_out?: boolean
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          allow_photos?: boolean
+          allow_public_share?: boolean
+          client_id?: number
+          created_at?: string
+          ranking_opt_out?: boolean
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
+      retro_events: {
+        Row: {
+          actor: string | null
+          actor_name: string | null
+          created_at: string
+          detail: string | null
+          id: string
+          kind: string
+          retrospective_id: string
+        }
+        Insert: {
+          actor?: string | null
+          actor_name?: string | null
+          created_at?: string
+          detail?: string | null
+          id?: string
+          kind: string
+          retrospective_id: string
+        }
+        Update: {
+          actor?: string | null
+          actor_name?: string | null
+          created_at?: string
+          detail?: string | null
+          id?: string
+          kind?: string
+          retrospective_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "retro_events_retrospective_id_fkey"
+            columns: ["retrospective_id"]
+            isOneToOne: false
+            referencedRelation: "retrospectives"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      retro_share_links: {
+        Row: {
+          allow_health: boolean
+          allow_photos: boolean
+          created_at: string
+          created_by: string | null
+          expires_at: string | null
+          id: string
+          last_viewed_at: string | null
+          retrospective_id: string
+          revoked_at: string | null
+          social_mode: boolean
+          token: string
+          views: number
+        }
+        Insert: {
+          allow_health?: boolean
+          allow_photos?: boolean
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string | null
+          id?: string
+          last_viewed_at?: string | null
+          retrospective_id: string
+          revoked_at?: string | null
+          social_mode?: boolean
+          token: string
+          views?: number
+        }
+        Update: {
+          allow_health?: boolean
+          allow_photos?: boolean
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string | null
+          id?: string
+          last_viewed_at?: string | null
+          retrospective_id?: string
+          revoked_at?: string | null
+          social_mode?: boolean
+          token?: string
+          views?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "retro_share_links_retrospective_id_fkey"
+            columns: ["retrospective_id"]
+            isOneToOne: false
+            referencedRelation: "retrospectives"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      retrospectives: {
+        Row: {
+          card_order: string[]
+          client_id: number
+          created_at: string
+          created_by: string | null
+          custom_texts: Json
+          first_viewed_at: string | null
+          generated_at: string | null
+          hidden_cards: string[]
+          highlights: Json
+          id: string
+          next_cycle: Json
+          period_from: string
+          period_kind: string
+          period_to: string
+          renewal_outcome: string | null
+          renewal_request_id: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          reviewed_by_name: string | null
+          sent_at: string | null
+          sent_channel: string | null
+          snapshot: Json | null
+          status: string
+          supersedes_id: string | null
+          team_message: string | null
+          team_message_by: string | null
+          team_message_kind: string | null
+          team_message_name: string | null
+          team_message_url: string | null
+          trigger: string | null
+          unit_id: string | null
+          updated_at: string
+          version: number
+          views: number
+        }
+        Insert: {
+          card_order?: string[]
+          client_id: number
+          created_at?: string
+          created_by?: string | null
+          custom_texts?: Json
+          first_viewed_at?: string | null
+          generated_at?: string | null
+          hidden_cards?: string[]
+          highlights?: Json
+          id?: string
+          next_cycle?: Json
+          period_from: string
+          period_kind?: string
+          period_to: string
+          renewal_outcome?: string | null
+          renewal_request_id?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          reviewed_by_name?: string | null
+          sent_at?: string | null
+          sent_channel?: string | null
+          snapshot?: Json | null
+          status?: string
+          supersedes_id?: string | null
+          team_message?: string | null
+          team_message_by?: string | null
+          team_message_kind?: string | null
+          team_message_name?: string | null
+          team_message_url?: string | null
+          trigger?: string | null
+          unit_id?: string | null
+          updated_at?: string
+          version?: number
+          views?: number
+        }
+        Update: {
+          card_order?: string[]
+          client_id?: number
+          created_at?: string
+          created_by?: string | null
+          custom_texts?: Json
+          first_viewed_at?: string | null
+          generated_at?: string | null
+          hidden_cards?: string[]
+          highlights?: Json
+          id?: string
+          next_cycle?: Json
+          period_from?: string
+          period_kind?: string
+          period_to?: string
+          renewal_outcome?: string | null
+          renewal_request_id?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          reviewed_by_name?: string | null
+          sent_at?: string | null
+          sent_channel?: string | null
+          snapshot?: Json | null
+          status?: string
+          supersedes_id?: string | null
+          team_message?: string | null
+          team_message_by?: string | null
+          team_message_kind?: string | null
+          team_message_name?: string | null
+          team_message_url?: string | null
+          trigger?: string | null
+          unit_id?: string | null
+          updated_at?: string
+          version?: number
+          views?: number
+        }
+        Relationships: []
+      }
       sales: {
         Row: {
           client_id: number | null
@@ -7669,6 +7937,72 @@ export type Database = {
         Args: { _id: string; _note?: string; _status: string }
         Returns: Json
       }
+      retro_approve: { Args: { _id: string }; Returns: Json }
+      retro_auto_generate: { Args: never; Returns: Json }
+      retro_can_read: { Args: { _client_id: number }; Returns: boolean }
+      retro_compute: {
+        Args: { _client_id: number; _from: string; _to: string }
+        Returns: Json
+      }
+      retro_dashboard: {
+        Args: { _from?: string; _to?: string; _unit_id?: string }
+        Returns: Json
+      }
+      retro_generate: {
+        Args: {
+          _client_id: number
+          _from?: string
+          _kind?: string
+          _to?: string
+          _trigger?: string
+        }
+        Returns: Json
+      }
+      retro_highlights: { Args: { _snap: Json }; Returns: Json }
+      retro_mark_sent: {
+        Args: { _channel?: string; _id: string }
+        Returns: Json
+      }
+      retro_my: { Args: never; Returns: Json }
+      retro_open: { Args: { _token: string }; Returns: Json }
+      retro_period: {
+        Args: {
+          _client_id: number
+          _from?: string
+          _kind: string
+          _to?: string
+        }
+        Returns: Json
+      }
+      retro_renew_intent: {
+        Args: { _note?: string; _token: string }
+        Returns: Json
+      }
+      retro_review_save: {
+        Args: {
+          _hidden?: string[]
+          _highlights?: Json
+          _id: string
+          _next_cycle?: Json
+          _order?: string[]
+          _team_kind?: string
+          _team_message?: string
+          _team_url?: string
+          _texts?: Json
+        }
+        Returns: Json
+      }
+      retro_share_create: {
+        Args: {
+          _allow_health?: boolean
+          _allow_photos?: boolean
+          _days?: number
+          _id: string
+          _social?: boolean
+        }
+        Returns: Json
+      }
+      retro_share_revoke: { Args: { _link_id: string }; Returns: Json }
       schedule_copy_previous: {
         Args: { _from_date: string; _to_date: string; _unit_id: string }
         Returns: Json
