@@ -134,6 +134,8 @@ const AdminLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [openMenus, setOpenMenus] = useState<Set<string>>(new Set());
   const [closedMenus, setClosedMenus] = useState<Set<string>>(new Set());
+  const navRef = useRef<HTMLElement | null>(null);
+  const [indicator, setIndicator] = useState<{ top: number; height: number; show: boolean }>({ top: 0, height: 0, show: false });
 
   // Auto-expand menu when navigating to any of its child routes
   useEffect(() => {
