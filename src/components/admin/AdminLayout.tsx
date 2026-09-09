@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import {
   LayoutDashboard, Users, CalendarDays, Megaphone, DollarSign,
   BarChart3, Dumbbell, Settings, Sparkles, HelpCircle, LogOut,
-  Search, Bell, ChevronDown, ClipboardList, Library, Wrench, Menu, X, ClipboardEdit,
+  Search, Bell, ChevronDown, ClipboardList, Library, Wrench, X, ClipboardEdit,
   FileSignature, CalendarRange, UserCog, Truck, ShieldCheck, Tag, Ticket, TrendingUp,
   Gift, ListTodo, ClipboardCheck, CalendarClock, HeartPulse, AlertTriangle,
   Clock, Trophy, History, Inbox, Workflow, RefreshCw,
@@ -16,6 +16,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { logAudit } from "@/lib/audit";
 import { useAccess, ModuleKey } from "@/contexts/AccessContext";
 import { UnitSelect, PeriodSelect } from "@/components/admin/ScopeSelectors";
+import AdminBottomNav from "@/components/admin/AdminBottomNav";
 
 type NavItem = {
   label: string;
@@ -158,7 +159,7 @@ const AdminLayout = () => {
       clearTimeout(t);
       window.removeEventListener("resize", measure);
     };
-  });
+  }, [location.pathname, accessLoading]);
 
   // Auto-expand menu when navigating to any of its child routes
   useEffect(() => {
@@ -405,15 +406,6 @@ const AdminLayout = () => {
         {/* Topbar */}
         <header className="min-h-14 bg-card border-b border-border flex items-center justify-between gap-2 px-3 md:px-6 sticky top-0 z-30 safe-top">
           <div className="flex items-center gap-2 min-w-0 flex-1 overflow-x-auto no-scrollbar momentum-scroll py-2">
-            {isMobile && (
-              <button
-                onClick={() => setSidebarOpen(true)}
-                aria-label="Abrir menu"
-                className="text-foreground shrink-0 h-11 w-11 -ml-2 flex items-center justify-center"
-              >
-                <Menu size={22} />
-              </button>
-            )}
             <UnitSelect />
             <PeriodSelect />
           </div>
@@ -455,10 +447,13 @@ const AdminLayout = () => {
         </header>
 
         {/* Content */}
-        <main className="flex-1 min-w-0 max-w-full p-4 md:p-6 bg-background overflow-y-auto overflow-x-hidden momentum-scroll safe-bottom">
+        <main className="flex-1 min-w-0 max-w-full p-4 md:p-6 pb-24 md:pb-6 bg-background overflow-y-auto overflow-x-hidden momentum-scroll safe-bottom">
           <Outlet />
         </main>
       </div>
+
+      {/* Navegação inferior elástica no mobile */}
+      {isMobile && <AdminBottomNav onMenuToggle={() => setSidebarOpen((s) => !s)} />}
     </div>
   );
 };
