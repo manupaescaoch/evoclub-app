@@ -243,6 +243,22 @@ const AdminLayout = () => {
 
   const visibleItems = accessLoading ? navItems : navItems.filter(i => can(i.module, "view"));
 
+  const norm = (s: string) =>
+    s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  const q = norm(navQuery.trim());
+  const searchResults = !q
+    ? null
+    : visibleItems.flatMap((item) => {
+        const out: { label: string; path: string; icon: React.ElementType; parent?: string }[] = [];
+        if (norm(item.label).includes(q)) out.push({ label: item.label, path: item.path, icon: item.icon });
+        (item.children || []).forEach((c) => {
+          if (norm(c.label).includes(q) || norm(item.label).includes(q))
+            out.push({ label: c.label, path: c.path, icon: c.icon, parent: item.label });
+        });
+        return out;
+      });
+
+
   const sidebarContent = (
     <>
       {/* Logo */}
