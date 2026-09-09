@@ -402,7 +402,10 @@ const AdminLayout = () => {
             </Link>
           );
         })}
+        </>
+        )}
       </nav>
+
 
       {/* User */}
       <div className="p-4 border-t border-white/10">
