@@ -93,6 +93,19 @@ export default function Permissoes() {
   };
   const isChecked = (modKey: string, actKey: string) => (form.modules?.[modKey] || []).includes(actKey);
 
+  const setGroupAll = (modKey: string, on: boolean) => {
+    const mods = { ...(form.modules || {}) } as Record<string, string[]>;
+    if (on) mods[modKey] = ACTIONS.map(a => a.key);
+    else delete mods[modKey];
+    setForm({ ...form, modules: mods });
+  };
+  const setAllGlobal = (on: boolean) => {
+    if (!on) { setForm({ ...form, modules: {} }); return; }
+    const mods: Record<string, string[]> = {};
+    GROUPS.forEach(g => { mods[g.key] = ACTIONS.map(a => a.key); });
+    setForm({ ...form, modules: mods });
+  };
+
   const save = async () => {
     if (!form.name) { toast.error("Nome obrigatório"); return; }
     const payload: any = { ...form }; delete payload.id;
