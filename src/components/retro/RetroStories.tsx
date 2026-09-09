@@ -15,6 +15,8 @@ type Props = {
   onClose?: () => void;
   onRenew?: () => void;
   onShare?: () => void;
+  /** Ocupa a tela inteira (sem rolagem), estilo stories. */
+  fullscreen?: boolean;
 };
 
 const GRADIENTS = [
