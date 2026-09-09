@@ -6,12 +6,15 @@ import FilaAcaoAlunos from "@/components/admin/crm/FilaAcaoAlunos";
 
 export default function CRM() {
   const { units, filterId } = useUnit();
-  const unidadeNome = units.find(u => u.id === (filterId || units[0]?.id))?.name || "todas as unidades";
+  const unidade = filterId ? units.find((u) => u.id === filterId) : null;
+  const subtitulo = filterId
+    ? `Metas, funil, réguas de follow up e operação do dia — ${unidade?.name || "unidade selecionada"}.`
+    : "Resultados consolidados de todas as unidades.";
 
   return (
     <PageShell
       title="CRM — DASHBOARD COMERCIAL"
-      description={`Metas, funil, réguas de follow up e operação do dia — ${unidadeNome}.`}
+      description={subtitulo}
     >
       <ComercialPanel indicadores={<CrmDashboard />} />
       <FilaAcaoAlunos />

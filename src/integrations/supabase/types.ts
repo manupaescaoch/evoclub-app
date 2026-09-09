@@ -3556,6 +3556,7 @@ export type Database = {
           created_at: string
           id: string
           mes_referencia: string
+          meta_alunos_ativos: number
           meta_experimentais: number
           meta_matriculas: number
           unidade_id: string
@@ -3566,6 +3567,7 @@ export type Database = {
           created_at?: string
           id?: string
           mes_referencia: string
+          meta_alunos_ativos?: number
           meta_experimentais?: number
           meta_matriculas?: number
           unidade_id: string
@@ -3576,6 +3578,7 @@ export type Database = {
           created_at?: string
           id?: string
           mes_referencia?: string
+          meta_alunos_ativos?: number
           meta_experimentais?: number
           meta_matriculas?: number
           unidade_id?: string

@@ -16,7 +16,7 @@ import ExperimentaisHoje from "./ExperimentaisHoje";
 import FollowUpReguas, { RULES, type RuleKey } from "./FollowUpReguas";
 import RankingsComerciais, { type RankRow } from "./RankingsComerciais";
 
-type Meta = { meta_matriculas: number; meta_experimentais: number; alunos_ativos: number };
+type Meta = { meta_matriculas: number; meta_experimentais: number; alunos_ativos: number; meta_alunos_ativos: number };
 
 const pad = (n: number) => String(n).padStart(2, "0");
 const isoDay = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
@@ -79,7 +79,7 @@ export default function ComercialPanel({ indicadores }: { indicadores?: ReactNod
 
   const months = useMemo(monthOptions, []);
   const [mes, setMes] = useState(months[0].value);
-  const [meta, setMeta] = useState<Meta>({ meta_matriculas: 0, meta_experimentais: 0, alunos_ativos: 0 });
+  const [meta, setMeta] = useState<Meta>({ meta_matriculas: 0, meta_experimentais: 0, alunos_ativos: 0, meta_alunos_ativos: 0 });
   const [savingMeta, setSavingMeta] = useState(false);
   const [rule, setRule] = useState<RuleKey>("sem_contato");
 
@@ -98,12 +98,13 @@ export default function ComercialPanel({ indicadores }: { indicadores?: ReactNod
     if (!unidadeId) return;
     (async () => {
       const { data } = await supabase
-        .from("metas").select("meta_matriculas,meta_experimentais,alunos_ativos")
+        .from("metas").select("meta_matriculas,meta_experimentais,alunos_ativos,meta_alunos_ativos")
         .eq("unidade_id", unidadeId).eq("mes_referencia", mes).maybeSingle();
       setMeta({
         meta_matriculas: (data as any)?.meta_matriculas || 0,
         meta_experimentais: (data as any)?.meta_experimentais || 0,
         alunos_ativos: (data as any)?.alunos_ativos || 0,
+        meta_alunos_ativos: (data as any)?.meta_alunos_ativos || 0,
       });
     })();
   }, [unidadeId, mes]);
@@ -246,11 +247,12 @@ export default function ComercialPanel({ indicadores }: { indicadores?: ReactNod
             <Target size={16} className="text-primary" />
             <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">Metas do mês</p>
           </div>
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
             {([
               ["Matrículas", "meta_matriculas"],
               ["Exp.", "meta_experimentais"],
               ["Ativos", "alunos_ativos"],
+              ["Meta ativos", "meta_alunos_ativos"],
             ] as [string, keyof Meta][]).map(([label, key]) => (
               <label key={key} className="text-[11px] text-muted-foreground">
                 {label}
