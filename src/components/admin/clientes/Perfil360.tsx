@@ -64,7 +64,7 @@ export default function Perfil360({ client, onClose, onSaved, variant = "overlay
           </div>
         </div>
 
-        <div className="p-4 pb-24 safe-bottom">
+        <div className={isPage ? "p-4 pb-10" : "p-4 pb-24 safe-bottom"}>
           {tab === "resumo" && <ResumoTab c={client} onGoTab={setTab} />}
           {tab === "dados" && <DadosTab c={client} onSaved={onSaved} />}
           {tab === "frequencia" && <FrequenciaTab c={client} />}
