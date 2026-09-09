@@ -7413,12 +7413,16 @@ export type Database = {
           client_id: number
           client_name: string
           created_at: string
+          created_by: string
+          created_by_name: string
           description: string
           id: string
           owner_id: string
           owner_name: string
           resolution_note: string
           resolved_at: string
+          resolved_by: string
+          resolved_by_name: string
           severity: string
           source_table: string
           status: string
