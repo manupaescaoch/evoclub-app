@@ -140,6 +140,77 @@ export type Database = {
         }
         Relationships: []
       }
+      ad_metrics: {
+        Row: {
+          ad: string | null
+          ad_account: string | null
+          adset: string | null
+          campaign: string | null
+          clicks: number
+          conversations: number
+          created_at: string
+          created_by: string | null
+          date: string
+          id: string
+          impressions: number
+          platform: string
+          reach: number
+          source: string
+          spend: number
+          status: string | null
+          unit_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          ad?: string | null
+          ad_account?: string | null
+          adset?: string | null
+          campaign?: string | null
+          clicks?: number
+          conversations?: number
+          created_at?: string
+          created_by?: string | null
+          date: string
+          id?: string
+          impressions?: number
+          platform?: string
+          reach?: number
+          source?: string
+          spend?: number
+          status?: string | null
+          unit_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          ad?: string | null
+          ad_account?: string | null
+          adset?: string | null
+          campaign?: string | null
+          clicks?: number
+          conversations?: number
+          created_at?: string
+          created_by?: string | null
+          date?: string
+          id?: string
+          impressions?: number
+          platform?: string
+          reach?: number
+          source?: string
+          spend?: number
+          status?: string | null
+          unit_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ad_metrics_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "units"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       anamnesis: {
         Row: {
           client_id: number | null
@@ -3443,8 +3514,12 @@ export type Database = {
           hora_experimental: string | null
           id: string
           lead_id: string
+          motivo_nao_fechamento: string | null
           plano_escolhido: string | null
           quem_agendou: string | null
+          reagendada: boolean
+          responsavel_presencial: string | null
+          status_confirmacao: string | null
           tipo: string
           unidade_id: string
           updated_at: string
@@ -3464,8 +3539,12 @@ export type Database = {
           hora_experimental?: string | null
           id?: string
           lead_id: string
+          motivo_nao_fechamento?: string | null
           plano_escolhido?: string | null
           quem_agendou?: string | null
+          reagendada?: boolean
+          responsavel_presencial?: string | null
+          status_confirmacao?: string | null
           tipo?: string
           unidade_id: string
           updated_at?: string
@@ -3485,8 +3564,12 @@ export type Database = {
           hora_experimental?: string | null
           id?: string
           lead_id?: string
+          motivo_nao_fechamento?: string | null
           plano_escolhido?: string | null
           quem_agendou?: string | null
+          reagendada?: boolean
+          responsavel_presencial?: string | null
+          status_confirmacao?: string | null
           tipo?: string
           unidade_id?: string
           updated_at?: string
@@ -3511,21 +3594,34 @@ export type Database = {
       }
       leads: {
         Row: {
+          anuncio: string | null
           atendido_por: string | null
           ativo: boolean
           cadastrado_por: string | null
+          campanha: string | null
+          conjunto: string | null
           created_at: string
           created_by: string | null
+          criativo: string | null
           data_aula_experimental: string | null
+          duplicado: boolean
           email: string | null
           hora_aula_experimental: string | null
           id: string
+          matricula_client_id: number | null
+          motivo_desqualificacao: string | null
           nivel_interesse:
             | Database["public"]["Enums"]["lead_nivel_interesse"]
             | null
           nome: string
           observacoes: string | null
           origem: string | null
+          plataforma: string | null
+          primeira_resposta_at: string | null
+          primeiro_canal: string | null
+          primeiro_contato_at: string | null
+          qualidade: string
+          responsavel_id: string | null
           status_funil: Database["public"]["Enums"]["lead_status_funil"]
           status_taxa_experimental:
             | Database["public"]["Enums"]["lead_taxa_status"]
@@ -3534,23 +3630,40 @@ export type Database = {
           telefone_normalizado: string | null
           unidade_id: string
           updated_at: string
+          utm_campaign: string | null
+          utm_content: string | null
+          utm_medium: string | null
+          utm_source: string | null
         }
         Insert: {
+          anuncio?: string | null
           atendido_por?: string | null
           ativo?: boolean
           cadastrado_por?: string | null
+          campanha?: string | null
+          conjunto?: string | null
           created_at?: string
           created_by?: string | null
+          criativo?: string | null
           data_aula_experimental?: string | null
+          duplicado?: boolean
           email?: string | null
           hora_aula_experimental?: string | null
           id?: string
+          matricula_client_id?: number | null
+          motivo_desqualificacao?: string | null
           nivel_interesse?:
             | Database["public"]["Enums"]["lead_nivel_interesse"]
             | null
           nome: string
           observacoes?: string | null
           origem?: string | null
+          plataforma?: string | null
+          primeira_resposta_at?: string | null
+          primeiro_canal?: string | null
+          primeiro_contato_at?: string | null
+          qualidade?: string
+          responsavel_id?: string | null
           status_funil?: Database["public"]["Enums"]["lead_status_funil"]
           status_taxa_experimental?:
             | Database["public"]["Enums"]["lead_taxa_status"]
@@ -3559,23 +3672,40 @@ export type Database = {
           telefone_normalizado?: string | null
           unidade_id: string
           updated_at?: string
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
         }
         Update: {
+          anuncio?: string | null
           atendido_por?: string | null
           ativo?: boolean
           cadastrado_por?: string | null
+          campanha?: string | null
+          conjunto?: string | null
           created_at?: string
           created_by?: string | null
+          criativo?: string | null
           data_aula_experimental?: string | null
+          duplicado?: boolean
           email?: string | null
           hora_aula_experimental?: string | null
           id?: string
+          matricula_client_id?: number | null
+          motivo_desqualificacao?: string | null
           nivel_interesse?:
             | Database["public"]["Enums"]["lead_nivel_interesse"]
             | null
           nome?: string
           observacoes?: string | null
           origem?: string | null
+          plataforma?: string | null
+          primeira_resposta_at?: string | null
+          primeiro_canal?: string | null
+          primeiro_contato_at?: string | null
+          qualidade?: string
+          responsavel_id?: string | null
           status_funil?: Database["public"]["Enums"]["lead_status_funil"]
           status_taxa_experimental?:
             | Database["public"]["Enums"]["lead_taxa_status"]
@@ -3584,8 +3714,33 @@ export type Database = {
           telefone_normalizado?: string | null
           unidade_id?: string
           updated_at?: string
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "leads_matricula_client_id_fkey"
+            columns: ["matricula_client_id"]
+            isOneToOne: false
+            referencedRelation: "client_overview"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leads_matricula_client_id_fkey"
+            columns: ["matricula_client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leads_responsavel_id_fkey"
+            columns: ["responsavel_id"]
+            isOneToOne: false
+            referencedRelation: "collaborators"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "leads_unidade_id_fkey"
             columns: ["unidade_id"]
@@ -3657,7 +3812,9 @@ export type Database = {
           mes_referencia: string
           meta_alunos_ativos: number
           meta_experimentais: number
+          meta_leads: number
           meta_matriculas: number
+          meta_receita_nova: number
           unidade_id: string
           updated_at: string
         }
@@ -3668,7 +3825,9 @@ export type Database = {
           mes_referencia: string
           meta_alunos_ativos?: number
           meta_experimentais?: number
+          meta_leads?: number
           meta_matriculas?: number
+          meta_receita_nova?: number
           unidade_id: string
           updated_at?: string
         }
@@ -3679,7 +3838,9 @@ export type Database = {
           mes_referencia?: string
           meta_alunos_ativos?: number
           meta_experimentais?: number
+          meta_leads?: number
           meta_matriculas?: number
+          meta_receita_nova?: number
           unidade_id?: string
           updated_at?: string
         }
