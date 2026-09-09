@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useUnit } from "@/contexts/UnitContext";
 import { fmtBRL, fmtBRLShort, todayISO, STATUS_LABEL } from "@/lib/finance";
