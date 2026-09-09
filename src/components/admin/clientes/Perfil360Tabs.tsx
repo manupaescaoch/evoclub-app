@@ -890,7 +890,7 @@ export function AvaliacoesTab({ c }: { c: OverviewRow }) {
   const { can, isAdmin } = useAccess();
   const canEdit = isAdmin || can("avaliacao", "edit");
   const [reloadKey, setReloadKey] = useState(0);
-  const a = useClientRows(`physical_assessments${reloadKey ? "" : ""}`, c.id, "client_id", "created_at");
+  const a = useClientRows("physical_assessments", c.id, "client_id", "created_at", reloadKey);
   const [open, setOpen] = useState<any | null>(null);
   const [edit, setEdit] = useState<any | null>(null);
   const [creating, setCreating] = useState(false);
