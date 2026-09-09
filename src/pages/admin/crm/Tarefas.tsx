@@ -350,14 +350,10 @@ export default function Tarefas() {
                 </Select>
               </div>
             </div>
-            <div className="grid grid-cols-3 gap-2">
-              <div><Label>Categoria</Label>
-                <Select value={form.category || ""} onValueChange={v => setForm({ ...form, category: v })}>
-                  <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
-                  <SelectContent>{CATEGORIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
-                </Select>
+            <div className="grid grid-cols-2 gap-2">
+              <div><Label>Data</Label>
+                <Input value={new Date(`${form.due_date || hojeBR()}T12:00:00`).toLocaleDateString("pt-BR")} readOnly className="bg-muted/50" />
               </div>
-              <div><Label>Data</Label><Input type="date" value={form.due_date || ""} onChange={e => setForm({ ...form, due_date: e.target.value })} /></div>
               <div><Label>Hora</Label><Input type="time" value={form.due_time || ""} onChange={e => setForm({ ...form, due_time: e.target.value })} /></div>
             </div>
             <div className="grid grid-cols-2 gap-2">
