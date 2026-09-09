@@ -263,8 +263,23 @@ export default function Ocorrencias() {
                 </div>
                 <div className="rounded-lg border border-border p-2">
                   <span className="block text-muted-foreground">Responsável</span>
-                  <span className="font-semibold">{detail.owner_name || "Sem responsável"}</span>
+                  {canEdit ? (
+                    <select
+                      value={detail.owner_id || ""}
+                      onChange={async e => {
+                        const v = e.target.value;
+                        await assign(detail, v);
+                        setDetail({ ...detail, owner_id: v || null, owner_name: collabs.find(c => c.id === v)?.full_name || null });
+                      }}
+                      className="mt-1 h-8 w-full rounded-lg border border-border bg-card px-2 text-xs font-dm">
+                      <option value="">Sem responsável</option>
+                      {collabs.map(c => <option key={c.id} value={c.id}>{c.full_name}</option>)}
+                    </select>
+                  ) : (
+                    <span className="font-semibold">{detail.owner_name || "Sem responsável"}</span>
+                  )}
                 </div>
+
                 {detail.resolved_by_name && (
                   <div className="rounded-lg border border-border p-2 col-span-2">
                     <span className="block text-muted-foreground">Resolvida por</span>
