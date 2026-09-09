@@ -202,6 +202,7 @@ export function DadosTab({ c, onSaved }: { c: OverviewRow; onSaved: () => void }
   const [form, setForm] = useState<any>({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [editing, setEditing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
