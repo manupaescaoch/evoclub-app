@@ -253,6 +253,8 @@ export function DadosTab({ c, onSaved }: { c: OverviewRow; onSaved: () => void }
       metadata: { sensitive: touchedSensitive, fields: Object.keys(patch) },
     });
     setRow(data);
+    setForm(data || {});
+    setEditing(false);
     toast.success("Dados atualizados.");
     onSaved();
   };
