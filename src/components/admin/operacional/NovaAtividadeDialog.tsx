@@ -189,9 +189,18 @@ export default function NovaAtividadeDialog({
                 ))}
               </div>
               <p className="mt-1 text-xs font-dm text-muted-foreground">
-                Nenhum dia selecionado: valerá para todos os dias.
+                Sem data de fim. Nenhum dia marcado: repete no mesmo dia da semana da data inicial.
               </p>
             </div>
+          )}
+
+          {recurrence === "daily" && (
+            <p className="text-xs font-dm text-muted-foreground">Repete todos os dias, sem data de fim.</p>
+          )}
+          {recurrence === "monthly" && (
+            <p className="text-xs font-dm text-muted-foreground">
+              Repete todo mês no dia {new Date(`${date}T12:00:00`).getDate()}, sem data de fim.
+            </p>
           )}
 
           <div>
