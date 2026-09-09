@@ -67,6 +67,7 @@ import OperacionalFormularios from "./pages/admin/operacional/Formularios.tsx";
 import OperacionalEncerramento from "./pages/admin/operacional/Encerramento.tsx";
 import OperacionalRespostas from "./pages/admin/operacional/Respostas.tsx";
 import FormLink from "./pages/public/FormLink.tsx";
+import RetroPublica from "./pages/public/RetroPublica.tsx";
 import Escala from "./pages/admin/equipe/Escala.tsx";
 import EquipePonto from "./pages/admin/equipe/Ponto.tsx";
 import EquipeDesempenho from "./pages/admin/equipe/Desempenho.tsx";
@@ -146,6 +147,7 @@ const App = () => (
           </Route>
           {/* Formulário público por link rastreável */}
           <Route path="/f/:token" element={<FormLink />} />
+          <Route path="/retro/:token" element={<RetroPublica />} />
           <Route path="/parceiro/:token" element={<PortalParceiro />} />
           <Route path="/admin" element={<AdminLayout />}>
             <Route index element={<ModuleGuard module="dashboard"><Dashboard /></ModuleGuard>} />

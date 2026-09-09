@@ -309,7 +309,7 @@ export function buildStories(snap: RetroSnapshot, opts: BuildOpts = {}): Story[]
       lines: [
         w.top_session ? `O treino ${w.top_session} foi o mais realizado.` : "",
         num(w.minutes) ? `${nice(Math.round(Number(w.minutes) / 60))} horas de treino registradas.` : "",
-        (w.top_exercises || [])[0］ ? "" : "",
+        (w.top_exercises || [])[0]?.name ? `Exercício mais frequente: ${(w.top_exercises || [])[0].name}.` : "",
       ].filter(Boolean),
     });
   }

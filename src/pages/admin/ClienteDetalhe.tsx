@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { OverviewRow } from "@/hooks/useClient360";
 import Perfil360 from "@/components/admin/clientes/Perfil360";
@@ -7,6 +7,7 @@ import Perfil360 from "@/components/admin/clientes/Perfil360";
 export default function ClienteDetalhe() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [params] = useSearchParams();
   const [client, setClient] = useState<OverviewRow | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -34,5 +35,5 @@ export default function ClienteDetalhe() {
       </div>
     );
 
-  return <Perfil360 variant="page" client={client} onClose={voltar} onSaved={load} />;
+  return <Perfil360 variant="page" initialTab={params.get("tab") || "resumo"} client={client} onClose={voltar} onSaved={load} />;
 }

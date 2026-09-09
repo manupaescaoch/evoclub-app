@@ -7,6 +7,7 @@ import {
   AnamneseTab, fmtDate,
 } from "./Perfil360Tabs";
 import ClubEvoTab from "./ClubEvoTab";
+import RetrospectivaTab from "./RetrospectivaTab";
 
 const TABS = [
   { key: "resumo", label: "Resumo" },
@@ -19,16 +20,17 @@ const TABS = [
   { key: "evoclub", label: "EVO Club" },
   { key: "financeiro", label: "Financeiro" },
   { key: "contratos", label: "Contratos" },
+  { key: "retrospectiva", label: "Retrospectiva" },
   { key: "renovacao", label: "Renovação" },
   { key: "indicacoes", label: "Indicações" },
   { key: "ocorrencias", label: "Ocorrências" },
   { key: "historico", label: "Histórico" },
 ];
 
-export default function Perfil360({ client, onClose, onSaved, variant = "overlay" }: {
-  client: OverviewRow; onClose: () => void; onSaved: () => void; variant?: "overlay" | "page";
+export default function Perfil360({ client, onClose, onSaved, variant = "overlay", initialTab = "resumo" }: {
+  client: OverviewRow; onClose: () => void; onSaved: () => void; variant?: "overlay" | "page"; initialTab?: string;
 }) {
-  const [tab, setTab] = useState("resumo");
+  const [tab, setTab] = useState(initialTab);
   const initials = client.name.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase();
   const isPage = variant === "page";
 
@@ -77,6 +79,7 @@ export default function Perfil360({ client, onClose, onSaved, variant = "overlay
           {tab === "evoclub" && <ClubEvoTab c={client} />}
           {tab === "financeiro" && <FinanceiroTab c={client} />}
           {tab === "contratos" && <ContratosTab c={client} />}
+          {tab === "retrospectiva" && <RetrospectivaTab c={client} />}
           {tab === "renovacao" && <RenovacaoTab c={client} />}
           {tab === "indicacoes" && <IndicacoesTab c={client} />}
           {tab === "ocorrencias" && <OcorrenciasTab c={client} />}

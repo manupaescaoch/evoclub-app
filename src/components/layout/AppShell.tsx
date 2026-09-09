@@ -19,6 +19,7 @@ import FotosEvolucaoTab from "../tabs/FotosEvolucaoTab";
 import ContratosTab from "../tabs/ContratosTab";
 import CiclosEvoTab from "../tabs/CiclosEvoTab";
 import ConquistasTab from "../tabs/ConquistasTab";
+import RetrospectivaAlunoTab from "../tabs/RetrospectivaAlunoTab";
 import DailyCheckinDialog from "../tabs/DailyCheckinDialog";
 import CicloEvoDialog from "../tabs/CicloEvoDialog";
 import OnboardingDialog from "../tabs/OnboardingDialog";
@@ -29,7 +30,7 @@ const mainTabs = ["inicio", "grade", "treino", "comunidade", "ranking", "club"] 
 const screens = [
   "perfil", "notificacoes", "saude", "plano", "indicacoes",
   "ajuda", "privacidade", "historico", "avaliacoes", "fotos",
-  "contratos", "ciclos", "conquistas",
+  "contratos", "ciclos", "conquistas", "retrospectiva",
 ] as const;
 type Tab = (typeof mainTabs)[number] | (typeof screens)[number];
 
@@ -62,6 +63,9 @@ const AppShell = () => {
         {activeTab === "contratos" && <ContratosTab onBack={() => setActiveTab("perfil")} />}
         {activeTab === "ciclos" && <CiclosEvoTab onBack={() => setActiveTab("perfil")} />}
         {activeTab === "conquistas" && <ConquistasTab onBack={() => setActiveTab("perfil")} />}
+        {activeTab === "retrospectiva" && (
+          <RetrospectivaAlunoTab onBack={() => setActiveTab("perfil")} onNavigate={go} />
+        )}
         {activeTab === "indicacoes" && <IndicacoesTab onBack={() => setActiveTab("perfil")} />}
         {activeTab === "ajuda" && <AjudaTab onBack={() => setActiveTab("perfil")} />}
         {activeTab === "privacidade" && <PrivacidadeTab onBack={() => setActiveTab("perfil")} />}
