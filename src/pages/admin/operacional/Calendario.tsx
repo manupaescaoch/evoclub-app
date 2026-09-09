@@ -3,10 +3,11 @@ import { supabase } from "@/integrations/supabase/client";
 import PageShell, { LoadingState } from "@/components/admin/gerencial/PageShell";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { useUnit } from "@/contexts/UnitContext";
 import { brToday } from "@/contexts/PeriodContext";
+import NovaAtividadeDialog from "@/components/admin/operacional/NovaAtividadeDialog";
 
 type Task = {
   id: string; title: string; sector: string | null; category: string | null;
