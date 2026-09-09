@@ -22,10 +22,13 @@ const PRIORITIES = [
 ];
 const RECURRENCES = [
   { value: "once", label: "Sem recorrência (uma vez)" },
-  { value: "daily", label: "Diária (30 dias)" },
-  { value: "weekly", label: "Semanal (8 semanas)" },
-  { value: "monthly", label: "Mensal (6 meses)" },
+  { value: "daily", label: "Diária (todos os dias)" },
+  { value: "weekly", label: "Semanal (dias escolhidos)" },
+  { value: "monthly", label: "Mensal (sempre no mesmo dia)" },
 ];
+// Sem data de fim: geramos 12 meses à frente e a agenda segue sendo renovada.
+const HORIZON_DAYS = 365;
+const HORIZON_MONTHS = 12;
 
 const iso = (d: Date) =>
   `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
