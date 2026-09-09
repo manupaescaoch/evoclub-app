@@ -49,6 +49,13 @@ export default function RetroStories(p: Props) {
     return () => window.removeEventListener("keydown", onKey);
   }, [stories.length, p.onClose]);
 
+  useEffect(() => {
+    if (!p.fullscreen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = prev; };
+  }, [p.fullscreen]);
+
   if (!cur) {
     return (
       <div className="flex items-center justify-center p-8 font-dm text-sm text-muted-foreground">
