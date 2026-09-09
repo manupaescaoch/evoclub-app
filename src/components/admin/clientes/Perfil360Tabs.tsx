@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { Lock, AlertTriangle, Download } from "lucide-react";
+import { Lock, AlertTriangle, Download, Pencil } from "lucide-react";
 import { printContract, CONTRACT_STATUS_LABEL, contractStatusClass } from "@/lib/contractPdf";
 import { EmptyState, LoadingState, SummaryCard } from "@/components/admin/gerencial/PageShell";
 import { useAccess } from "@/contexts/AccessContext";
@@ -202,6 +202,7 @@ export function DadosTab({ c, onSaved }: { c: OverviewRow; onSaved: () => void }
   const [form, setForm] = useState<any>({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [editing, setEditing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -235,7 +236,7 @@ export function DadosTab({ c, onSaved }: { c: OverviewRow; onSaved: () => void }
       const v = form[k] === "" ? null : form[k];
       if (JSON.stringify(v ?? null) !== JSON.stringify(row[k] ?? null)) patch[k] = v;
     });
-    if (!Object.keys(patch).length) { setSaving(false); toast.info("Nenhuma alteração."); return; }
+    if (!Object.keys(patch).length) { setSaving(false); setEditing(false); toast.info("Nenhuma alteração."); return; }
     const { data, error } = await supabase.from("clients").update(patch).eq("id", c.id).select().maybeSingle();
     setSaving(false);
     if (error) { toast.error("Erro ao salvar: " + error.message); return; }
@@ -252,6 +253,8 @@ export function DadosTab({ c, onSaved }: { c: OverviewRow; onSaved: () => void }
       metadata: { sensitive: touchedSensitive, fields: Object.keys(patch) },
     });
     setRow(data);
+    setForm(data || {});
+    setEditing(false);
     toast.success("Dados atualizados.");
     onSaved();
   };
@@ -264,11 +267,23 @@ export function DadosTab({ c, onSaved }: { c: OverviewRow; onSaved: () => void }
 
   const Text = ({ k, label, type = "text" }: { k: string; label: string; type?: string }) => (
     <TextField k={k} label={label} type={type} value={form[k] ?? ""}
-      locked={lockedNote(k)} disabled={!canEdit || lockedNote(k)} onChange={set} />
+      locked={lockedNote(k)} disabled={!editing || !canEdit || lockedNote(k)} onChange={set} />
   );
 
   return (
     <div className="space-y-4">
+      <div className="flex items-center justify-between gap-2 rounded-lg border bg-muted/30 px-3 py-2">
+        <p className="text-xs font-dm text-muted-foreground">
+          {editing ? "Modo de edição ativo. Salve para gravar as alterações." : "Dados salvos. Clique em editar para alterar."}
+        </p>
+        {canEdit && !editing && (
+          <Button size="sm" variant="outline" className="font-dm shrink-0"
+            onClick={() => { setForm(row); setEditing(true); }}>
+            <Pencil size={14} className="mr-1.5" /> EDITAR
+          </Button>
+        )}
+      </div>
+
       {!canSensitive && (
         <div className="rounded-lg bg-amber-50 border border-amber-200 p-3 text-xs font-dm text-amber-800 flex items-center gap-2">
           <Lock size={14} /> Dados pessoais (nome, CPF, nascimento, contato, unidade, plano e situação) só podem ser editados por quem tem essa permissão. Dados de saúde, objetivos e limitações seguem liberados.
@@ -286,7 +301,7 @@ export function DadosTab({ c, onSaved }: { c: OverviewRow; onSaved: () => void }
             <label className="text-[11px] font-dm text-muted-foreground flex items-center gap-1">
               Unidade {lockedNote("unit_id") && <Lock size={11} />}
             </label>
-            <select value={form.unit_id ?? ""} disabled={!canEdit || lockedNote("unit_id")}
+            <select value={form.unit_id ?? ""} disabled={!editing || !canEdit || lockedNote("unit_id")}
               onChange={e => set("unit_id", e.target.value || null)}
               className="mt-1 w-full h-9 px-2 rounded-md border border-input bg-background text-sm font-dm disabled:opacity-60">
               <option value="">—</option>
@@ -304,7 +319,7 @@ export function DadosTab({ c, onSaved }: { c: OverviewRow; onSaved: () => void }
             <label className="text-[11px] font-dm text-muted-foreground flex items-center gap-1">
               Status {lockedNote("status") && <Lock size={11} />}
             </label>
-            <select value={form.status ?? "OP"} disabled={!canEdit || lockedNote("status")}
+            <select value={form.status ?? "OP"} disabled={!editing || !canEdit || lockedNote("status")}
               onChange={e => set("status", e.target.value)}
               className="mt-1 w-full h-9 px-2 rounded-md border border-input bg-background text-sm font-dm disabled:opacity-60">
               {Object.entries(STATUS_LABEL).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
@@ -320,29 +335,30 @@ export function DadosTab({ c, onSaved }: { c: OverviewRow; onSaved: () => void }
         <div className="grid md:grid-cols-2 gap-3">
           <div>
             <label className="text-[11px] font-dm text-muted-foreground">Objetivo</label>
-            <textarea value={form.objective ?? ""} disabled={!canEdit}
+            <textarea value={form.objective ?? ""} disabled={!editing || !canEdit}
               onChange={e => set("objective", e.target.value)}
               className="mt-1 w-full h-20 px-3 py-2 rounded-md border border-input bg-background text-sm font-dm resize-none disabled:opacity-60" />
           </div>
           <div>
             <label className="text-[11px] font-dm text-muted-foreground">Limitações</label>
-            <textarea value={form.limitations ?? ""} disabled={!canEdit}
+            <textarea value={form.limitations ?? ""} disabled={!editing || !canEdit}
               onChange={e => set("limitations", e.target.value)}
               className="mt-1 w-full h-20 px-3 py-2 rounded-md border border-input bg-background text-sm font-dm resize-none disabled:opacity-60" />
           </div>
           <div className="md:col-span-2">
             <label className="text-[11px] font-dm text-muted-foreground">Observações</label>
-            <textarea value={form.observations ?? ""} disabled={!canEdit}
+            <textarea value={form.observations ?? ""} disabled={!editing || !canEdit}
               onChange={e => set("observations", e.target.value)}
               className="mt-1 w-full h-20 px-3 py-2 rounded-md border border-input bg-background text-sm font-dm resize-none disabled:opacity-60" />
           </div>
         </div>
       </Section>
 
-      {canEdit && (
+      {canEdit && editing && (
         <div className="flex gap-2">
           <Button onClick={save} disabled={saving} className="font-dm">{saving ? "SALVANDO..." : "SALVAR"}</Button>
-          <Button variant="ghost" className="font-dm text-muted-foreground" onClick={() => setForm(row)}>DESCARTAR</Button>
+          <Button variant="ghost" className="font-dm text-muted-foreground"
+            onClick={() => { setForm(row); setEditing(false); }}>CANCELAR</Button>
         </div>
       )}
     </div>
