@@ -137,7 +137,7 @@ const Transacoes = () => {
 
   // ---------- ações ----------
   const patch = async (ids: string[], values: Record<string, any>, msg: string) => {
-    const { error } = await supabase.from("transactions").update(values).in("id", ids);
+    const { error } = await supabase.from("transactions").update(values as any).in("id", ids);
     if (error) { toast.error(error.message); return; }
     ids.forEach((id) => logUpdate("transaction", id, msg, values, filterId, "financeiro"));
     toast.success(msg);
@@ -364,22 +364,22 @@ const Transacoes = () => {
         ) : (
           <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
             <div>
-              <StatCard label="Saldo do mês" value={fmtBRLShort(balance)} subtext={balanceStatus} trend={balance > 0 ? "up" : balance < 0 ? "down" : undefined} accent />
+              <StatCard label="Saldo do mês" value={fmtBRLShort(balance)} sub={balanceStatus} trend={balance > 0 ? "up" : balance < 0 ? "down" : undefined} accent />
               <VarBadge value={variation(balance, L.prev.balance)} label="vs. mês anterior" />
             </div>
             <div>
-              <StatCard label="Saldo do ano" value={fmtBRLShort(L.yearAgg.balance)} subtext={`Jan–Dez ${year} · ${L.yearAgg.balance === 0 ? "Zerado" : L.yearAgg.balance > 0 ? "Positivo" : "Negativo"}`} />
+              <StatCard label="Saldo do ano" value={fmtBRLShort(L.yearAgg.balance)} sub={`Jan–Dez ${year} · ${L.yearAgg.balance === 0 ? "Zerado" : L.yearAgg.balance > 0 ? "Positivo" : "Negativo"}`} />
             </div>
             <div>
-              <StatCard label="Receitas" value={fmtBRLShort(L.cur.income)} subtext={`${L.cur.incomeCount} lançamentos`} />
+              <StatCard label="Receitas" value={fmtBRLShort(L.cur.income)} sub={`${L.cur.incomeCount} lançamentos`} />
               <VarBadge value={variation(L.cur.income, L.prev.income)} label="vs. mês anterior" />
             </div>
             <div>
-              <StatCard label="Despesas" value={fmtBRLShort(L.cur.expense)} subtext={`${L.cur.expenseCount} lançamentos`} />
+              <StatCard label="Despesas" value={fmtBRLShort(L.cur.expense)} sub={`${L.cur.expenseCount} lançamentos`} />
               <VarBadge value={variation(L.cur.expense, L.prev.expense)} label="vs. mês anterior" invert />
             </div>
             <button className="text-left" onClick={() => { setFKind("expense"); setFStatus("pending"); }}>
-              <StatCard label="Despesas pendentes" value={fmtBRLShort(L.pendingTotal)} subtext={`${L.pendingCount} em aberto · filtrar`} />
+              <StatCard label="Despesas pendentes" value={fmtBRLShort(L.pendingTotal)} sub={`${L.pendingCount} em aberto · filtrar`} />
             </button>
           </div>
         )}
