@@ -15,6 +15,8 @@ type Row = {
   id: string; client_id: number | null; client_name: string | null; unit_id: string | null;
   type: string; severity: string; title: string; description: string | null;
   status: string; owner_id: string | null; owner_name: string | null;
+  created_by: string | null; created_by_name: string | null;
+  resolved_by: string | null; resolved_by_name: string | null;
   resolution_note: string | null; resolved_at: string | null;
   source_table: string | null; created_at: string;
 };
@@ -113,11 +115,31 @@ export default function Ocorrencias() {
     load();
   };
 
+  const notificar = async (collaboratorId: string, r: Row) => {
+    try {
+      const { data, error } = await supabase.functions.invoke("push-staff", {
+        body: {
+          collaborator_id: collaboratorId,
+          title: `Ocorrência atribuída: ${r.title}`,
+          body: [TYPES[r.type] || r.type, `Gravidade ${SEV[r.severity] || r.severity}`].join(" · "),
+          url: "/admin/ocorrencias",
+          kind: "ocorrencia",
+        },
+      });
+      if (error) throw error;
+      if ((data as any)?.message) toast.info((data as any).message);
+      else if ((data as any)?.sent) toast.success("Responsável notificado no celular");
+    } catch {
+      /* notificação é complementar — não bloqueia a atribuição */
+    }
+  };
+
   const assign = async (r: Row, collaboratorId: string) => {
     const { error: err } = await supabase.rpc("occurrence_assign" as any, {
       _id: r.id, _collaborator_id: collaboratorId || null,
     });
     if (err) { toast.error(err.message); return; }
+    if (collaboratorId && collaboratorId !== r.owner_id) await notificar(collaboratorId, r);
     toast.success("Responsável atualizado.");
     load();
   };
@@ -191,7 +213,12 @@ export default function Ocorrencias() {
                       <span className="block font-medium">{r.title}</span>
                       <span className="block text-xs text-muted-foreground truncate">{r.description || "—"}</span>
                     </td>
-                    <td className="px-4 py-3">{new Date(r.created_at).toLocaleDateString("pt-BR")}</td>
+                    <td className="px-4 py-3">
+                      {new Date(r.created_at).toLocaleDateString("pt-BR")}
+                      <span className="block text-[10px] text-muted-foreground">
+                        por {r.created_by_name || "—"}
+                      </span>
+                    </td>
                     <td className="px-4 py-3">
                       {canEdit ? (
                         <select value={r.owner_id || ""} onChange={e => assign(r, e.target.value)}
@@ -229,6 +256,25 @@ export default function Ocorrencias() {
                 {TYPES[detail.type] || detail.type} · {detail.client_name || "sem aluno"} ·{" "}
                 {new Date(detail.created_at).toLocaleString("pt-BR")}
               </p>
+              <div className="grid grid-cols-2 gap-2 text-xs">
+                <div className="rounded-lg border border-border p-2">
+                  <span className="block text-muted-foreground">Aberta por</span>
+                  <span className="font-semibold">{detail.created_by_name || "—"}</span>
+                </div>
+                <div className="rounded-lg border border-border p-2">
+                  <span className="block text-muted-foreground">Responsável</span>
+                  <span className="font-semibold">{detail.owner_name || "Sem responsável"}</span>
+                </div>
+                {detail.resolved_by_name && (
+                  <div className="rounded-lg border border-border p-2 col-span-2">
+                    <span className="block text-muted-foreground">Resolvida por</span>
+                    <span className="font-semibold">
+                      {detail.resolved_by_name}
+                      {detail.resolved_at ? ` · ${new Date(detail.resolved_at).toLocaleString("pt-BR")}` : ""}
+                    </span>
+                  </div>
+                )}
+              </div>
               <p className="rounded-lg bg-muted/40 p-3 whitespace-pre-wrap">{detail.description || "Sem descrição."}</p>
               {detail.type === "dor" && !canCoord && (
                 <p className="text-xs text-amber-700">
