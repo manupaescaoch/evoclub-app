@@ -15,6 +15,8 @@ type Props = {
   onClose?: () => void;
   onRenew?: () => void;
   onShare?: () => void;
+  /** Ocupa a tela inteira (sem rolagem), estilo stories. */
+  fullscreen?: boolean;
 };
 
 const GRADIENTS = [
@@ -47,6 +49,13 @@ export default function RetroStories(p: Props) {
     return () => window.removeEventListener("keydown", onKey);
   }, [stories.length, p.onClose]);
 
+  useEffect(() => {
+    if (!p.fullscreen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = prev; };
+  }, [p.fullscreen]);
+
   if (!cur) {
     return (
       <div className="flex items-center justify-center p-8 font-dm text-sm text-muted-foreground">
@@ -59,9 +68,12 @@ export default function RetroStories(p: Props) {
   const isLast = i === stories.length - 1;
 
   return (
-    <div className="relative mx-auto w-full max-w-[390px]">
+    <div className={p.fullscreen
+      ? "fixed inset-0 z-50 mx-auto w-full max-w-[430px] overflow-hidden bg-black"
+      : "relative mx-auto w-full max-w-[390px]"}>
       <div
-        className={`relative aspect-[9/16] w-full overflow-hidden rounded-3xl bg-gradient-to-b ${GRADIENTS[i % GRADIENTS.length]} text-white`}
+        className={`relative w-full overflow-hidden bg-gradient-to-b ${GRADIENTS[i % GRADIENTS.length]} text-white ${
+          p.fullscreen ? "h-[100dvh] rounded-none" : "aspect-[9/16] rounded-3xl"}`}
       >
         {/* progresso */}
         <div className="absolute left-0 right-0 top-0 z-20 flex gap-1 p-3">
@@ -82,7 +94,8 @@ export default function RetroStories(p: Props) {
         <button aria-label="Próximo" onClick={() => setI((v) => Math.min(v + 1, stories.length - 1))}
           className="absolute bottom-0 right-0 top-0 z-10 w-2/3" />
 
-        <div className="relative z-0 flex h-full flex-col justify-end gap-4 p-6 pb-10">
+        <div className={`relative z-0 flex h-full flex-col justify-end gap-4 overflow-hidden p-6 ${
+          p.fullscreen ? "safe-top pb-[calc(2.5rem+env(safe-area-inset-bottom))]" : "pb-10"}`}>
           {cur.kicker && (
             <p className="font-dm text-[11px] font-semibold uppercase tracking-[0.18em] text-white/70">{cur.kicker}</p>
           )}
@@ -133,17 +146,19 @@ export default function RetroStories(p: Props) {
         </div>
       </div>
 
-      <div className="mt-3 flex items-center justify-between">
-        <button onClick={() => setI((v) => Math.max(v - 1, 0))} disabled={i === 0}
-          className="flex items-center gap-1 font-dm text-xs text-muted-foreground disabled:opacity-40">
-          <ChevronLeft className="h-4 w-4" /> Anterior
-        </button>
-        <span className="font-dm text-xs text-muted-foreground">{i + 1} / {stories.length}</span>
-        <button onClick={() => setI((v) => Math.min(v + 1, stories.length - 1))} disabled={isLast}
-          className="flex items-center gap-1 font-dm text-xs text-muted-foreground disabled:opacity-40">
-          Próximo <ChevronRight className="h-4 w-4" />
-        </button>
-      </div>
+      {!p.fullscreen && (
+        <div className="mt-3 flex items-center justify-between">
+          <button onClick={() => setI((v) => Math.max(v - 1, 0))} disabled={i === 0}
+            className="flex items-center gap-1 font-dm text-xs text-muted-foreground disabled:opacity-40">
+            <ChevronLeft className="h-4 w-4" /> Anterior
+          </button>
+          <span className="font-dm text-xs text-muted-foreground">{i + 1} / {stories.length}</span>
+          <button onClick={() => setI((v) => Math.min(v + 1, stories.length - 1))} disabled={isLast}
+            className="flex items-center gap-1 font-dm text-xs text-muted-foreground disabled:opacity-40">
+            Próximo <ChevronRight className="h-4 w-4" />
+          </button>
+        </div>
+      )}
     </div>
   );
 }
