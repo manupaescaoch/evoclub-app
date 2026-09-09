@@ -346,10 +346,11 @@ const AdminLayout = () => {
               key={item.path}
               to={item.path}
               onClick={() => isMobile && setSidebarOpen(false)}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-dm transition-colors
+              data-nav-active={isActive ? "true" : undefined}
+              className={`relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-dm transition-colors border-l-[3px] border-l-transparent
                 ${isActive
-                  ? "bg-[rgba(0,87,255,0.16)] text-white border-l-[3px] border-l-primary"
-                  : "text-gray-400 hover:text-white hover:bg-white/5 border-l-[3px] border-l-transparent"
+                  ? "text-white"
+                  : "text-gray-400 hover:text-white hover:bg-white/5"
                 }`}
             >
               <item.icon size={18} className={isActive ? "text-primary" : ""} />
