@@ -6,6 +6,7 @@ import {
   AvaliacoesTab, FinanceiroTab, ContratosTab, RenovacaoTab, IndicacoesTab, OcorrenciasTab,
   AnamneseTab, fmtDate,
 } from "./Perfil360Tabs";
+import ClubEvoTab from "./ClubEvoTab";
 
 const TABS = [
   { key: "resumo", label: "Resumo" },
@@ -15,6 +16,7 @@ const TABS = [
   { key: "treinos", label: "Treinos" },
   { key: "saude", label: "Saúde" },
   { key: "avaliacoes", label: "Avaliações" },
+  { key: "evoclub", label: "EVO Club" },
   { key: "financeiro", label: "Financeiro" },
   { key: "contratos", label: "Contratos" },
   { key: "renovacao", label: "Renovação" },
@@ -72,6 +74,7 @@ export default function Perfil360({ client, onClose, onSaved, variant = "overlay
           {tab === "treinos" && <TreinosTab c={client} />}
           {tab === "saude" && <SaudeTab c={client} />}
           {tab === "avaliacoes" && <AvaliacoesTab c={client} />}
+          {tab === "evoclub" && <ClubEvoTab c={client} />}
           {tab === "financeiro" && <FinanceiroTab c={client} />}
           {tab === "contratos" && <ContratosTab c={client} />}
           {tab === "renovacao" && <RenovacaoTab c={client} />}

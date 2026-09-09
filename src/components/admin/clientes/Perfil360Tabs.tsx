@@ -12,6 +12,12 @@ import { OverviewRow, useAttendanceStats, useClientTimeline } from "@/hooks/useC
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import { RANGES, RangeKey } from "@/hooks/useHealth";
 import { AdminSeriesKey, useAdminHealthOverview, useAdminHealthSeries } from "@/hooks/useAdminHealth";
+import { useNavigate } from "react-router-dom";
+import { useWorkoutHistory } from "@/hooks/useWorkoutHistory";
+import { WorkoutLogItem } from "@/components/shared/WorkoutHistoryViews";
+import AvaliacaoCompleta from "./AvaliacaoCompleta";
+import RealizarAvaliacaoDialog from "@/components/admin/avaliacoes/RealizarAvaliacaoDialog";
+import { AssessmentRow } from "@/hooks/useAdminAssessments";
 
 export const fmtDate = (d?: string | null) =>
   d ? new Date(d.length <= 10 ? `${d}T12:00:00` : d).toLocaleDateString("pt-BR") : "—";
@@ -46,7 +52,7 @@ function Field({ label, value }: { label: string; value: React.ReactNode }) {
 }
 
 /** Lê uma tabela do aluno e renderiza linhas simples com loading/empty/erro. */
-function useClientRows(table: string, clientId: number, column = "client_id", order = "created_at") {
+function useClientRows(table: string, clientId: number, column = "client_id", order = "created_at", refresh = 0) {
   const [rows, setRows] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -62,7 +68,7 @@ function useClientRows(table: string, clientId: number, column = "client_id", or
       setLoading(false);
     })();
     return () => { alive = false; };
-  }, [table, clientId, column, order]);
+  }, [table, clientId, column, order, refresh]);
   return { rows, loading, error };
 }
 
@@ -525,46 +531,58 @@ export function HistoricoTab({ c }: { c: OverviewRow }) {
 /* ---------------- Abas de leitura ---------------- */
 
 export function TreinosTab({ c }: { c: OverviewRow }) {
+  const navigate = useNavigate();
+  const { can, isAdmin } = useAccess();
+  const canEdit = isAdmin || can("treinos", "edit");
   const plans = useClientRows("training_plans", c.id, "student_id");
-  const logs = useClientRows("workout_logs", c.id, "client_id", "workout_date");
+  const { logs, loading: logsLoading, error: logsError } = useWorkoutHistory(c.id, 20);
+
+  const openPlan = (planId: string) => navigate(`/admin/treinos/prescrever/${c.id}/${planId}`);
+
   return (
     <div className="space-y-4">
       <Section title="Fichas prescritas">
+        <div className="flex justify-end mb-3">
+          <Button size="sm" className="font-dm"
+            onClick={() => navigate(`/admin/treinos/prescrever/${c.id}`)}>
+            {canEdit ? "PRESCREVER NOVA FICHA" : "ABRIR PRESCRIÇÃO"}
+          </Button>
+        </div>
         <ListShell {...plans} empty="Nenhuma ficha prescrita.">
           <div className="space-y-2">
             {plans.rows.map(p => (
-              <div key={p.id} className="flex items-center justify-between border-b border-border pb-2 last:border-0">
-                <div>
-                  <p className="text-sm font-dm text-foreground">{p.name}</p>
+              <button key={p.id} onClick={() => openPlan(p.id)}
+                className="w-full flex items-center justify-between gap-2 text-left border-b border-border pb-2 last:border-0 hover:bg-muted/40 rounded-lg px-2 py-1.5 transition-colors">
+                <div className="min-w-0">
+                  <p className="text-sm font-dm text-foreground truncate">{p.name}</p>
                   <p className="text-[11px] font-dm text-muted-foreground">
                     {p.goal || "—"} · {p.frequency || "—"} · validade {fmtDate(p.expires_at)}
                   </p>
                 </div>
-                <span className={`text-[10px] font-dm px-2 py-0.5 rounded-full ${p.is_active ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-600"}`}>
-                  {p.is_active ? "Ativa" : p.status || "Arquivada"}
+                <span className="flex items-center gap-2 shrink-0">
+                  <span className={`text-[10px] font-dm px-2 py-0.5 rounded-full ${p.is_active ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-600"}`}>
+                    {p.is_active ? "Ativa" : p.status || "Arquivada"}
+                  </span>
+                  <span className="text-[10px] font-dm text-primary">
+                    {canEdit ? "Abrir e editar" : "Abrir"}
+                  </span>
                 </span>
-              </div>
+              </button>
             ))}
           </div>
         </ListShell>
       </Section>
 
       <Section title="Execuções recentes">
-        <ListShell {...logs} empty="Nenhum treino registrado.">
+        {logsLoading ? <LoadingState /> : logsError ? (
+          <p className="text-sm font-dm text-red-600">Erro ao carregar: {logsError}</p>
+        ) : !logs.length ? (
+          <EmptyState message="Nenhum treino registrado." />
+        ) : (
           <div className="space-y-2">
-            {logs.rows.slice(0, 15).map(l => (
-              <div key={l.id} className="flex items-center justify-between border-b border-border pb-2 last:border-0">
-                <div>
-                  <p className="text-sm font-dm text-foreground">{l.session_name || "Treino"}</p>
-                  <p className="text-[11px] font-dm text-muted-foreground">
-                    {fmtDate(l.workout_date)} · {l.status} {l.rpe ? `· RPE ${l.rpe}` : ""}
-                  </p>
-                </div>
-                {l.pain && <span className="text-[10px] font-dm px-2 py-0.5 rounded-full bg-red-100 text-red-700">Dor</span>}
-              </div>
-            ))}
+            {logs.map(l => <WorkoutLogItem key={l.id} log={l} />)}
           </div>
-        </ListShell>
+        )}
       </Section>
     </div>
   );
@@ -699,13 +717,7 @@ export function SaudeTab({ c }: { c: OverviewRow }) {
             )}
           </Section>
 
-          <Section title="Check-ins de bem-estar (somente leitura)">
-            <p className="text-sm font-dm text-foreground">
-              {o.checkin
-                ? `${fmtDate(o.checkin.date)} · Sono ${o.checkin.sleep_hours ?? "—"}h · Qualidade ${o.checkin.sleep_quality ?? "—"} · Energia ${o.checkin.energy ?? "—"} · Humor ${o.checkin.mood ?? "—"}`
-                : "Nenhum check-in diário registrado."}
-            </p>
-          </Section>
+          <DailyCheckinsSection clientId={c.id} />
 
           <Section title="Fotos de evolução">
             <ListShell {...photos} empty="Nenhuma foto enviada.">
@@ -819,25 +831,138 @@ function HealthEntryForm({
   );
 }
 
+/** Check-ins diários de bem-estar respondidos pelo aluno no app. */
+function DailyCheckinsSection({ clientId }: { clientId: number }) {
+  const d = useClientRows("daily_checkins", clientId, "client_id", "checkin_date");
+  const rows = d.rows.slice(0, 30);
+  const avg = (k: string) => {
+    const vals = rows.map(r => r[k]).filter(v => v != null).map(Number);
+    return vals.length ? Number((vals.reduce((s, v) => s + v, 0) / vals.length).toFixed(1)) : null;
+  };
+  return (
+    <Section title="Check-in diário do aluno (respostas no app)">
+      <ListShell {...d} empty="Nenhum check-in diário respondido.">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-3">
+          <SummaryCard label="Respostas" value={rows.length} />
+          <SummaryCard label="Sono médio" value={avg("sleep_hours") != null ? `${avg("sleep_hours")} h` : "—"} />
+          <SummaryCard label="Qualidade do sono" value={avg("sleep_quality") ?? "—"} />
+          <SummaryCard label="Energia média" value={avg("energy") ?? "—"} />
+          <SummaryCard label="Estresse médio" value={avg("stress_level") ?? "—"}
+            accent={(avg("stress_level") ?? 0) >= 4 ? "red" : "default"} />
+        </div>
+        <div className="overflow-x-auto momentum-scroll">
+          <table className="w-full text-xs font-dm min-w-[520px]">
+            <thead>
+              <tr className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                <th className="text-left py-1.5">Data</th>
+                <th className="text-left py-1.5">Sono</th>
+                <th className="text-left py-1.5">Qualidade</th>
+                <th className="text-left py-1.5">Energia</th>
+                <th className="text-left py-1.5">Humor</th>
+                <th className="text-left py-1.5">Estresse</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map(r => (
+                <tr key={r.id} className="border-t border-border">
+                  <td className="py-1.5 text-foreground">{fmtDate(r.checkin_date)}</td>
+                  <td className="py-1.5 text-muted-foreground">{r.sleep_hours != null ? `${r.sleep_hours} h` : "—"}</td>
+                  <td className="py-1.5 text-muted-foreground">{r.sleep_quality ?? "—"}</td>
+                  <td className="py-1.5 text-muted-foreground">{r.energy ?? "—"}</td>
+                  <td className="py-1.5 text-muted-foreground">{r.mood ?? "—"}</td>
+                  <td className={`py-1.5 ${Number(r.stress_level) >= 4 ? "text-red-600 font-medium" : "text-muted-foreground"}`}>
+                    {r.stress_level ?? "—"}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <p className="text-[11px] font-dm text-muted-foreground mt-2 flex items-center gap-1">
+          <Lock size={12} /> Respostas do aluno — somente leitura para a equipe.
+        </p>
+      </ListShell>
+    </Section>
+  );
+}
+
 export function AvaliacoesTab({ c }: { c: OverviewRow }) {
-  const a = useClientRows("physical_assessments", c.id, "client_id", "created_at");
+  const { can, isAdmin } = useAccess();
+  const canEdit = isAdmin || can("avaliacao", "edit");
+  const [reloadKey, setReloadKey] = useState(0);
+  const a = useClientRows("physical_assessments", c.id, "client_id", "created_at", reloadKey);
+  const [open, setOpen] = useState<any | null>(null);
+  const [edit, setEdit] = useState<any | null>(null);
+  const [creating, setCreating] = useState(false);
+
+  const rows = a.rows;
+  const reload = () => setReloadKey(k => k + 1);
+
+  const toAssessmentRow = (r: any): AssessmentRow => ({
+    id: r.id, client_id: c.id, client_name: c.name, unit_id: c.unit_id,
+    scheduled_at: r.scheduled_at, performed_at: r.performed_at, published_at: r.published_at,
+    status: r.status, professional_id: r.professional_id, professional_name: r.professional_name,
+    origin: r.origin, next_due_at: r.next_due_at, student_rating: r.student_rating,
+    revisions: 0, created_at: r.created_at,
+  });
+
+  const novaAvaliacao = async () => {
+    setCreating(true);
+    const { data, error } = await supabase.rpc("assessment_schedule" as any, {
+      _client_id: c.id, _at: new Date().toISOString(), _professional_id: null,
+      _notes: "Avaliação iniciada na ficha do aluno",
+    });
+    setCreating(false);
+    const res = data as any;
+    if (error || !res?.ok) {
+      toast.error(res?.reason === "forbidden" ? "Sem permissão para criar avaliações." : error?.message || "Não foi possível criar a avaliação.");
+      return;
+    }
+    reload();
+    setEdit(toAssessmentRow({
+      id: res.id, scheduled_at: new Date().toISOString(), performed_at: null, published_at: null,
+      status: "agendada", professional_id: null, professional_name: null, origin: null,
+      next_due_at: null, student_rating: null, created_at: new Date().toISOString(),
+    }));
+  };
+
   return (
     <Section title="Avaliações físicas">
-      <ListShell {...a} empty="Nenhuma avaliação registrada. O módulo completo chega em bloco posterior.">
+      {canEdit && (
+        <div className="flex justify-end mb-3">
+          <Button size="sm" className="font-dm" onClick={novaAvaliacao} disabled={creating}>
+            {creating ? "CRIANDO..." : "NOVA AVALIAÇÃO"}
+          </Button>
+        </div>
+      )}
+      <ListShell {...a} empty="Nenhuma avaliação registrada.">
         <div className="space-y-2">
-          {a.rows.map(r => (
-            <div key={r.id} className="flex items-center justify-between border-b border-border pb-2 last:border-0">
-              <div>
-                <p className="text-sm font-dm text-foreground">{r.professional_name || "Avaliação"}</p>
+          {rows.map(r => (
+            <button key={r.id} onClick={() => (r.performed_at ? setOpen(r) : setEdit(toAssessmentRow(r)))}
+              className="w-full flex items-center justify-between gap-2 text-left border-b border-border pb-2 last:border-0 hover:bg-muted/40 rounded-lg px-2 py-1.5 transition-colors">
+              <div className="min-w-0">
+                <p className="text-sm font-dm text-foreground truncate">{r.professional_name || "Equipe EVO"}</p>
                 <p className="text-[11px] font-dm text-muted-foreground">
                   Agendada {fmtDate(r.scheduled_at)} · Realizada {fmtDate(r.performed_at)}
                 </p>
               </div>
-              <span className="text-[10px] font-dm px-2 py-0.5 rounded-full bg-muted/50 text-muted-foreground">{r.status || "—"}</span>
-            </div>
+              <span className="flex items-center gap-2 shrink-0">
+                <span className="text-[10px] font-dm px-2 py-0.5 rounded-full bg-muted/50 text-muted-foreground">{r.status || "—"}</span>
+                <span className="text-[10px] font-dm text-primary">{r.performed_at ? "Ver completa" : "Realizar"}</span>
+              </span>
+            </button>
           ))}
         </div>
       </ListShell>
+
+      {open && (
+        <AvaliacaoCompleta studentName={c.name} row={open} others={rows} canEdit={canEdit}
+          onClose={() => setOpen(null)}
+          onEdit={() => { const r = open; setOpen(null); setEdit(toAssessmentRow(r)); }} />
+      )}
+      {edit && (
+        <RealizarAvaliacaoDialog row={edit} onClose={() => setEdit(null)} onSaved={reload} />
+      )}
     </Section>
   );
 }
@@ -1042,21 +1167,41 @@ export function AnamneseTab({ c }: { c: OverviewRow }) {
       </div>
       <Section title="Anamneses recebidas">
         <ListShell {...a} empty="Nenhuma anamnese registrada para este aluno.">
-          <div className="space-y-3">
+          <div className="space-y-5">
             {a.rows.map(r => (
-              <div key={r.id} className="border-b border-border pb-3 last:border-0">
-                <p className="text-[11px] font-dm text-muted-foreground">{fmtDateTime(r.created_at)}</p>
-                <div className="grid grid-cols-2 gap-2 mt-1">
-                  <Field label="Objetivo" value={r.objective || "—"} />
-                  <Field label="Histórico de treino" value={r.training_history || "—"} />
-                  <Field label="Lesões" value={r.injuries || "—"} />
-                  <Field label="Dores" value={r.pain || "—"} />
-                  <Field label="Limitações" value={r.limitations || "—"} />
-                  <Field label="Restrições" value={r.restrictions || "—"} />
-                  <Field label="Sono" value={r.sleep || "—"} />
-                  <Field label="Estresse" value={r.stress || "—"} />
-                  <div className="col-span-2"><Field label="Rotina" value={r.routine || "—"} /></div>
-                  {r.content && <div className="col-span-2"><Field label="Observações" value={r.content} /></div>}
+              <div key={r.id} className="border-b border-border pb-4 last:border-0">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <p className="text-[11px] font-dm text-muted-foreground">
+                    Recebida em {fmtDateTime(r.created_at)}
+                    {r.type ? ` · ${r.type}` : ""}
+                    {r.link_id ? " · via link" : ""}
+                  </p>
+                  {(r.lead_name || r.phone) && (
+                    <p className="text-[11px] font-dm text-muted-foreground">
+                      {r.lead_name || ""}{r.lead_name && r.phone ? " · " : ""}{r.phone || ""}
+                    </p>
+                  )}
+                </div>
+                <div className="mt-3 space-y-3">
+                  {[
+                    ["Objetivo", r.objective],
+                    ["Histórico de treino", r.training_history],
+                    ["Lesões", r.injuries],
+                    ["Dores", r.pain],
+                    ["Limitações", r.limitations],
+                    ["Restrições médicas / alimentares", r.restrictions],
+                    ["Sono", r.sleep],
+                    ["Estresse", r.stress],
+                    ["Rotina", r.routine],
+                    ["Observações", r.content],
+                  ].map(([label, value]) => (
+                    <div key={String(label)} className="rounded-lg bg-muted/30 px-3 py-2">
+                      <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-dm">{label}</p>
+                      <p className="text-sm font-dm text-foreground whitespace-pre-wrap break-words">
+                        {value ? String(value) : "Não respondido"}
+                      </p>
+                    </div>
+                  ))}
                 </div>
               </div>
             ))}
