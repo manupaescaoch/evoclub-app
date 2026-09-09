@@ -181,7 +181,7 @@ const GradeTab = () => {
         )}
         {classes.map((c) => {
           const s = status[c.id];
-          const max = c.max_slots || 14;
+          const max = c.max_slots ?? unit?.default_capacity ?? 0;
           const booked = s?.booked ?? 0;
           const remaining = Math.max(0, max - booked);
           const full = remaining === 0;
