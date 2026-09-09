@@ -53,7 +53,7 @@ export default function RetrospectivaAlunoTab({ onBack, onNavigate }: Props) {
             ))}
           </div>
           {mode === "stories"
-            ? <RetroStories {...common} onRenew={() => onNavigate?.("plano")} />
+            ? <RetroStories {...common} fullscreen onClose={() => setMode("completa")} onRenew={() => onNavigate?.("plano")} />
             : <RetroFullView {...common} onRenew={() => onNavigate?.("plano")} />}
         </div>
       )}
