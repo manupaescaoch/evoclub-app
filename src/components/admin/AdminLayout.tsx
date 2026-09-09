@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Outlet, useNavigate, useLocation, Link } from "react-router-dom";
 import logoAsset from "@/assets/logo-evo.png.asset.json";
 import { supabase } from "@/integrations/supabase/client";
