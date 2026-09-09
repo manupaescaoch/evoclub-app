@@ -1858,6 +1858,87 @@ export type Database = {
           },
         ]
       }
+      contact_logs: {
+        Row: {
+          channel: string
+          client_id: number | null
+          created_at: string
+          created_by: string | null
+          id: string
+          lead_id: string | null
+          next_action: string | null
+          next_follow_up_at: string | null
+          note: string | null
+          owner_id: string | null
+          result: string
+          unit_id: string | null
+        }
+        Insert: {
+          channel: string
+          client_id?: number | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          lead_id?: string | null
+          next_action?: string | null
+          next_follow_up_at?: string | null
+          note?: string | null
+          owner_id?: string | null
+          result: string
+          unit_id?: string | null
+        }
+        Update: {
+          channel?: string
+          client_id?: number | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          lead_id?: string | null
+          next_action?: string | null
+          next_follow_up_at?: string | null
+          note?: string | null
+          owner_id?: string | null
+          result?: string
+          unit_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contact_logs_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "client_overview"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contact_logs_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contact_logs_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contact_logs_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "collaborators"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contact_logs_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "units"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contracts: {
         Row: {
           body: string | null
@@ -2172,12 +2253,16 @@ export type Database = {
           archived: boolean
           attachment_url: string | null
           category: string | null
+          completed_at: string | null
+          completed_by: string | null
+          completion_note: string | null
           created_at: string
           created_by: string | null
           deadline_at: string | null
           description: string | null
           due_date: string | null
           due_time: string | null
+          evidence_url: string | null
           id: string
           notes: string | null
           notified_assign: boolean
@@ -2186,11 +2271,13 @@ export type Database = {
           notified_late: boolean
           priority: string
           recurrence: string | null
+          requires_evidence: boolean
           responsible_id: string | null
           responsible_name: string | null
           responsible_phone: string | null
           sector: string | null
           source: string | null
+          started_at: string | null
           status: string
           title: string
           unit_id: string | null
@@ -2200,12 +2287,16 @@ export type Database = {
           archived?: boolean
           attachment_url?: string | null
           category?: string | null
+          completed_at?: string | null
+          completed_by?: string | null
+          completion_note?: string | null
           created_at?: string
           created_by?: string | null
           deadline_at?: string | null
           description?: string | null
           due_date?: string | null
           due_time?: string | null
+          evidence_url?: string | null
           id?: string
           notes?: string | null
           notified_assign?: boolean
@@ -2214,11 +2305,13 @@ export type Database = {
           notified_late?: boolean
           priority?: string
           recurrence?: string | null
+          requires_evidence?: boolean
           responsible_id?: string | null
           responsible_name?: string | null
           responsible_phone?: string | null
           sector?: string | null
           source?: string | null
+          started_at?: string | null
           status?: string
           title: string
           unit_id?: string | null
@@ -2228,12 +2321,16 @@ export type Database = {
           archived?: boolean
           attachment_url?: string | null
           category?: string | null
+          completed_at?: string | null
+          completed_by?: string | null
+          completion_note?: string | null
           created_at?: string
           created_by?: string | null
           deadline_at?: string | null
           description?: string | null
           due_date?: string | null
           due_time?: string | null
+          evidence_url?: string | null
           id?: string
           notes?: string | null
           notified_assign?: boolean
@@ -2242,11 +2339,13 @@ export type Database = {
           notified_late?: boolean
           priority?: string
           recurrence?: string | null
+          requires_evidence?: boolean
           responsible_id?: string | null
           responsible_name?: string | null
           responsible_phone?: string | null
           sector?: string | null
           source?: string | null
+          started_at?: string | null
           status?: string
           title?: string
           unit_id?: string | null

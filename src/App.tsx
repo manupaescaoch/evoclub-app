@@ -9,6 +9,7 @@ import NotFound from "./pages/NotFound.tsx";
 import Login from "./pages/admin/Login.tsx";
 import AdminLayout from "./components/admin/AdminLayout.tsx";
 import Dashboard from "./pages/admin/Dashboard.tsx";
+import Operacao from "./pages/admin/Operacao.tsx";
 import Clientes from "./pages/admin/Clientes.tsx";
 import Grade from "./pages/admin/Grade.tsx";
 import CRM from "./pages/admin/CRM.tsx";
@@ -146,6 +147,7 @@ const App = () => (
           <Route path="/parceiro/:token" element={<PortalParceiro />} />
           <Route path="/admin" element={<AdminLayout />}>
             <Route index element={<ModuleGuard module="dashboard"><Dashboard /></ModuleGuard>} />
+            <Route path="operacao" element={<ModuleGuard module="operacional"><Operacao /></ModuleGuard>} />
             <Route path="clientes" element={<ModuleGuard module="clientes"><Clientes /></ModuleGuard>} />
             <Route path="grade" element={<ModuleGuard module="grade"><Grade /></ModuleGuard>} />
             <Route path="leads" element={<ModuleGuard module="crm"><Leads /></ModuleGuard>} />
