@@ -29,8 +29,9 @@ type NavItem = {
 const navItems: NavItem[] = [
   { label: "Dashboard", icon: LayoutDashboard, path: "/admin", module: "dashboard" },
   { label: "Operação", icon: ClipboardCheck, path: "/admin/operacao", module: "operacional" },
-  { label: "Clientes", icon: Users, path: "/admin/clientes", module: "clientes" },
   { label: "Grade", icon: CalendarDays, path: "/admin/grade", module: "grade" },
+  { label: "Clientes", icon: Users, path: "/admin/clientes", module: "clientes" },
+  { label: "Ocorrências", icon: AlertTriangle, path: "/admin/ocorrencias", module: "ocorrencias" },
   {
     label: "CRM", icon: Megaphone, path: "/admin/crm", module: "crm",
     children: [
@@ -42,6 +43,17 @@ const navItems: NavItem[] = [
       { label: "Renovações", icon: RefreshCw, path: "/admin/crm/renovacoes" },
     ],
   },
+  {
+    label: "Treinos", icon: Dumbbell, path: "/admin/treinos", module: "treinos",
+    children: [
+      { label: "Dashboard", icon: LayoutDashboard, path: "/admin/treinos" },
+      { label: "Prescrever Treino", icon: ClipboardEdit, path: "/admin/treinos/prescrever" },
+      { label: "Fichas de Treino", icon: ClipboardList, path: "/admin/treinos/fichas" },
+      { label: "Biblioteca de Exercícios", icon: Library, path: "/admin/treinos/biblioteca" },
+      { label: "Métodos de Treino", icon: Wrench, path: "/admin/treinos/metodos" },
+    ],
+  },
+  { label: "Avaliações", icon: HeartPulse, path: "/admin/avaliacoes", module: "avaliacao" },
   {
     label: "Financeiro", icon: DollarSign, path: "/admin/financeiro", module: "financeiro",
     children: [
@@ -61,30 +73,6 @@ const navItems: NavItem[] = [
       { label: "Configurações", icon: Settings, path: "/admin/financeiro/configuracoes" },
     ],
   },
-  {
-    label: "Gerencial", icon: BarChart3, path: "/admin/gerencial", module: "gerencial",
-    children: [
-      { label: "Contratos", icon: FileSignature, path: "/admin/gerencial/contratos" },
-      { label: "Atividades na Grade", icon: CalendarRange, path: "/admin/gerencial/atividades" },
-      { label: "Colaboradores", icon: UserCog, path: "/admin/gerencial/colaboradores" },
-      { label: "Fornecedores", icon: Truck, path: "/admin/gerencial/fornecedores" },
-      { label: "Permissões", icon: ShieldCheck, path: "/admin/gerencial/permissoes" },
-      { label: "Serviços", icon: Tag, path: "/admin/gerencial/servicos" },
-      { label: "Cupons de Desconto", icon: Ticket, path: "/admin/gerencial/cupons" },
-      { label: "Crescimento", icon: TrendingUp, path: "/admin/gerencial/crescimento" },
-    ],
-  },
-  {
-    label: "Treinos", icon: Dumbbell, path: "/admin/treinos", module: "treinos",
-    children: [
-      { label: "Dashboard", icon: LayoutDashboard, path: "/admin/treinos" },
-      { label: "Prescrever Treino", icon: ClipboardEdit, path: "/admin/treinos/prescrever" },
-      { label: "Fichas de Treino", icon: ClipboardList, path: "/admin/treinos/fichas" },
-      { label: "Biblioteca de Exercícios", icon: Library, path: "/admin/treinos/biblioteca" },
-      { label: "Métodos de Treino", icon: Wrench, path: "/admin/treinos/metodos" },
-    ],
-  },
-  { label: "Avaliações", icon: HeartPulse, path: "/admin/avaliacoes", module: "avaliacao" },
   {
     label: "Equipe", icon: UserCog, path: "/admin/equipe", module: "equipe",
     children: [
@@ -110,7 +98,19 @@ const navItems: NavItem[] = [
       { label: "Automações", icon: Workflow, path: "/admin/operacional/automacoes" },
     ],
   },
-  { label: "Ocorrências", icon: AlertTriangle, path: "/admin/ocorrencias", module: "ocorrencias" },
+  {
+    label: "Gerencial", icon: BarChart3, path: "/admin/gerencial", module: "gerencial",
+    children: [
+      { label: "Contratos", icon: FileSignature, path: "/admin/gerencial/contratos" },
+      { label: "Atividades na Grade", icon: CalendarRange, path: "/admin/gerencial/atividades" },
+      { label: "Colaboradores", icon: UserCog, path: "/admin/gerencial/colaboradores" },
+      { label: "Fornecedores", icon: Truck, path: "/admin/gerencial/fornecedores" },
+      { label: "Permissões", icon: ShieldCheck, path: "/admin/gerencial/permissoes" },
+      { label: "Serviços", icon: Tag, path: "/admin/gerencial/servicos" },
+      { label: "Cupons de Desconto", icon: Ticket, path: "/admin/gerencial/cupons" },
+      { label: "Crescimento", icon: TrendingUp, path: "/admin/gerencial/crescimento" },
+    ],
+  },
   {
     label: "EVO Club", icon: Ticket, path: "/admin/club", module: "club",
     children: [
