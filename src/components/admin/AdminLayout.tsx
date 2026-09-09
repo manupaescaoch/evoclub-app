@@ -88,7 +88,6 @@ const navItems: NavItem[] = [
   {
     label: "Operacional", icon: ClipboardCheck, path: "/admin/operacional", module: "operacional",
     children: [
-      { label: "Dashboard", icon: LayoutDashboard, path: "/admin/operacional" },
       { label: "Calendário", icon: CalendarDays, path: "/admin/operacional/calendario" },
       { label: "Tarefas", icon: ListTodo, path: "/admin/crm/tarefas" },
       { label: "Renovações", icon: RefreshCw, path: "/admin/crm/renovacoes" },
