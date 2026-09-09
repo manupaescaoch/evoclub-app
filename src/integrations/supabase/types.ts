@@ -6119,68 +6119,117 @@ export type Database = {
       transactions: {
         Row: {
           amount: number
+          bank_account_id: string | null
           category_id: string | null
           category_name: string | null
           client_id: number | null
           cost_center: string | null
           created_at: string
+          created_by: string | null
           date: string
+          deleted_at: string | null
           description: string
+          discount: number
           due_date: string | null
+          external_id: string | null
+          fees: number
           group_id: string | null
           id: string
           kind: string
+          net_amount: number | null
           notes: string | null
           paid_at: string | null
           payment_method: string | null
+          receipt_url: string | null
+          reconciled: boolean
+          recurrence: string | null
+          recurrence_group: string | null
           reference: string | null
+          source: string
           status: string
+          stone_code: string | null
+          supplier_id: string | null
           unit_id: string | null
           updated_at: string
         }
         Insert: {
           amount?: number
+          bank_account_id?: string | null
           category_id?: string | null
           category_name?: string | null
           client_id?: number | null
           cost_center?: string | null
           created_at?: string
+          created_by?: string | null
           date?: string
+          deleted_at?: string | null
           description: string
+          discount?: number
           due_date?: string | null
+          external_id?: string | null
+          fees?: number
           group_id?: string | null
           id?: string
           kind?: string
+          net_amount?: number | null
           notes?: string | null
           paid_at?: string | null
           payment_method?: string | null
+          receipt_url?: string | null
+          reconciled?: boolean
+          recurrence?: string | null
+          recurrence_group?: string | null
           reference?: string | null
+          source?: string
           status?: string
+          stone_code?: string | null
+          supplier_id?: string | null
           unit_id?: string | null
           updated_at?: string
         }
         Update: {
           amount?: number
+          bank_account_id?: string | null
           category_id?: string | null
           category_name?: string | null
           client_id?: number | null
           cost_center?: string | null
           created_at?: string
+          created_by?: string | null
           date?: string
+          deleted_at?: string | null
           description?: string
+          discount?: number
           due_date?: string | null
+          external_id?: string | null
+          fees?: number
           group_id?: string | null
           id?: string
           kind?: string
+          net_amount?: number | null
           notes?: string | null
           paid_at?: string | null
           payment_method?: string | null
+          receipt_url?: string | null
+          reconciled?: boolean
+          recurrence?: string | null
+          recurrence_group?: string | null
           reference?: string | null
+          source?: string
           status?: string
+          stone_code?: string | null
+          supplier_id?: string | null
           unit_id?: string | null
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "transactions_bank_account_id_fkey"
+            columns: ["bank_account_id"]
+            isOneToOne: false
+            referencedRelation: "bank_accounts"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "transactions_category_id_fkey"
             columns: ["category_id"]
@@ -6207,6 +6256,13 @@ export type Database = {
             columns: ["group_id"]
             isOneToOne: false
             referencedRelation: "financial_groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
             referencedColumns: ["id"]
           },
         ]
