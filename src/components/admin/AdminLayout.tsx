@@ -261,8 +261,49 @@ const AdminLayout = () => {
         )}
       </div>
 
+      {/* Busca de páginas */}
+      <div className="px-3 pb-2">
+        <div className="relative">
+          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
+          <input
+            value={navQuery}
+            onChange={(e) => setNavQuery(e.target.value)}
+            placeholder="Buscar página..."
+            className="w-full h-9 rounded-lg bg-white/5 border border-white/10 pl-8 pr-8 text-sm font-dm text-white placeholder:text-gray-500 outline-none focus:border-primary/60"
+          />
+          {navQuery && (
+            <button
+              type="button"
+              onClick={() => setNavQuery("")}
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white"
+            >
+              <X size={14} />
+            </button>
+          )}
+        </div>
+      </div>
+
       {/* Nav */}
       <nav ref={navRef} className="relative flex-1 px-3 mt-2 space-y-0.5 overflow-y-auto">
+        {searchResults ? (
+          searchResults.length === 0 ? (
+            <p className="px-3 py-4 text-xs font-dm text-gray-500">Nenhuma página encontrada.</p>
+          ) : (
+            searchResults.map((r) => (
+              <Link
+                key={`${r.parent || ""}${r.path}`}
+                to={r.path}
+                onClick={() => { setNavQuery(""); if (isMobile) setSidebarOpen(false); }}
+                className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-dm text-gray-400 hover:text-white hover:bg-white/5"
+              >
+                <r.icon size={16} />
+                <span className="flex-1 truncate">{r.label}</span>
+                {r.parent && <span className="text-[10px] text-gray-600 truncate">{r.parent}</span>}
+              </Link>
+            ))
+          )
+        ) : (
+        <>
         {/* Indicador elástico */}
         <div
           aria-hidden
@@ -275,6 +316,7 @@ const AdminLayout = () => {
           }}
         />
         {visibleItems.map((item) => {
+
           const hasChildren = !!item.children;
           const active = location.pathname === item.path || (item.path !== "/admin" && location.pathname.startsWith(item.path));
           const isExact = item.path === "/admin" && location.pathname === "/admin";
