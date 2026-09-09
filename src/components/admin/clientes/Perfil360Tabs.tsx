@@ -301,7 +301,7 @@ export function DadosTab({ c, onSaved }: { c: OverviewRow; onSaved: () => void }
             <label className="text-[11px] font-dm text-muted-foreground flex items-center gap-1">
               Unidade {lockedNote("unit_id") && <Lock size={11} />}
             </label>
-            <select value={form.unit_id ?? ""} disabled={!canEdit || lockedNote("unit_id")}
+            <select value={form.unit_id ?? ""} disabled={!editing || !canEdit || lockedNote("unit_id")}
               onChange={e => set("unit_id", e.target.value || null)}
               className="mt-1 w-full h-9 px-2 rounded-md border border-input bg-background text-sm font-dm disabled:opacity-60">
               <option value="">—</option>
@@ -319,7 +319,7 @@ export function DadosTab({ c, onSaved }: { c: OverviewRow; onSaved: () => void }
             <label className="text-[11px] font-dm text-muted-foreground flex items-center gap-1">
               Status {lockedNote("status") && <Lock size={11} />}
             </label>
-            <select value={form.status ?? "OP"} disabled={!canEdit || lockedNote("status")}
+            <select value={form.status ?? "OP"} disabled={!editing || !canEdit || lockedNote("status")}
               onChange={e => set("status", e.target.value)}
               className="mt-1 w-full h-9 px-2 rounded-md border border-input bg-background text-sm font-dm disabled:opacity-60">
               {Object.entries(STATUS_LABEL).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
@@ -335,19 +335,19 @@ export function DadosTab({ c, onSaved }: { c: OverviewRow; onSaved: () => void }
         <div className="grid md:grid-cols-2 gap-3">
           <div>
             <label className="text-[11px] font-dm text-muted-foreground">Objetivo</label>
-            <textarea value={form.objective ?? ""} disabled={!canEdit}
+            <textarea value={form.objective ?? ""} disabled={!editing || !canEdit}
               onChange={e => set("objective", e.target.value)}
               className="mt-1 w-full h-20 px-3 py-2 rounded-md border border-input bg-background text-sm font-dm resize-none disabled:opacity-60" />
           </div>
           <div>
             <label className="text-[11px] font-dm text-muted-foreground">Limitações</label>
-            <textarea value={form.limitations ?? ""} disabled={!canEdit}
+            <textarea value={form.limitations ?? ""} disabled={!editing || !canEdit}
               onChange={e => set("limitations", e.target.value)}
               className="mt-1 w-full h-20 px-3 py-2 rounded-md border border-input bg-background text-sm font-dm resize-none disabled:opacity-60" />
           </div>
           <div className="md:col-span-2">
             <label className="text-[11px] font-dm text-muted-foreground">Observações</label>
-            <textarea value={form.observations ?? ""} disabled={!canEdit}
+            <textarea value={form.observations ?? ""} disabled={!editing || !canEdit}
               onChange={e => set("observations", e.target.value)}
               className="mt-1 w-full h-20 px-3 py-2 rounded-md border border-input bg-background text-sm font-dm resize-none disabled:opacity-60" />
           </div>
