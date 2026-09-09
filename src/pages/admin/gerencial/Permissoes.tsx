@@ -290,28 +290,57 @@ export default function Permissoes() {
               <div><Label>Nome</Label><Input value={form.name || ""} onChange={e => setForm({ ...form, name: e.target.value })} /></div>
               <div className="md:col-span-2"><Label>Descrição</Label><Textarea rows={1} value={form.description || ""} onChange={e => setForm({ ...form, description: e.target.value })} /></div>
             </div>
-            <div className="border border-border rounded-lg overflow-hidden">
-              <table className="w-full text-sm font-dm">
-                <thead className="bg-muted/50 text-xs text-muted-foreground uppercase">
-                  <tr>
-                    <th className="px-3 py-2 text-left">Módulo</th>
-                    {ACTIONS.map(a => <th key={a.key} className="px-3 py-2 text-center">{a.label}</th>)}
-                  </tr>
-                </thead>
-                <tbody>
-                  {MODULES.map(m => (
-                    <tr key={m.key} className="border-t border-border">
-                      <td className="px-3 py-2 font-medium">{m.label}</td>
-                      {ACTIONS.map(a => (
-                        <td key={a.key} className="px-3 py-2 text-center">
-                          <Checkbox checked={isChecked(m.key, a.key)} onCheckedChange={() => toggleAction(m.key, a.key)} />
-                        </td>
-                      ))}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <div className="flex items-center justify-between gap-2 rounded-lg border border-border bg-muted/40 px-3 py-2">
+              <p className="text-xs text-muted-foreground font-dm">Clique para ativar o que este perfil pode fazer em cada categoria do menu.</p>
+              <div className="flex gap-2">
+                <Button type="button" size="sm" variant="outline" onClick={() => setAllGlobal(true)}>Ativar tudo</Button>
+                <Button type="button" size="sm" variant="ghost" onClick={() => setAllGlobal(false)}>Limpar tudo</Button>
+              </div>
             </div>
+            <div className="space-y-3">
+              {GROUPS.map(g => {
+                const on = (form.modules?.[g.key] || []).length;
+                return (
+                  <div key={g.key} className="border border-border rounded-lg overflow-hidden">
+                    <div className="flex items-start justify-between gap-3 px-3 py-2.5 bg-muted/40 border-b border-border">
+                      <div className="min-w-0">
+                        <p className="font-barlow font-bold text-sm">{g.label}</p>
+                        <p className="text-[11px] text-muted-foreground font-dm truncate">{g.items.join(" · ")}</p>
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <span className="text-[11px] text-muted-foreground font-dm hidden sm:inline">{on}/{ACTIONS.length}</span>
+                        <Button
+                          type="button" size="sm"
+                          variant={on === ACTIONS.length ? "secondary" : "outline"}
+                          onClick={() => setGroupAll(g.key, on !== ACTIONS.length)}
+                        >
+                          {on === ACTIONS.length ? "Desativar todos" : "Ativar todos"}
+                        </Button>
+                      </div>
+                    </div>
+                    <div className="flex flex-wrap gap-2 p-3">
+                      {ACTIONS.map(a => {
+                        const active = isChecked(g.key, a.key);
+                        return (
+                          <button
+                            key={a.key} type="button"
+                            onClick={() => toggleAction(g.key, a.key)}
+                            className={`px-3 py-1.5 rounded-full text-xs font-dm border transition-colors ${
+                              active
+                                ? "bg-primary text-primary-foreground border-primary"
+                                : "bg-background text-muted-foreground border-border hover:bg-muted"
+                            }`}
+                          >
+                            {a.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
