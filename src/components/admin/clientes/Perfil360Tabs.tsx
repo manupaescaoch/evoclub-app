@@ -52,7 +52,7 @@ function Field({ label, value }: { label: string; value: React.ReactNode }) {
 }
 
 /** Lê uma tabela do aluno e renderiza linhas simples com loading/empty/erro. */
-function useClientRows(table: string, clientId: number, column = "client_id", order = "created_at") {
+function useClientRows(table: string, clientId: number, column = "client_id", order = "created_at", refresh = 0) {
   const [rows, setRows] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -68,7 +68,7 @@ function useClientRows(table: string, clientId: number, column = "client_id", or
       setLoading(false);
     })();
     return () => { alive = false; };
-  }, [table, clientId, column, order]);
+  }, [table, clientId, column, order, refresh]);
   return { rows, loading, error };
 }
 
