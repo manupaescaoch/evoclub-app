@@ -46,11 +46,11 @@ const navItems: NavItem[] = [
     label: "Financeiro", icon: DollarSign, path: "/admin/financeiro", module: "financeiro",
     children: [
       { label: "Dashboard", icon: LayoutDashboard, path: "/admin/financeiro" },
+      { label: "Transações", icon: ArrowLeftRight, path: "/admin/financeiro/transacoes" },
       { label: "Fluxo de Caixa", icon: TrendingUp, path: "/admin/financeiro/fluxo" },
       { label: "Recebimentos", icon: Wallet, path: "/admin/financeiro/recebimentos" },
       { label: "Contas a Pagar", icon: Receipt, path: "/admin/financeiro/contas-a-pagar" },
       { label: "Inadimplência", icon: AlertTriangle, path: "/admin/financeiro/inadimplencia" },
-      { label: "Transações", icon: ArrowLeftRight, path: "/admin/financeiro/transacoes" },
       { label: "Folha de Pagamento", icon: Users, path: "/admin/financeiro/folha" },
       { label: "Descontos e Estornos", icon: Percent, path: "/admin/financeiro/ajustes" },
       { label: "Conciliação Bancária", icon: ArrowLeftRight, path: "/admin/financeiro/conciliacao" },
