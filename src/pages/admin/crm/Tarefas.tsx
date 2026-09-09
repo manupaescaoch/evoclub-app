@@ -319,15 +319,22 @@ export default function Tarefas() {
                 </Select>
               </div>
             </div>
-            <div><Label>Colaborador responsável</Label>
-              <Select value={form.responsible_id || ""} onValueChange={pickCollab}>
-                <SelectTrigger><SelectValue placeholder="Selecione (opcional)" /></SelectTrigger>
-                <SelectContent>{collabs.map(c => <SelectItem key={c.id} value={c.id}>{c.full_name}</SelectItem>)}</SelectContent>
-              </Select>
-            </div>
             <div className="grid grid-cols-2 gap-2">
-              <div><Label>Responsável</Label><Input value={form.responsible_name || ""} onChange={e => setForm({ ...form, responsible_name: e.target.value })} /></div>
-              <div><Label>WhatsApp (com DDD)</Label><Input value={form.responsible_phone || ""} onChange={e => setForm({ ...form, responsible_phone: e.target.value })} placeholder="55119..." /></div>
+              <div><Label>Responsável</Label>
+                <Select value={form.responsible_id || ""} onValueChange={pickCollab}>
+                  <SelectTrigger><SelectValue placeholder={form.sector ? `Equipe · ${form.sector}` : "Selecione o responsável"} /></SelectTrigger>
+                  <SelectContent>
+                    {collabsDoSetor.map(c => (
+                      <SelectItem key={c.id} value={c.id}>
+                        {c.full_name}{c.role_title ? ` — ${c.role_title}` : ""}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div><Label>WhatsApp</Label>
+                <Input value={form.responsible_phone || ""} readOnly placeholder="Do cadastro do funcionário" className="bg-muted/50" />
+              </div>
             </div>
             <div className="grid grid-cols-2 gap-2">
               <div><Label>Prioridade</Label>
