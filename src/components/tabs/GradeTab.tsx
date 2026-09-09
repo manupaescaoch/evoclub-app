@@ -192,7 +192,7 @@ const GradeTab = () => {
           const isCurrent = offset === 0 && hour === brNow().getHours();
           const closedPast = mins < 20;
           const notOpenYet = mins > 12 * 60;
-          const isPeak = (hour >= 6 && hour <= 9) || (hour >= 17 && hour <= 20);
+          
 
           let label = "Agendar";
           let action: (() => void) | null = () => openBooking(c, false);
