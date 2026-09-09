@@ -44,6 +44,9 @@ const navItems: NavItem[] = [
     ],
   },
   {
+    label: "Comercial", icon: TrendingUp, path: "/admin/comercial", module: "crm",
+  },
+  {
     label: "Treinos", icon: Dumbbell, path: "/admin/treinos", module: "treinos",
     children: [
       { label: "Dashboard", icon: LayoutDashboard, path: "/admin/treinos" },
