@@ -95,7 +95,7 @@ export const AccessProvider = ({ children }: { children: ReactNode }) => {
     <Ctx.Provider value={{
       loading,
       ...state,
-      canConsolidated: fallback ? true : state.canConsolidated,
+      canConsolidated: fallback ? false : state.canConsolidated,
       can,
       refresh: load,
     }}>
