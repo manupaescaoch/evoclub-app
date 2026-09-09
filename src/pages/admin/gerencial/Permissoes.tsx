@@ -13,22 +13,23 @@ import { logSensitive, logCreate } from "@/lib/audit";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Trash2 } from "lucide-react";
 
-const MODULES = [
-  { key: "dashboard", label: "Dashboard" },
-  { key: "clientes", label: "Clientes" },
-  { key: "grade", label: "Grade" },
-  { key: "crm", label: "CRM" },
-  { key: "financeiro", label: "Financeiro" },
-  { key: "gerencial", label: "Gerencial" },
-  { key: "treinos", label: "Treinos" },
-  { key: "avaliacao", label: "Avaliação Física" },
-  { key: "equipe", label: "Equipe" },
-  { key: "operacional", label: "Operacional" },
-  { key: "ocorrencias", label: "Ocorrências" },
-  { key: "club", label: "EVO Club" },
-  { key: "comunidade", label: "Comunidade" },
-  { key: "configuracoes", label: "Configurações" },
+const GROUPS: { key: string; label: string; items: string[] }[] = [
+  { key: "dashboard", label: "Dashboard", items: ["Visão geral", "Indicadores do mês"] },
+  { key: "grade", label: "Grade", items: ["Grade de horários", "Check-ins", "Agendamentos e lista de espera"] },
+  { key: "clientes", label: "Clientes", items: ["Lista de alunos", "Perfil 360º", "Contratos do aluno"] },
+  { key: "ocorrencias", label: "Ocorrências", items: ["Registro de ocorrências", "Tratamento e responsáveis"] },
+  { key: "crm", label: "CRM", items: ["Dashboard comercial", "Leads", "Comissões", "Indicações", "Tarefas", "Renovações"] },
+  { key: "treinos", label: "Treinos", items: ["Dashboard", "Prescrever treino", "Fichas de treino", "Biblioteca de exercícios", "Métodos de treino"] },
+  { key: "avaliacao", label: "Avaliações", items: ["Avaliações físicas", "Bioimpedância e medidas"] },
+  { key: "financeiro", label: "Financeiro", items: ["Dashboard", "Transações", "Fluxo de caixa", "Recebimentos", "Contas a pagar", "Inadimplência", "Folha de pagamento", "Descontos e estornos", "Conciliação bancária", "DRE", "Forecast", "Relatórios", "Fechamentos", "Configurações"] },
+  { key: "equipe", label: "Equipe", items: ["Visão geral", "Colaboradores", "Escala", "Ponto e jornada", "Desempenho", "Histórico"] },
+  { key: "operacional", label: "Operacional", items: ["Operação do dia", "Dashboard", "Calendário", "Formulários", "Encerramento de turno", "Respostas e pendências", "Automações"] },
+  { key: "gerencial", label: "Gerencial", items: ["Contratos", "Atividades na grade", "Fornecedores", "Permissões", "Serviços", "Cupons de desconto", "Crescimento"] },
+  { key: "club", label: "EVO Club", items: ["Visão geral", "Parceiros e benefícios", "Validar resgate"] },
+  { key: "comunidade", label: "Comunidade", items: ["Feed e publicações", "Moderação", "Comunicados"] },
+  { key: "configuracoes", label: "Configurações", items: ["Configurações gerais", "Auditoria", "Catraca e integrações"] },
 ];
+const MODULES = GROUPS.map(g => ({ key: g.key, label: g.label }));
 const ACTIONS = [
   { key: "view", label: "Ver" },
   { key: "create", label: "Criar" },
@@ -36,6 +37,7 @@ const ACTIONS = [
   { key: "delete", label: "Excluir" },
   { key: "sensitive", label: "Sensível" },
 ];
+
 
 type Profile = {
   id: string; name: string; description: string | null;
