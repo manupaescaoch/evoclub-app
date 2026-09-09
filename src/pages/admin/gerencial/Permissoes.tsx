@@ -13,22 +13,23 @@ import { logSensitive, logCreate } from "@/lib/audit";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Trash2 } from "lucide-react";
 
-const MODULES = [
-  { key: "dashboard", label: "Dashboard" },
-  { key: "clientes", label: "Clientes" },
-  { key: "grade", label: "Grade" },
-  { key: "crm", label: "CRM" },
-  { key: "financeiro", label: "Financeiro" },
-  { key: "gerencial", label: "Gerencial" },
-  { key: "treinos", label: "Treinos" },
-  { key: "avaliacao", label: "Avaliação Física" },
-  { key: "equipe", label: "Equipe" },
-  { key: "operacional", label: "Operacional" },
-  { key: "ocorrencias", label: "Ocorrências" },
-  { key: "club", label: "EVO Club" },
-  { key: "comunidade", label: "Comunidade" },
-  { key: "configuracoes", label: "Configurações" },
+const GROUPS: { key: string; label: string; items: string[] }[] = [
+  { key: "dashboard", label: "Dashboard", items: ["Visão geral", "Indicadores do mês"] },
+  { key: "grade", label: "Grade", items: ["Grade de horários", "Check-ins", "Agendamentos e lista de espera"] },
+  { key: "clientes", label: "Clientes", items: ["Lista de alunos", "Perfil 360º", "Contratos do aluno"] },
+  { key: "ocorrencias", label: "Ocorrências", items: ["Registro de ocorrências", "Tratamento e responsáveis"] },
+  { key: "crm", label: "CRM", items: ["Dashboard comercial", "Leads", "Comissões", "Indicações", "Tarefas", "Renovações"] },
+  { key: "treinos", label: "Treinos", items: ["Dashboard", "Prescrever treino", "Fichas de treino", "Biblioteca de exercícios", "Métodos de treino"] },
+  { key: "avaliacao", label: "Avaliações", items: ["Avaliações físicas", "Bioimpedância e medidas"] },
+  { key: "financeiro", label: "Financeiro", items: ["Dashboard", "Transações", "Fluxo de caixa", "Recebimentos", "Contas a pagar", "Inadimplência", "Folha de pagamento", "Descontos e estornos", "Conciliação bancária", "DRE", "Forecast", "Relatórios", "Fechamentos", "Configurações"] },
+  { key: "equipe", label: "Equipe", items: ["Visão geral", "Colaboradores", "Escala", "Ponto e jornada", "Desempenho", "Histórico"] },
+  { key: "operacional", label: "Operacional", items: ["Operação do dia", "Dashboard", "Calendário", "Formulários", "Encerramento de turno", "Respostas e pendências", "Automações"] },
+  { key: "gerencial", label: "Gerencial", items: ["Contratos", "Atividades na grade", "Fornecedores", "Permissões", "Serviços", "Cupons de desconto", "Crescimento"] },
+  { key: "club", label: "EVO Club", items: ["Visão geral", "Parceiros e benefícios", "Validar resgate"] },
+  { key: "comunidade", label: "Comunidade", items: ["Feed e publicações", "Moderação", "Comunicados"] },
+  { key: "configuracoes", label: "Configurações", items: ["Configurações gerais", "Auditoria", "Catraca e integrações"] },
 ];
+const MODULES = GROUPS.map(g => ({ key: g.key, label: g.label }));
 const ACTIONS = [
   { key: "view", label: "Ver" },
   { key: "create", label: "Criar" },
@@ -36,6 +37,7 @@ const ACTIONS = [
   { key: "delete", label: "Excluir" },
   { key: "sensitive", label: "Sensível" },
 ];
+
 
 type Profile = {
   id: string; name: string; description: string | null;
@@ -90,6 +92,19 @@ export default function Permissoes() {
     setForm({ ...form, modules: mods });
   };
   const isChecked = (modKey: string, actKey: string) => (form.modules?.[modKey] || []).includes(actKey);
+
+  const setGroupAll = (modKey: string, on: boolean) => {
+    const mods = { ...(form.modules || {}) } as Record<string, string[]>;
+    if (on) mods[modKey] = ACTIONS.map(a => a.key);
+    else delete mods[modKey];
+    setForm({ ...form, modules: mods });
+  };
+  const setAllGlobal = (on: boolean) => {
+    if (!on) { setForm({ ...form, modules: {} }); return; }
+    const mods: Record<string, string[]> = {};
+    GROUPS.forEach(g => { mods[g.key] = ACTIONS.map(a => a.key); });
+    setForm({ ...form, modules: mods });
+  };
 
   const save = async () => {
     if (!form.name) { toast.error("Nome obrigatório"); return; }
@@ -288,28 +303,57 @@ export default function Permissoes() {
               <div><Label>Nome</Label><Input value={form.name || ""} onChange={e => setForm({ ...form, name: e.target.value })} /></div>
               <div className="md:col-span-2"><Label>Descrição</Label><Textarea rows={1} value={form.description || ""} onChange={e => setForm({ ...form, description: e.target.value })} /></div>
             </div>
-            <div className="border border-border rounded-lg overflow-hidden">
-              <table className="w-full text-sm font-dm">
-                <thead className="bg-muted/50 text-xs text-muted-foreground uppercase">
-                  <tr>
-                    <th className="px-3 py-2 text-left">Módulo</th>
-                    {ACTIONS.map(a => <th key={a.key} className="px-3 py-2 text-center">{a.label}</th>)}
-                  </tr>
-                </thead>
-                <tbody>
-                  {MODULES.map(m => (
-                    <tr key={m.key} className="border-t border-border">
-                      <td className="px-3 py-2 font-medium">{m.label}</td>
-                      {ACTIONS.map(a => (
-                        <td key={a.key} className="px-3 py-2 text-center">
-                          <Checkbox checked={isChecked(m.key, a.key)} onCheckedChange={() => toggleAction(m.key, a.key)} />
-                        </td>
-                      ))}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <div className="flex items-center justify-between gap-2 rounded-lg border border-border bg-muted/40 px-3 py-2">
+              <p className="text-xs text-muted-foreground font-dm">Clique para ativar o que este perfil pode fazer em cada categoria do menu.</p>
+              <div className="flex gap-2">
+                <Button type="button" size="sm" variant="outline" onClick={() => setAllGlobal(true)}>Ativar tudo</Button>
+                <Button type="button" size="sm" variant="ghost" onClick={() => setAllGlobal(false)}>Limpar tudo</Button>
+              </div>
             </div>
+            <div className="space-y-3">
+              {GROUPS.map(g => {
+                const on = (form.modules?.[g.key] || []).length;
+                return (
+                  <div key={g.key} className="border border-border rounded-lg overflow-hidden">
+                    <div className="flex items-start justify-between gap-3 px-3 py-2.5 bg-muted/40 border-b border-border">
+                      <div className="min-w-0">
+                        <p className="font-barlow font-bold text-sm">{g.label}</p>
+                        <p className="text-[11px] text-muted-foreground font-dm truncate">{g.items.join(" · ")}</p>
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <span className="text-[11px] text-muted-foreground font-dm hidden sm:inline">{on}/{ACTIONS.length}</span>
+                        <Button
+                          type="button" size="sm"
+                          variant={on === ACTIONS.length ? "secondary" : "outline"}
+                          onClick={() => setGroupAll(g.key, on !== ACTIONS.length)}
+                        >
+                          {on === ACTIONS.length ? "Desativar todos" : "Ativar todos"}
+                        </Button>
+                      </div>
+                    </div>
+                    <div className="flex flex-wrap gap-2 p-3">
+                      {ACTIONS.map(a => {
+                        const active = isChecked(g.key, a.key);
+                        return (
+                          <button
+                            key={a.key} type="button"
+                            onClick={() => toggleAction(g.key, a.key)}
+                            className={`px-3 py-1.5 rounded-full text-xs font-dm border transition-colors ${
+                              active
+                                ? "bg-primary text-primary-foreground border-primary"
+                                : "bg-background text-muted-foreground border-border hover:bg-muted"
+                            }`}
+                          >
+                            {a.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
