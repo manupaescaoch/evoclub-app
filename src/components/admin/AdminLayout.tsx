@@ -16,6 +16,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { logAudit } from "@/lib/audit";
 import { useAccess, ModuleKey } from "@/contexts/AccessContext";
 import { UnitSelect, PeriodSelect } from "@/components/admin/ScopeSelectors";
+import AdminBottomNav from "@/components/admin/AdminBottomNav";
 
 type NavItem = {
   label: string;
