@@ -20,6 +20,26 @@ export const yearRange = (year: number) => ({
   end: `${year}-12-31`,
 });
 
+export const monthFull = (m: number) =>
+  ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"][m] || "";
+
+/** percentual formatado; divisão por zero sempre volta 0% */
+export const fmtPct = (v: number) =>
+  `${(v || 0).toLocaleString("pt-BR", { maximumFractionDigits: 1 })}%`;
+
+/** divisão protegida — sem dado, devolve 0 */
+export const safePct = (num: number, den: number) => (den ? (num / den) * 100 : 0);
+
+/** variação percentual entre dois períodos equivalentes */
+export const variation = (current: number, previous: number) => {
+  if (!previous) return current ? 100 : 0;
+  return ((current - previous) / Math.abs(previous)) * 100;
+};
+
+/** rótulo de variação já pronto para exibição */
+export const fmtVar = (v: number) =>
+  `${v > 0 ? "↑" : v < 0 ? "↓" : ""} ${Math.abs(v).toLocaleString("pt-BR", { maximumFractionDigits: 1 })}%`.trim();
+
 export const STATUS_LABEL: Record<string, string> = {
   pending: "Pendente",
   paid: "Pago",
