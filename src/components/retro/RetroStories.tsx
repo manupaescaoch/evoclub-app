@@ -135,17 +135,19 @@ export default function RetroStories(p: Props) {
         </div>
       </div>
 
-      <div className="mt-3 flex items-center justify-between">
-        <button onClick={() => setI((v) => Math.max(v - 1, 0))} disabled={i === 0}
-          className="flex items-center gap-1 font-dm text-xs text-muted-foreground disabled:opacity-40">
-          <ChevronLeft className="h-4 w-4" /> Anterior
-        </button>
-        <span className="font-dm text-xs text-muted-foreground">{i + 1} / {stories.length}</span>
-        <button onClick={() => setI((v) => Math.min(v + 1, stories.length - 1))} disabled={isLast}
-          className="flex items-center gap-1 font-dm text-xs text-muted-foreground disabled:opacity-40">
-          Próximo <ChevronRight className="h-4 w-4" />
-        </button>
-      </div>
+      {!p.fullscreen && (
+        <div className="mt-3 flex items-center justify-between">
+          <button onClick={() => setI((v) => Math.max(v - 1, 0))} disabled={i === 0}
+            className="flex items-center gap-1 font-dm text-xs text-muted-foreground disabled:opacity-40">
+            <ChevronLeft className="h-4 w-4" /> Anterior
+          </button>
+          <span className="font-dm text-xs text-muted-foreground">{i + 1} / {stories.length}</span>
+          <button onClick={() => setI((v) => Math.min(v + 1, stories.length - 1))} disabled={isLast}
+            className="flex items-center gap-1 font-dm text-xs text-muted-foreground disabled:opacity-40">
+            Próximo <ChevronRight className="h-4 w-4" />
+          </button>
+        </div>
+      )}
     </div>
   );
 }
