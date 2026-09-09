@@ -236,7 +236,7 @@ export function DadosTab({ c, onSaved }: { c: OverviewRow; onSaved: () => void }
       const v = form[k] === "" ? null : form[k];
       if (JSON.stringify(v ?? null) !== JSON.stringify(row[k] ?? null)) patch[k] = v;
     });
-    if (!Object.keys(patch).length) { setSaving(false); toast.info("Nenhuma alteração."); return; }
+    if (!Object.keys(patch).length) { setSaving(false); setEditing(false); toast.info("Nenhuma alteração."); return; }
     const { data, error } = await supabase.from("clients").update(patch).eq("id", c.id).select().maybeSingle();
     setSaving(false);
     if (error) { toast.error("Erro ao salvar: " + error.message); return; }
