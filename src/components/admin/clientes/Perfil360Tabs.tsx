@@ -267,11 +267,23 @@ export function DadosTab({ c, onSaved }: { c: OverviewRow; onSaved: () => void }
 
   const Text = ({ k, label, type = "text" }: { k: string; label: string; type?: string }) => (
     <TextField k={k} label={label} type={type} value={form[k] ?? ""}
-      locked={lockedNote(k)} disabled={!canEdit || lockedNote(k)} onChange={set} />
+      locked={lockedNote(k)} disabled={!editing || !canEdit || lockedNote(k)} onChange={set} />
   );
 
   return (
     <div className="space-y-4">
+      <div className="flex items-center justify-between gap-2 rounded-lg border bg-muted/30 px-3 py-2">
+        <p className="text-xs font-dm text-muted-foreground">
+          {editing ? "Modo de edição ativo. Salve para gravar as alterações." : "Dados salvos. Clique em editar para alterar."}
+        </p>
+        {canEdit && !editing && (
+          <Button size="sm" variant="outline" className="font-dm shrink-0"
+            onClick={() => { setForm(row); setEditing(true); }}>
+            <Pencil size={14} className="mr-1.5" /> EDITAR
+          </Button>
+        )}
+      </div>
+
       {!canSensitive && (
         <div className="rounded-lg bg-amber-50 border border-amber-200 p-3 text-xs font-dm text-amber-800 flex items-center gap-2">
           <Lock size={14} /> Dados pessoais (nome, CPF, nascimento, contato, unidade, plano e situação) só podem ser editados por quem tem essa permissão. Dados de saúde, objetivos e limitações seguem liberados.
