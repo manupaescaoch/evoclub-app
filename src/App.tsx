@@ -14,6 +14,7 @@ import Clientes from "./pages/admin/Clientes.tsx";
 import ClienteDetalhe from "./pages/admin/ClienteDetalhe.tsx";
 import Grade from "./pages/admin/Grade.tsx";
 import CRM from "./pages/admin/CRM.tsx";
+import Comercial from "./pages/admin/Comercial.tsx";
 import Leads from "./pages/admin/Leads.tsx";
 import LeadDetalhe from "./pages/admin/LeadDetalhe.tsx";
 import FinanceiroLayout from "./components/admin/financeiro/FinanceiroLayout.tsx";
