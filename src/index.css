@@ -143,8 +143,8 @@
 }
 
 *::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 10px;
+  height: 10px;
 }
 
 *::-webkit-scrollbar-track {
@@ -166,11 +166,11 @@
   background: transparent;
 }
 
-/* Em telas de toque a barra some — a rolagem é por gesto */
+/* Em telas de toque a barra fica sobreposta e discreta, sem travar o gesto */
 @media (hover: none) {
   *::-webkit-scrollbar {
-    width: 0;
-    height: 0;
+    width: 4px;
+    height: 4px;
   }
 }
 
