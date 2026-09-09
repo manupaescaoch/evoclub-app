@@ -79,7 +79,7 @@ export default function ComercialPanel({ indicadores }: { indicadores?: ReactNod
 
   const months = useMemo(monthOptions, []);
   const [mes, setMes] = useState(months[0].value);
-  const [meta, setMeta] = useState<Meta>({ meta_matriculas: 0, meta_experimentais: 0, alunos_ativos: 0 });
+  const [meta, setMeta] = useState<Meta>({ meta_matriculas: 0, meta_experimentais: 0, alunos_ativos: 0, meta_alunos_ativos: 0 });
   const [savingMeta, setSavingMeta] = useState(false);
   const [rule, setRule] = useState<RuleKey>("sem_contato");
 
@@ -98,12 +98,13 @@ export default function ComercialPanel({ indicadores }: { indicadores?: ReactNod
     if (!unidadeId) return;
     (async () => {
       const { data } = await supabase
-        .from("metas").select("meta_matriculas,meta_experimentais,alunos_ativos")
+        .from("metas").select("meta_matriculas,meta_experimentais,alunos_ativos,meta_alunos_ativos")
         .eq("unidade_id", unidadeId).eq("mes_referencia", mes).maybeSingle();
       setMeta({
         meta_matriculas: (data as any)?.meta_matriculas || 0,
         meta_experimentais: (data as any)?.meta_experimentais || 0,
         alunos_ativos: (data as any)?.alunos_ativos || 0,
+        meta_alunos_ativos: (data as any)?.meta_alunos_ativos || 0,
       });
     })();
   }, [unidadeId, mes]);
