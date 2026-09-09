@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -244,7 +245,7 @@ const Clientes = () => {
                 if (c.pending_renewals) pend.push("Renovação");
                 if (c.open_alerts) pend.push("Frequência");
                 return (
-                  <tr key={c.id} onClick={() => setSelected(c)}
+                  <tr key={c.id} onClick={() => navigate(`/admin/clientes/${c.id}`)}
                     className="border-b border-border hover:bg-muted/10 transition-colors cursor-pointer">
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
@@ -286,13 +287,6 @@ const Clientes = () => {
         </table>
       </div>
 
-      {selected && (
-        <Perfil360
-          client={selected}
-          onClose={() => setSelected(null)}
-          onSaved={() => { reload(); setSelected(null); }}
-        />
-      )}
 
       {/* Drawer novo cadastro */}
       {showDrawer && (
