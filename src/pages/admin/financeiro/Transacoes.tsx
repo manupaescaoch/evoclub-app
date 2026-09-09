@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useUnit } from "@/contexts/UnitContext";
 import { fmtBRL, fmtBRLShort, todayISO, STATUS_LABEL } from "@/lib/finance";
@@ -19,25 +20,34 @@ const empty: Tx = { date: todayISO(), description: "", kind: "income", amount: 0
 
 const Transacoes = () => {
   const { filterId, units } = useUnit();
+  const [params] = useSearchParams();
   const [rows, setRows] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<Tx>(empty);
-  const [filterKind, setFilterKind] = useState("all");
+  const [filterKind, setFilterKind] = useState(params.get("kind") || "all");
   const [search, setSearch] = useState("");
+
+  // filtros herdados do dashboard (período e categoria)
+  const from = params.get("from");
+  const to = params.get("to");
+  const category = params.get("category");
 
   const load = async () => {
     setLoading(true);
     let q = supabase.from("transactions").select("*").order("date", { ascending: false }).limit(500);
     if (filterId) q = q.eq("unit_id", filterId);
+    if (from) q = q.gte("date", from);
+    if (to) q = q.lte("date", to);
     const { data } = await q;
     setRows(data || []);
     setLoading(false);
   };
-  useEffect(() => { load(); }, [filterId]);
+  useEffect(() => { load(); }, [filterId, from, to]);
 
   const filtered = rows.filter(r =>
     (filterKind === "all" || r.kind === filterKind) &&
+    (!category || (category === "none" ? !r.category_name : r.category_name === category)) &&
     (!search || (r.description || "").toLowerCase().includes(search.toLowerCase()) || (r.category_name || "").toLowerCase().includes(search.toLowerCase()))
   );
 
