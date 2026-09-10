@@ -79,6 +79,14 @@
     touch-action: manipulation;
     -webkit-tap-highlight-color: transparent;
     overscroll-behavior-y: none;
+    overscroll-behavior-x: none;
+  }
+
+  /* Interações com resposta imediata, sem atraso/zoom de duplo toque */
+  button,
+  a,
+  [role="button"] {
+    touch-action: manipulation;
   }
 
   /* Prevent iOS Safari auto-zoom on focus (needs >= 16px) */
@@ -107,6 +115,14 @@
 .momentum-scroll {
   -webkit-overflow-scrolling: touch;
   overscroll-behavior-y: contain;
+  overscroll-behavior-x: none;
+}
+
+/* App instalado (standalone): garante respiro na status bar */
+@media (display-mode: standalone) {
+  .safe-top {
+    padding-top: max(env(safe-area-inset-top, 0px), 8px);
+  }
 }
 
 .safe-top {

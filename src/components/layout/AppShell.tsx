@@ -47,7 +47,10 @@ const AppShell = () => {
       {onboarded && !isScreen && <DailyCheckinDialog />}
       {onboarded && !isScreen && <CicloEvoDialog onNavigate={go} />}
       {onboarded && <AchievementUnlockDialog />}
-      <div className="pb-24 overflow-y-auto overflow-x-hidden min-h-screen min-h-[100dvh] momentum-scroll">
+      <div
+        className="overflow-y-auto overflow-x-hidden min-h-screen min-h-[100dvh] momentum-scroll"
+        style={{ paddingBottom: "calc(6rem + max(env(safe-area-inset-bottom, 0px), 8px))" }}
+      >
         {activeTab === "inicio" && <InicioTab onTabChange={go} />}
         {activeTab === "grade" && <GradeTab />}
         {activeTab === "treino" && <TreinoTab />}
