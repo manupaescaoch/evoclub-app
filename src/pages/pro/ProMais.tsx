@@ -11,6 +11,7 @@ export default function ProMais() {
   const { can } = useAccess();
 
   const items = [
+    { to: "/pro/turnos", label: "Turnos do dia", desc: "Equipe, presença e Rádio Apoio", icon: Clock, show: true },
     { to: "/pro/escala", label: "Minha escala e trocas", desc: "Plantões, pedidos e aprovações", icon: ArrowLeftRight, show: true },
     { to: "/pro/desempenho", label: "Meu desempenho", desc: "Score e posição no ranking", icon: Trophy, show: can("equipe") },
     { to: "/admin/treinos/prescrever", label: "Montar treino", desc: "Prescrever ou duplicar ficha", icon: ClipboardEdit, show: can("treinos", "edit") },
@@ -50,7 +51,7 @@ export default function ProMais() {
         <Monitor size={16} /> Abrir painel completo
       </Link>
 
-      <button onClick={logout} className="w-full h-12 rounded-xl bg-card border border-border font-dm text-sm font-semibold text-red-600 flex items-center justify-center gap-2">
+      <button onClick={logout} className="w-full h-12 rounded-xl bg-card border border-border font-dm text-sm font-semibold text-destructive flex items-center justify-center gap-2">
         <LogOut size={16} /> Sair
       </button>
     </div>

@@ -81,6 +81,7 @@ import AdminComunidade from "./pages/admin/Comunidade.tsx";
 import ProLayout from "./components/pro/ProLayout.tsx";
 import ProHoje from "./pages/pro/ProHoje.tsx";
 import ProEscala from "./pages/pro/ProEscala.tsx";
+import ProTurnos from "./pages/pro/ProTurnos.tsx";
 import ProNotificacoes from "./pages/pro/ProNotificacoes.tsx";
 import ProComunidade from "./pages/pro/ProComunidade.tsx";
 import ProDesempenho from "./pages/pro/ProDesempenho.tsx";
@@ -140,6 +141,7 @@ const App = () => (
           <Route path="/pro" element={<ProLayout />}>
             <Route index element={<ProHoje />} />
             <Route path="escala" element={<ProEscala />} />
+            <Route path="turnos" element={<ProTurnos />} />
             <Route path="notificacoes" element={<ProNotificacoes />} />
             <Route path="comunidade" element={<ProComunidade />} />
             <Route path="desempenho" element={<ProDesempenho />} />
