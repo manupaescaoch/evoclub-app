@@ -1,13 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { ChevronLeft, ChevronRight, AlertTriangle, Lock, RefreshCw } from "lucide-react";
+import { ChevronLeft, ChevronRight, AlertTriangle, Lock, RefreshCw, Radio, Users, UserRoundCheck, Sparkles } from "lucide-react";
 import { useAccess } from "@/contexts/AccessContext";
 import { useUnit } from "@/contexts/UnitContext";
 import {
   GradeStudent, RPC_REASONS, STATUS_LABEL, STATUS_STYLE, brToday, useGradeDay,
 } from "@/hooks/useGradeDay";
+import { Button } from "@/components/ui/button";
+import DistribuirDialog from "@/components/admin/grade/DistribuirDialog";
 import ProStudentSheet from "@/components/pro/ProStudentSheet";
+import { SHIFT_LABEL, ShiftId, shiftForTime, useShiftOperations } from "@/hooks/useShiftOperations";
 
 const shift = (iso: string, days: number) => {
   const [y, m, d] = iso.split("-").map(Number);
@@ -36,7 +39,10 @@ export default function ProHoje() {
   const [scope, setScope] = useState<"meus" | "todos">("meus");
   const [plans, setPlans] = useState<Record<number, PlanInfo>>({});
   const [active, setActive] = useState<GradeStudent | null>(null);
+  const [period, setPeriod] = useState<"todos" | ShiftId>("todos");
+  const [distClassId, setDistClassId] = useState<string | null>(null);
   const { slots, roster, loading, error, reload } = useGradeDay(dateISO, filterId);
+  const shifts = useShiftOperations(dateISO, filterId);
 
   const canManage = can("grade", "edit");
 
@@ -75,13 +81,25 @@ export default function ProHoje() {
     const byClass: Record<string, GradeStudent[]> = {};
     roster.forEach(s => { (byClass[s.class_id] ||= []).push(s); });
     return slots
+      .filter(slot => period === "todos" || shiftForTime(slot.start_time) === period)
       .map(slot => {
         const all = (byClass[slot.class_id] || []).filter(s => !s.waitlisted);
         const mine = all.filter(s => s.collaborator_id && s.collaborator_id === collaboratorId);
         return { slot, all, mine, list: scope === "meus" ? mine : all };
       })
       .filter(g => (scope === "meus" ? g.mine.length > 0 : g.all.length > 0 || !g.slot.blocked));
-  }, [slots, roster, collaboratorId, scope]);
+  }, [slots, roster, collaboratorId, scope, period]);
+
+  const activeProfessionals = useMemo(() => {
+    const unique = new Map<string, (typeof shifts.collaborators)[number]>();
+    Object.values(shifts.teams).flat().forEach(person => unique.set(person.id, person));
+    return Array.from(unique.values());
+  }, [shifts.teams]);
+
+  const distGroup = mySlots.find(group => group.slot.class_id === distClassId);
+  const totalBooked = mySlots.reduce((sum, group) => sum + group.all.length, 0);
+  const totalPresent = mySlots.reduce((sum, group) => sum + group.slot.present, 0);
+  const totalTrials = mySlots.reduce((sum, group) => sum + group.slot.trials, 0);
 
   const setStatus = async (s: GradeStudent, status: string) => {
     const { data, error: err } = await supabase.rpc("set_attendance" as any, { _booking_id: s.booking_id, _status: status });
@@ -94,27 +112,54 @@ export default function ProHoje() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-2">
-        <button onClick={() => setDateISO(d => shift(d, -1))} aria-label="Dia anterior"
-          className="h-11 w-11 rounded-xl border border-border bg-card flex items-center justify-center">
-          <ChevronLeft size={20} />
-        </button>
-        <button onClick={() => setDateISO(brToday())}
-          className="flex-1 h-11 rounded-xl bg-card border border-border font-barlow font-bold text-base uppercase">
-          {dateISO === brToday() ? "HOJE" : pretty(dateISO)}
-        </button>
-        <button onClick={() => setDateISO(d => shift(d, 1))} aria-label="Próximo dia"
-          className="h-11 w-11 rounded-xl border border-border bg-card flex items-center justify-center">
-          <ChevronRight size={20} />
-        </button>
+      <div>
+        <p className="font-dm text-xs font-semibold uppercase text-primary">Painel de turno</p>
+        <h1 className="font-barlow text-2xl font-extrabold uppercase">Atendimento do dia</h1>
+        <p className="font-dm text-xs capitalize text-muted-foreground">{new Date(`${dateISO}T12:00:00`).toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long" })}</p>
       </div>
+      <div className="flex items-center gap-2">
+        <Button variant="outline" size="icon" onClick={() => setDateISO(d => shift(d, -1))} aria-label="Dia anterior"
+          className="h-11 w-11 rounded-xl">
+          <ChevronLeft size={20} />
+        </Button>
+        <Button variant="outline" onClick={() => setDateISO(brToday())}
+          className="flex-1 h-11 rounded-xl font-barlow font-bold text-base uppercase">
+          {dateISO === brToday() ? "HOJE" : pretty(dateISO)}
+        </Button>
+        <Button variant="outline" size="icon" onClick={() => setDateISO(d => shift(d, 1))} aria-label="Próximo dia"
+          className="h-11 w-11 rounded-xl">
+          <ChevronRight size={20} />
+        </Button>
+      </div>
+
+      <div className="grid grid-cols-4 gap-2">
+        {(["todos", "manha", "tarde", "noite"] as const).map(item => (
+          <Button key={item} variant={period === item ? "default" : "outline"} className="h-10 px-1 text-[10px] uppercase" onClick={() => setPeriod(item)}>
+            {item === "todos" ? "Todos" : SHIFT_LABEL[item]}
+          </Button>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-3 gap-2">
+        <div className="rounded-xl border border-border bg-card p-3"><Users size={16} className="text-primary" /><strong className="mt-2 block font-barlow text-xl">{totalBooked}</strong><span className="text-[10px] text-muted-foreground">Agendados</span></div>
+        <div className="rounded-xl border border-border bg-card p-3"><UserRoundCheck size={16} className="text-success" /><strong className="mt-2 block font-barlow text-xl">{totalPresent}</strong><span className="text-[10px] text-muted-foreground">Presentes</span></div>
+        <div className="rounded-xl border border-border bg-card p-3"><Sparkles size={16} className="text-warning" /><strong className="mt-2 block font-barlow text-xl">{totalTrials}</strong><span className="text-[10px] text-muted-foreground">Experimentais</span></div>
+      </div>
+
+      <section className="rounded-xl border border-border bg-card p-4">
+        <div className="flex items-center gap-2"><Radio size={17} className="text-primary" /><h2 className="font-barlow text-sm font-extrabold uppercase">Equipe ativa</h2><span className="ml-auto text-[10px] text-muted-foreground">{activeProfessionals.length} no dia</span></div>
+        <div className="mt-3 flex gap-2 overflow-x-auto no-scrollbar">
+          {activeProfessionals.length === 0 && <p className="text-xs text-muted-foreground">Nenhum profissional escalado para esta data.</p>}
+          {activeProfessionals.map(person => <span key={person.id} className="shrink-0 rounded-full border border-border bg-muted/50 px-3 py-2 text-xs font-semibold">{person.full_name}</span>)}
+        </div>
+      </section>
 
       <div className="flex gap-2">
         {(["meus", "todos"] as const).map(s => (
-          <button key={s} onClick={() => setScope(s)}
-            className={`flex-1 h-10 rounded-xl font-dm text-xs font-bold uppercase tracking-wide ${scope === s ? "bg-primary text-white" : "bg-card border border-border text-muted-foreground"}`}>
+          <Button key={s} onClick={() => setScope(s)} variant={scope === s ? "default" : "outline"}
+            className="flex-1 h-10 rounded-xl font-dm text-xs font-bold uppercase">
             {s === "meus" ? "Meus alunos" : "Todos os horários"}
-          </button>
+          </Button>
         ))}
       </div>
 
@@ -123,9 +168,9 @@ export default function ProHoje() {
       {error && (
         <div className="rounded-xl border border-red-200 bg-red-50 p-4 font-dm text-sm text-red-700">
           <p className="flex items-center gap-2"><AlertTriangle size={16} /> Não foi possível carregar: {error}</p>
-          <button onClick={reload} className="mt-3 h-10 w-full rounded-lg bg-white border border-red-200 font-semibold flex items-center justify-center gap-2">
+          <Button variant="outline" onClick={reload} className="mt-3 h-10 w-full rounded-lg font-semibold">
             <RefreshCw size={14} /> Tentar de novo
-          </button>
+          </Button>
         </div>
       )}
 
@@ -153,6 +198,14 @@ export default function ProHoje() {
               </span>
             )}
           </div>
+
+          {scope === "todos" && canManage && (
+            <div className="border-b border-border px-4 py-2">
+              <Button variant="outline" size="sm" className="h-9 w-full text-xs" onClick={() => setDistClassId(slot.class_id)}>
+                <Users size={14} /> Distribuir alunos
+              </Button>
+            </div>
+          )}
 
           <div className="divide-y divide-border">
             {list.length === 0 && (
@@ -209,6 +262,16 @@ export default function ProHoje() {
         open={!!active}
         onOpenChange={v => !v && setActive(null)}
         planName={active?.client_id ? plans[active.client_id]?.name ?? null : null}
+      />
+      <DistribuirDialog
+        open={!!distGroup}
+        onOpenChange={open => !open && setDistClassId(null)}
+        slot={distGroup?.slot || null}
+        dateISO={dateISO}
+        students={distGroup?.all || []}
+        professors={activeProfessionals}
+        maxPerProfessor={shifts.maxPerProfessional}
+        onChanged={() => { reload(); setDistClassId(null); }}
       />
     </div>
   );
