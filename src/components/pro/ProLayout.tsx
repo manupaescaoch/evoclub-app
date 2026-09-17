@@ -3,6 +3,7 @@ import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import logoAsset from "@/assets/logo-evo.png.asset.json";
 import { useAccess } from "@/contexts/AccessContext";
+import { CONSOLIDATED, useUnit } from "@/contexts/UnitContext";
 import { useStaffNotifications } from "@/hooks/useStaffNotifications";
 import { Bell, CalendarCheck, LayoutGrid, Monitor, Users2, Clock3 } from "lucide-react";
 
@@ -17,6 +18,7 @@ const NAV = [
 export default function ProLayout() {
   const navigate = useNavigate();
   const { loading, collaboratorId, isAdmin } = useAccess();
+  const { units, selected, setSelected, currentUnit } = useUnit();
   const { unread } = useStaffNotifications();
   const [checking, setChecking] = useState(true);
   const [name, setName] = useState<string>("");
@@ -41,9 +43,17 @@ export default function ProLayout() {
 
   useEffect(() => {
     if (!collaboratorId) return;
-    supabase.from("collaborators").select("full_name, role_title").eq("id", collaboratorId).maybeSingle()
-      .then(({ data }) => setName((data as any)?.full_name || ""));
-  }, [collaboratorId]);
+    supabase.from("collaborators").select("full_name, role_title, unit_id").eq("id", collaboratorId).maybeSingle()
+      .then(({ data }) => {
+        setName((data as any)?.full_name || "");
+        const staffUnit = (data as any)?.unit_id;
+        if (staffUnit && selected === CONSOLIDATED) setSelected(staffUnit);
+      });
+  }, [collaboratorId, selected, setSelected]);
+
+  useEffect(() => {
+    if (selected === CONSOLIDATED && units.length) setSelected(units[0].id);
+  }, [selected, units, setSelected]);
 
   if (checking || loading) {
     return (
@@ -64,7 +74,7 @@ export default function ProLayout() {
             <p className="font-barlow font-bold text-base leading-tight truncate">
               {first ? `Olá, ${first}` : "Modo treinador"}
             </p>
-            <p className="text-[11px] font-dm text-sidebar-foreground leading-tight">EVO Club · treinador</p>
+             <p className="text-[11px] font-dm text-sidebar-foreground leading-tight">{currentUnit?.name || "EVO Club"} · treinador</p>
           </div>
           <Link to="/pro/notificacoes" className="ml-auto relative p-2 rounded-lg hover:bg-sidebar-border" aria-label="Notificações">
             <Bell size={20} />
