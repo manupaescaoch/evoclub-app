@@ -9,6 +9,7 @@ import { Lock, UserMinus, Play } from "lucide-react";
 
 export default function DistribuirDialog({
   open, onOpenChange, slot, dateISO, students, professors, onChanged,
+  maxPerProfessor = 2,
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
@@ -17,6 +18,7 @@ export default function DistribuirDialog({
   students: GradeStudent[];
   professors: Professor[];
   onChanged: () => void;
+  maxPerProfessor?: number;
 }) {
   const [picked, setPicked] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -82,7 +84,7 @@ export default function DistribuirDialog({
         <DialogHeader>
           <DialogTitle className="font-barlow">DISTRIBUIÇÃO POR PROFESSOR · {slot.start_time.slice(0, 5)}</DialogTitle>
           <DialogDescription className="font-dm text-xs">
-            Arraste o aluno para o professor ou selecione o aluno e toque no professor. Máximo de 2 alunos por professor.
+            Arraste o aluno para o professor ou selecione o aluno e toque no professor. Máximo de {maxPerProfessor} aluno(s) por profissional.
           </DialogDescription>
         </DialogHeader>
 
@@ -113,7 +115,7 @@ export default function DistribuirDialog({
             )}
             {professors.map(p => {
               const list = byProf[p.id] || [];
-              const full = list.length >= 2;
+              const full = list.length >= maxPerProfessor;
               return (
                 <div key={p.id}
                   onDragOver={e => e.preventDefault()}
@@ -129,7 +131,7 @@ export default function DistribuirDialog({
                   <div className="flex items-center justify-between">
                     <p className="font-dm font-semibold text-sm">{p.full_name}</p>
                     <span className={`text-[10px] font-barlow font-bold px-2 py-0.5 rounded-full ${full ? "bg-red-50 text-red-600" : "bg-green-50 text-green-700"}`}>
-                      {list.length}/2
+                      {list.length}/{maxPerProfessor}
                     </span>
                   </div>
                   <p className="text-[11px] text-muted-foreground font-dm">{p.role_title || "Colaborador"}</p>

@@ -4129,6 +4129,35 @@ export type Database = {
           },
         ]
       }
+      operation_settings: {
+        Row: {
+          max_students_per_professional: number
+          unit_id: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          max_students_per_professional?: number
+          unit_id: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          max_students_per_professional?: number
+          unit_id?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "operation_settings_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: true
+            referencedRelation: "units"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       operational_form_submissions: {
         Row: {
           answers: Json
@@ -5951,6 +5980,169 @@ export type Database = {
           year?: number
         }
         Relationships: []
+      }
+      staff_shift_changes: {
+        Row: {
+          cancelled_at: string | null
+          cancelled_by: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          incoming_collaborator_id: string
+          outgoing_collaborator_id: string | null
+          reason: string | null
+          shift: string
+          shift_date: string
+          unit_id: string
+        }
+        Insert: {
+          cancelled_at?: string | null
+          cancelled_by?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          incoming_collaborator_id: string
+          outgoing_collaborator_id?: string | null
+          reason?: string | null
+          shift: string
+          shift_date: string
+          unit_id: string
+        }
+        Update: {
+          cancelled_at?: string | null
+          cancelled_by?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          incoming_collaborator_id?: string
+          outgoing_collaborator_id?: string | null
+          reason?: string | null
+          shift?: string
+          shift_date?: string
+          unit_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "staff_shift_changes_incoming_collaborator_id_fkey"
+            columns: ["incoming_collaborator_id"]
+            isOneToOne: false
+            referencedRelation: "collaborators"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "staff_shift_changes_outgoing_collaborator_id_fkey"
+            columns: ["outgoing_collaborator_id"]
+            isOneToOne: false
+            referencedRelation: "collaborators"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "staff_shift_changes_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "units"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      staff_shift_presence: {
+        Row: {
+          break_slot: string | null
+          collaborator_id: string
+          confirmed_at: string | null
+          id: string
+          present: boolean
+          shift: string
+          shift_date: string
+          unit_id: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          break_slot?: string | null
+          collaborator_id: string
+          confirmed_at?: string | null
+          id?: string
+          present?: boolean
+          shift: string
+          shift_date: string
+          unit_id: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          break_slot?: string | null
+          collaborator_id?: string
+          confirmed_at?: string | null
+          id?: string
+          present?: boolean
+          shift?: string
+          shift_date?: string
+          unit_id?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "staff_shift_presence_collaborator_id_fkey"
+            columns: ["collaborator_id"]
+            isOneToOne: false
+            referencedRelation: "collaborators"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "staff_shift_presence_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "units"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      staff_shift_support: {
+        Row: {
+          collaborator_id: string
+          created_at: string
+          created_by: string | null
+          id: string
+          shift: string
+          shift_date: string
+          unit_id: string
+        }
+        Insert: {
+          collaborator_id: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          shift: string
+          shift_date: string
+          unit_id: string
+        }
+        Update: {
+          collaborator_id?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          shift?: string
+          shift_date?: string
+          unit_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "staff_shift_support_collaborator_id_fkey"
+            columns: ["collaborator_id"]
+            isOneToOne: false
+            referencedRelation: "collaborators"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "staff_shift_support_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "units"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       student_preferences: {
         Row: {
