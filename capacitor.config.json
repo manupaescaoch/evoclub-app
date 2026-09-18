@@ -1,0 +1,12 @@
+{
+  "appId": "app.lovable.c2046fda3b424c30b21b7b6b5a7987d1",
+  "appName": "evoclub-app",
+  "webDir": "dist",
+  "server": {
+    "url": "https://c2046fda-3b42-4c30-b21b-7b6b5a7987d1.lovableproject.com?forceHideBadge=true",
+    "cleartext": true
+  },
+  "ios": {
+    "contentInset": "always"
+  }
+}
