@@ -8,6 +8,13 @@
       "when": 1789640229756,
       "tag": "0000_add_shift_operations_for_evo_flow",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1789728104002,
+      "tag": "0001_tighten_waitlist_and_session_exercise_reads",
+      "breakpoints": true
     }
   ]
 }
