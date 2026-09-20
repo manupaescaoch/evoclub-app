@@ -42,6 +42,7 @@ export default function ProHoje() {
   const [busy, setBusy] = useState(false);
   const [term, setTerm] = useState("");
   const [found, setFound] = useState<{ id: number; name: string }[]>([]);
+  const [adding, setAdding] = useState(false);
   const [report, setReport] = useState<string | null>(null);
 
   const { slots, roster, loading, error, reload } = useGradeDay(dateISO, filterId);
