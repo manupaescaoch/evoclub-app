@@ -64,6 +64,13 @@ const hasPerformedData = (s: SetRow) =>
    s.performedSpeed, s.performedIncline, s.performedCalories]
     .some((v) => v !== null && v !== undefined && String(v).trim() !== "");
 
+/** Só usa como sugestão de campo numérico quando a carga prescrita é um número (ex.: "30"), não "80% 1RM". */
+const numericLoad = (v: string | null) => {
+  if (!v) return null;
+  const clean = v.replace(",", ".").trim();
+  return /^\d+(\.\d+)?$/.test(clean) ? clean : null;
+};
+
 const maxLoad = (sets: SetRow[]) => {
   const vals = sets
     .map((s) => parseFloat((s.performedLoad || "").replace(",", ".")))
@@ -1045,7 +1052,7 @@ const TreinoTab = () => {
                                 <>
                                   <div className="flex-1 flex items-center gap-1">
                                     <input
-                                      type="number" inputMode="decimal" step="0.5" placeholder={s.lastLoad ?? s.prescribedLoad ?? "0"}
+                                      type="number" inputMode="decimal" step="0.5" placeholder={numericLoad(s.lastLoad) ?? numericLoad(s.prescribedLoad) ?? "0"}
                                       defaultValue={s.performedLoad ?? ""}
                                       onBlur={(e) => { if (e.target.value !== (s.performedLoad ?? "")) setLoad(i, si, e.target.value); }}
                                       onKeyDown={(e) => { if (e.key === "Enter") (e.target as HTMLInputElement).blur(); }}
