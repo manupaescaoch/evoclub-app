@@ -253,8 +253,9 @@ export function generateAssessmentEvoPdf(data: EvoAssessmentPdfData, comparison:
   doc.setFillColor(PALE); doc.rect(margin, cy - 7, W - margin * 2, 9, "F");
   ["Indicador", "Anterior", "Atual", "Variação"].forEach((h, i) => { doc.setFont("helvetica", "bold"); doc.setFontSize(6.5); doc.setTextColor(MUTED); doc.text(h.toUpperCase(), [margin + 4, 115, 148, 195][i], cy - 1, { align: i ? "right" : "left" }); });
   cy += 8;
-  compareKeys.filter(key => n(bio[key]) != null).forEach(key => {
-    const current = n(bio[key]); const previous = n(data.previous?.bio?.[key]); const item = LABELS[key];
+  const fallbackOf = (source: any, key: string) => n(source?.[key] ?? (key === "skeletal_muscle_mass" ? source?.muscle_mass : key === "total_body_water" ? source?.body_water : null));
+  compareKeys.filter(key => fallbackOf(bio, key) != null).forEach(key => {
+    const current = fallbackOf(bio, key); const previous = fallbackOf(data.previous?.bio, key); const item = LABELS[key];
     doc.setDrawColor(LINE); doc.line(margin + 3, cy + 5, W - margin - 3, cy + 5);
     doc.setFont("helvetica", "normal"); doc.setFontSize(7.2); doc.setTextColor(INK); doc.text(item.label, margin + 4, cy);
     doc.text(previous == null ? "—" : `${fmt(previous)} ${item.unit}`.trim(), 115, cy, { align: "right" });
