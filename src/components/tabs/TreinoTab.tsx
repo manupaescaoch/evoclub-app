@@ -794,9 +794,19 @@ const TreinoTab = () => {
     const ex = exercises[exIdx];
     const pendingSets = ex.sets.filter((s) => !s.completed).length;
     if (pendingSets > 0 && !force) {
-      if (!window.confirm(`Ainda faltam ${pendingSets} série(s). Marcar o exercício como concluído?`)) return;
+      setConfirmCompleteExercise({ exIdx, pendingSets });
+      return;
     }
     ex.sets.forEach((s, j) => {
+      if (!s.completed) updateRow(exIdx, j, { completed: true, completedAt: new Date().toISOString() });
+    });
+  };
+
+  const confirmCompleteExerciseAction = () => {
+    if (!confirmCompleteExercise) return;
+    const { exIdx } = confirmCompleteExercise;
+    setConfirmCompleteExercise(null);
+    exercises[exIdx].sets.forEach((s, j) => {
       if (!s.completed) updateRow(exIdx, j, { completed: true, completedAt: new Date().toISOString() });
     });
   };
