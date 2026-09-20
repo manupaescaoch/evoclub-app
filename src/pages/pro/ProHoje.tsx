@@ -275,7 +275,7 @@ export default function ProHoje() {
 
   const searchStudents = async (value: string) => {
     setTerm(value);
-    if (value.trim().length < 3) { setFound([]); return; }
+    if (value.trim().length < 2) { setFound([]); return; }
     const query = supabase.from("clients").select("id,name").ilike("name", `%${value.trim()}%`).limit(8);
     const { data } = filterId ? await query.eq("unit_id", filterId) : await query;
     setFound(((data as any[]) || []).map(row => ({ id: row.id, name: row.name })));
