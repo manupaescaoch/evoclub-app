@@ -891,7 +891,7 @@ const TreinoTab = () => {
   /* ---------- Tela de execução ---------- */
   if (screen === "session") {
     return (
-      <div className="flex flex-col h-full">
+      <div>
         <div className="sticky top-0 z-10 bg-background px-4 pt-4 pb-3">
           <button onClick={() => { setScreen("plan"); setRestSeconds(null); reload(); }}
             className="flex items-center gap-1 text-primary text-sm font-dm font-semibold mb-3 min-h-[44px]">
@@ -938,7 +938,7 @@ const TreinoTab = () => {
           )}
         </div>
 
-        <div className="flex-1 overflow-y-auto px-4 pb-40">
+        <div className="px-4 pb-40">
           {loadingSession && <p className="text-xs font-dm text-muted py-4">Carregando treino...</p>}
           {!loadingSession && exercises.length === 0 && (
             <p className="text-xs font-dm text-muted py-4 text-center">Nenhum exercício cadastrado neste dia.</p>
