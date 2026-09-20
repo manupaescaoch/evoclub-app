@@ -658,7 +658,7 @@ export default function ProHoje() {
                           {/* designar professor */}
                           {!s.locked && !s.started_at && (
                             <div className="mt-2.5 space-y-2">
-                              <Button type="button" variant="outline" disabled={busy || !availableTeam.length}
+                              <Button type="button" variant="outline" disabled={busy}
                                 onClick={() => setAssigningId(s.booking_id)}
                                 className="h-11 w-full rounded-xl font-dm text-xs font-bold">
                                 <UserPlus size={15} /> Designar professor
@@ -680,7 +680,7 @@ export default function ProHoje() {
 
             {/* designar professor — folha inferior com rolagem */}
             <Sheet open={!!assigningId} onOpenChange={open => { if (!open) setAssigningId(null); }}>
-              <SheetContent side="bottom" className="flex max-h-[85vh] flex-col overflow-hidden rounded-t-2xl border-t border-border bg-background p-0 sm:max-w-none">
+              <SheetContent side="bottom" className="flex h-[72vh] max-h-[72vh] flex-col overflow-hidden rounded-t-2xl border-t border-border bg-background p-0 sm:max-w-none">
                 <SheetHeader className="sticky top-0 z-10 border-b border-border bg-background px-4 py-4 text-left">
                   <SheetTitle className="font-barlow text-lg font-extrabold uppercase">Designar professor</SheetTitle>
                   <SheetDescription className="font-dm text-xs">
