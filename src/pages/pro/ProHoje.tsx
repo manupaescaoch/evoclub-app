@@ -658,7 +658,7 @@ export default function ProHoje() {
                           {/* designar professor */}
                           {!s.locked && !s.started_at && (
                             <div className="mt-2.5 space-y-2">
-                              <Button type="button" variant="outline" disabled={busy || !availableTeam.length}
+                              <Button type="button" variant="outline" disabled={busy}
                                 onClick={() => setAssigningId(s.booking_id)}
                                 className="h-11 w-full rounded-xl font-dm text-xs font-bold">
                                 <UserPlus size={15} /> Designar professor
