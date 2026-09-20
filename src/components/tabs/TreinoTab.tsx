@@ -1050,8 +1050,8 @@ const TreinoTab = () => {
                               <button onClick={() => toggleSet(i, si)} disabled={!started}
                                 aria-label={s.completed ? "Desfazer série" : "Concluir série"}
                                 className="w-9 h-9 flex items-center justify-center shrink-0 disabled:opacity-40">
-                                <span className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${s.completed ? "bg-emerald-500 border-emerald-500" : "border-muted/30"}`}>
-                                  {s.completed && <Check size={12} className="text-white" />}
+                                <span className={`w-7 h-7 rounded-full border-2 flex items-center justify-center transition-colors ${s.completed ? "bg-success border-success shadow-sm" : "border-primary/70 bg-card"}`}>
+                                  {s.completed && <Check size={14} className="text-white" strokeWidth={3} />}
                                 </span>
                               </button>
                               <div className="min-w-0 w-[74px]">
