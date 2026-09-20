@@ -93,7 +93,7 @@ const slug = (s: string) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").t
 
 export const assessmentPdfFileName = (studentName: string, performedAt: string | null) => {
   const d = performedAt ? new Date(performedAt) : new Date();
-  const day = Number.isNaN(d.getTime()) ? "sem-data" : d.toLocaleDateString("pt-BR").replaceAll("/", "-");
+  const day = Number.isNaN(d.getTime()) ? "sem-data" : d.toLocaleDateString("pt-BR").replace(/\//g, "-");
   return `avaliacao-evo-${slug(studentName)}-${day}.pdf`;
 };
 

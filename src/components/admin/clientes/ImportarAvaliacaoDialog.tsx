@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { AlertTriangle, FileText, Loader2, Upload } from "lucide-react";
 import { logAudit } from "@/lib/audit";
+import { generateAndStoreAssessmentPdf } from "@/lib/assessmentPdfService";
 
 const MAX_MB = 10;
 const ACCEPT = "application/pdf,image/png,image/jpeg";
@@ -164,11 +165,16 @@ export default function ImportarAvaliacaoDialog({
       const d = (data as any).data as Record<string, any>;
       const v: Record<string, string> = {};
       Object.entries(d).forEach(([k, val]) => {
-        if (k === "low_confidence") return;
+        if (k === "low_confidence" || k === "reference_ranges" || k === "segmental_meta") return;
         v[k] = val == null ? "" : String(val).replace(",", ".");
       });
       setValues(v);
       setLowConf(Array.isArray(d.low_confidence) ? d.low_confidence : []);
+      setValues(current => ({
+        ...current,
+        __reference_ranges: JSON.stringify(d.reference_ranges || {}),
+        __segmental_meta: JSON.stringify(d.segmental_meta || {}),
+      }));
       const at = toLocalInput(d.measured_at || null);
       setMeasuredAt(at);
 
@@ -200,6 +206,8 @@ export default function ImportarAvaliacaoDialog({
     const p: Record<string, string> = {};
     NUM_KEYS.forEach(k => { if ((values[k] || "").trim() !== "") p[k] = values[k].replace(",", "."); });
     ["sex", "device_model", "device_client_id"].forEach(k => { if ((values[k] || "").trim()) p[k] = values[k].trim(); });
+    p.reference_ranges = values.__reference_ranges || "{}";
+    p.segmental_meta = values.__segmental_meta || "{}";
     return p;
   }, [values]);
 
@@ -234,7 +242,12 @@ export default function ImportarAvaliacaoDialog({
         metadata: { file: file.name, low_confidence: lowConf, name_warning: nameWarn },
         after: bioPayload,
       });
-      toast.success("Avaliação importada e salva no histórico do aluno.");
+      try {
+        await generateAndStoreAssessmentPdf(res.id);
+        toast.success("Avaliação importada e PDF EVO gerado.");
+      } catch {
+        toast.warning("Avaliação salva. O PDF EVO poderá ser gerado novamente na avaliação completa.");
+      }
       onSaved();
       onClose();
     } catch {

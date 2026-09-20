@@ -10,6 +10,7 @@ import { MEASURE_KEYS } from "@/components/tabs/AvaliacoesTab";
 import { AssessmentRow, fetchAssessmentDetail } from "@/hooks/useAdminAssessments";
 import { logAudit } from "@/lib/audit";
 import { LoadingState } from "@/components/admin/gerencial/PageShell";
+import { generateAndStoreAssessmentPdf } from "@/lib/assessmentPdfService";
 
 const BIO_FIELDS = [
   { key: "weight", label: "Peso", unit: "kg" },
@@ -94,7 +95,12 @@ export default function RealizarAvaliacaoDialog({ row, onClose, onSaved }: Props
       metadata: { sensitive: published, origin, reason: reason.trim() || null },
       after: { measures: mPayload, bio: bPayload },
     });
-    toast.success(published ? "Correção registrada com histórico." : "Avaliação publicada e aluno notificado.");
+    try {
+      await generateAndStoreAssessmentPdf(row.id);
+      toast.success(published ? "Correção salva e PDF EVO atualizado." : "Avaliação publicada e PDF EVO gerado.");
+    } catch {
+      toast.warning("Avaliação salva. O PDF EVO poderá ser gerado novamente na avaliação completa.");
+    }
     onSaved();
     onClose();
   };
