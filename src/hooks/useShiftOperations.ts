@@ -52,6 +52,28 @@ export const SHIFT_LABEL: Record<ShiftId, string> = {
   noite: "Noite",
 };
 
+export const SHIFT_ORDER: ShiftId[] = ["manha", "tarde", "noite"];
+
+/** rodízio automático de fim de semana com âncora fixa (sábado 03/01/2026 = Manhã) */
+const WEEKEND_ANCHOR = Date.UTC(2026, 0, 3);
+export const weekendShift = (dateISO: string): ShiftId | null => {
+  const date = new Date(`${dateISO}T12:00:00`);
+  const dow = date.getDay();
+  if (dow !== 0 && dow !== 6) return null;
+  const utc = Date.UTC(date.getFullYear(), date.getMonth(), date.getDate());
+  const weeks = Math.floor((utc - WEEKEND_ANCHOR) / (7 * 86400000));
+  return SHIFT_ORDER[((weeks % 3) + 3) % 3];
+};
+
+export const isShiftLeader = (person: { role_title: string | null }) =>
+  /l[ií]der/i.test(person.role_title || "");
+
+/** turno atual pelo horário de Brasília */
+export const currentShift = (): ShiftId => {
+  const now = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Sao_Paulo" }));
+  return shiftForTime(`${String(now.getHours()).padStart(2, "0")}:00`);
+};
+
 export function useShiftOperations(dateISO: string, unitId: string | null) {
   const [collaborators, setCollaborators] = useState<ShiftCollaborator[]>([]);
   const [presence, setPresence] = useState<ShiftPresence[]>([]);
