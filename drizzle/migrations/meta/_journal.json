@@ -15,6 +15,20 @@
       "when": 1789728104002,
       "tag": "0001_tighten_waitlist_and_session_exercise_reads",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1789904067722,
+      "tag": "0002_assessment_import_inbody",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1789904093133,
+      "tag": "0003_avaliacoes_bucket_policies",
+      "breakpoints": true
     }
   ]
 }

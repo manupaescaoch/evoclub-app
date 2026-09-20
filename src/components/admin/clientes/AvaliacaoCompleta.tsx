@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Download, Pencil } from "lucide-react";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 import { MEASURE_KEYS } from "@/components/tabs/AvaliacoesTab";
 import { fetchAssessmentDetail } from "@/hooks/useAdminAssessments";
 import { LoadingState } from "@/components/admin/gerencial/PageShell";
@@ -18,6 +19,32 @@ const BIO_FIELDS = [
   { key: "visceral_fat", label: "Gordura visceral", unit: "" },
   { key: "basal_metabolism", label: "Metabolismo basal", unit: "kcal" },
   { key: "bmi", label: "IMC", unit: "" },
+] as const;
+
+const EXTRA_BIO = [
+  { key: "skeletal_muscle_mass", label: "Massa muscular esquelética", unit: "kg" },
+  { key: "total_body_water", label: "Água corporal total", unit: "L" },
+  { key: "protein", label: "Proteína", unit: "kg" },
+  { key: "minerals", label: "Minerais", unit: "kg" },
+  { key: "waist_hip_ratio", label: "Relação cintura-quadril", unit: "" },
+  { key: "obesity_degree", label: "Grau de obesidade", unit: "%" },
+  { key: "inbody_score", label: "Pontuação InBody", unit: "" },
+  { key: "ideal_weight", label: "Peso ideal", unit: "kg" },
+  { key: "weight_control", label: "Controle de peso", unit: "kg" },
+  { key: "fat_control", label: "Controle de gordura", unit: "kg" },
+  { key: "muscle_control", label: "Controle muscular", unit: "kg" },
+  { key: "lean_arm_left", label: "Massa magra braço esq.", unit: "kg" },
+  { key: "lean_arm_right", label: "Massa magra braço dir.", unit: "kg" },
+  { key: "lean_trunk", label: "Massa magra tronco", unit: "kg" },
+  { key: "lean_leg_left", label: "Massa magra perna esq.", unit: "kg" },
+  { key: "lean_leg_right", label: "Massa magra perna dir.", unit: "kg" },
+  { key: "fat_arm_left", label: "Gordura braço esq.", unit: "kg" },
+  { key: "fat_arm_right", label: "Gordura braço dir.", unit: "kg" },
+  { key: "fat_trunk", label: "Gordura tronco", unit: "kg" },
+  { key: "fat_leg_left", label: "Gordura perna esq.", unit: "kg" },
+  { key: "fat_leg_right", label: "Gordura perna dir.", unit: "kg" },
+  { key: "height_cm", label: "Altura", unit: "cm" },
+  { key: "device_model", label: "Equipamento", unit: "" },
 ] as const;
 
 const fmt = (d?: string | null) =>
@@ -77,6 +104,13 @@ export default function AvaliacaoCompleta({
 
   const compareRow = comparable.find(o => o.id === compareId) || null;
   const compareLabel = compareRow ? fmt(compareRow.performed_at) : null;
+
+  const openFile = async () => {
+    const { data, error } = await supabase.storage
+      .from("avaliacoes").createSignedUrl(row.file_path, 300);
+    if (error || !data?.signedUrl) { toast.error("Não foi possível abrir o arquivo."); return; }
+    window.open(data.signedUrl, "_blank");
+  };
 
   const toPdf = () => {
     const ok = printAssessment({
@@ -166,10 +200,32 @@ export default function AvaliacaoCompleta({
                 <Row key={f.key} label={f.label} unit={f.unit || undefined}
                   a={detail?.bio?.[f.key] ?? null} b={compare?.bio?.[f.key] ?? null} />
               ))}
+              {EXTRA_BIO.filter(f => detail?.bio?.[f.key] != null).map(f => (
+                <Row key={f.key} label={f.label} unit={f.unit || undefined}
+                  a={detail?.bio?.[f.key] ?? null} b={compare?.bio?.[f.key] ?? null} />
+              ))}
               {detail?.bio?.origin && (
                 <p className="text-[11px] font-dm text-muted-foreground mt-2">Origem dos dados: {detail.bio.origin}</p>
               )}
             </div>
+
+            {row.file_path && (
+              <div className="rounded-xl border border-border p-3">
+                <p className="text-[11px] uppercase tracking-wider font-dm text-muted-foreground mb-1">Arquivo original</p>
+                <div className="flex items-center justify-between gap-2">
+                  <p className="text-xs font-dm text-foreground truncate">{row.file_name || "laudo"}</p>
+                  <Button size="sm" variant="outline" className="font-dm shrink-0" onClick={openFile}>
+                    <Download size={14} className="mr-1.5" /> ABRIR
+                  </Button>
+                </div>
+                {row.imported_at && (
+                  <p className="text-[11px] font-dm text-muted-foreground mt-2">
+                    Importado em {new Date(row.imported_at).toLocaleString("pt-BR")}
+                    {row.professional_name ? ` por ${row.professional_name}` : ""}
+                  </p>
+                )}
+              </div>
+            )}
 
             {row.notes && (
               <div className="rounded-xl border border-border p-3">

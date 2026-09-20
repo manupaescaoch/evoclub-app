@@ -323,52 +323,133 @@ export type Database = {
       }
       assessment_bioimpedance: {
         Row: {
+          age: number | null
           assessment_id: string
           basal_metabolism: number | null
           bmi: number | null
           body_fat_pct: number | null
           body_water: number | null
           created_at: string
+          device_client_id: string | null
+          device_model: string | null
+          fat_arm_left: number | null
+          fat_arm_right: number | null
+          fat_control: number | null
+          fat_leg_left: number | null
+          fat_leg_right: number | null
           fat_mass: number | null
+          fat_trunk: number | null
+          height_cm: number | null
           id: string
+          ideal_weight: number | null
+          inbody_score: number | null
+          lean_arm_left: number | null
+          lean_arm_right: number | null
+          lean_leg_left: number | null
+          lean_leg_right: number | null
           lean_mass: number | null
+          lean_trunk: number | null
+          measured_at: string | null
+          minerals: number | null
+          muscle_control: number | null
           muscle_mass: number | null
+          obesity_degree: number | null
           origin: string
+          protein: number | null
+          sex: string | null
+          skeletal_muscle_mass: number | null
+          total_body_water: number | null
           updated_at: string
           visceral_fat: number | null
+          waist_hip_ratio: number | null
           weight: number | null
+          weight_control: number | null
         }
         Insert: {
+          age?: number | null
           assessment_id: string
           basal_metabolism?: number | null
           bmi?: number | null
           body_fat_pct?: number | null
           body_water?: number | null
           created_at?: string
+          device_client_id?: string | null
+          device_model?: string | null
+          fat_arm_left?: number | null
+          fat_arm_right?: number | null
+          fat_control?: number | null
+          fat_leg_left?: number | null
+          fat_leg_right?: number | null
           fat_mass?: number | null
+          fat_trunk?: number | null
+          height_cm?: number | null
           id?: string
+          ideal_weight?: number | null
+          inbody_score?: number | null
+          lean_arm_left?: number | null
+          lean_arm_right?: number | null
+          lean_leg_left?: number | null
+          lean_leg_right?: number | null
           lean_mass?: number | null
+          lean_trunk?: number | null
+          measured_at?: string | null
+          minerals?: number | null
+          muscle_control?: number | null
           muscle_mass?: number | null
+          obesity_degree?: number | null
           origin?: string
+          protein?: number | null
+          sex?: string | null
+          skeletal_muscle_mass?: number | null
+          total_body_water?: number | null
           updated_at?: string
           visceral_fat?: number | null
+          waist_hip_ratio?: number | null
           weight?: number | null
+          weight_control?: number | null
         }
         Update: {
+          age?: number | null
           assessment_id?: string
           basal_metabolism?: number | null
           bmi?: number | null
           body_fat_pct?: number | null
           body_water?: number | null
           created_at?: string
+          device_client_id?: string | null
+          device_model?: string | null
+          fat_arm_left?: number | null
+          fat_arm_right?: number | null
+          fat_control?: number | null
+          fat_leg_left?: number | null
+          fat_leg_right?: number | null
           fat_mass?: number | null
+          fat_trunk?: number | null
+          height_cm?: number | null
           id?: string
+          ideal_weight?: number | null
+          inbody_score?: number | null
+          lean_arm_left?: number | null
+          lean_arm_right?: number | null
+          lean_leg_left?: number | null
+          lean_leg_right?: number | null
           lean_mass?: number | null
+          lean_trunk?: number | null
+          measured_at?: string | null
+          minerals?: number | null
+          muscle_control?: number | null
           muscle_mass?: number | null
+          obesity_degree?: number | null
           origin?: string
+          protein?: number | null
+          sex?: string | null
+          skeletal_muscle_mass?: number | null
+          total_body_water?: number | null
           updated_at?: string
           visceral_fat?: number | null
+          waist_hip_ratio?: number | null
           weight?: number | null
+          weight_control?: number | null
         }
         Relationships: [
           {
@@ -4720,7 +4801,14 @@ export type Database = {
           cancelled_by: string | null
           client_id: number
           created_at: string
+          file_mime: string | null
+          file_name: string | null
+          file_path: string | null
+          file_size: number | null
           id: string
+          import_meta: Json | null
+          imported_at: string | null
+          imported_by: string | null
           next_due_at: string | null
           notes: string | null
           origin: string | null
@@ -4744,7 +4832,14 @@ export type Database = {
           cancelled_by?: string | null
           client_id: number
           created_at?: string
+          file_mime?: string | null
+          file_name?: string | null
+          file_path?: string | null
+          file_size?: number | null
           id?: string
+          import_meta?: Json | null
+          imported_at?: string | null
+          imported_by?: string | null
           next_due_at?: string | null
           notes?: string | null
           origin?: string | null
@@ -4768,7 +4863,14 @@ export type Database = {
           cancelled_by?: string | null
           client_id?: number
           created_at?: string
+          file_mime?: string | null
+          file_name?: string | null
+          file_path?: string | null
+          file_size?: number | null
           id?: string
+          import_meta?: Json | null
+          imported_at?: string | null
+          imported_by?: string | null
           next_due_at?: string | null
           notes?: string | null
           origin?: string | null
@@ -7596,6 +7698,17 @@ export type Database = {
       }
       assessment_dashboard: {
         Args: { _from?: string; _to?: string; _unit_id?: string }
+        Returns: Json
+      }
+      assessment_import_save: {
+        Args: {
+          _bio: Json
+          _client_id: number
+          _file: Json
+          _measures: Json
+          _notes: string
+          _performed_at: string
+        }
         Returns: Json
       }
       assessment_list: {
