@@ -575,10 +575,6 @@ export default function ProHoje() {
                 {visibleStudents.map(s => {
                   const plan = s.client_id ? plans[s.client_id] : undefined;
                   const extra = s.client_id ? extras[s.client_id] : undefined;
-                  const lastName = extra?.lastWorkout?.split(" · ")[0]?.toLowerCase() || "";
-                  const lastGroup = lastName.includes("inferior") ? "INFERIOR" : lastName.includes("superior") ? "SUPERIOR" : null;
-                  const nextGroup = lastGroup === "INFERIOR" ? "SUPERIOR" : lastGroup === "SUPERIOR" ? "INFERIOR" : null;
-                  const lastDate = extra?.lastWorkout?.split(" · ")[1] || null;
                   const assigning = assigningId === s.booking_id;
                   const maxPer = shifts.maxPerProfessional;
                   return (
