@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useUnit } from "@/contexts/UnitContext";
 import { brToday } from "@/hooks/useGradeDay";
-import { SHIFT_LABEL, ShiftId, useShiftOperations } from "@/hooks/useShiftOperations";
+import { SHIFT_LABEL, ShiftId, singleShiftDay, useShiftOperations } from "@/hooks/useShiftOperations";
 
 const SHIFTS: ShiftId[] = ["manha", "tarde", "noite"];
 
@@ -89,7 +89,7 @@ export default function ProTurnos() {
       {loading && <p className="py-10 text-center text-sm text-muted-foreground">Carregando turnos...</p>}
       {error && <div className="rounded-xl border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">{error}</div>}
 
-      {!loading && !error && SHIFTS.map(shift => {
+      {!loading && !error && (singleShiftDay(day) ? (["unico"] as ShiftId[]) : SHIFTS).map(shift => {
         const people = teams[shift];
         const pending = people.filter(person => !presenceByPerson.get(`${shift}:${person.id}`)?.confirmed_at);
         const activeChanges = changes.filter(change => change.shift === shift && !change.cancelled_at);
