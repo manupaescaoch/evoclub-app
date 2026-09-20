@@ -474,16 +474,27 @@ export default function ProHoje() {
                       <Shuffle size={14} /> Redistribuir
                     </Button>
                   </div>
-                  <div className="relative">
-                    <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-                    <Input value={term} onChange={e => searchStudents(e.target.value)} placeholder="Buscar aluno para incluir neste horário" className="h-11 pl-9" />
-                  </div>
-                  {found.map(client => (
-                    <button key={client.id} type="button" disabled={busy} onClick={() => addStudent(client)}
-                      className="flex w-full items-center gap-2 rounded-lg bg-muted/60 px-3 py-2 text-left font-dm text-xs font-semibold">
-                      <Plus size={13} className="text-primary" /> {client.name}
-                    </button>
-                  ))}
+                  <Button variant={adding ? "secondary" : "default"} className="h-11 w-full text-xs font-bold uppercase"
+                    onClick={() => { setAdding(!adding); setTerm(""); setFound([]); }}>
+                    <Plus size={15} /> {adding ? "Fechar inclusão de aluno" : "Adicionar aluno neste horário"}
+                  </Button>
+                  {adding && (
+                    <>
+                      <div className="relative">
+                        <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                        <Input autoFocus value={term} onChange={e => searchStudents(e.target.value)} placeholder="Digite o nome do aluno" className="h-11 pl-9" />
+                      </div>
+                      {found.map(client => (
+                        <button key={client.id} type="button" disabled={busy} onClick={() => { setAdding(false); addStudent(client); }}
+                          className="flex w-full items-center gap-2 rounded-lg bg-muted/60 px-3 py-2 text-left font-dm text-xs font-semibold">
+                          <Plus size={13} className="text-primary" /> {client.name}
+                        </button>
+                      ))}
+                      {term.trim().length >= 2 && !found.length && (
+                        <p className="font-dm text-[11px] text-muted-foreground">Nenhum aluno encontrado com esse nome nesta unidade.</p>
+                      )}
+                    </>
+                  )}
                 </div>
               )}
 
