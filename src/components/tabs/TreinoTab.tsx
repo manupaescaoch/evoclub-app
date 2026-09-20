@@ -1077,6 +1077,9 @@ const TreinoTab = () => {
                                   {s.methodName}
                                 </span>
                               )}
+                              {s.prescribedLoad && !numericLoad(s.prescribedLoad) && (
+                                <span className="text-[10px] font-dm text-muted">Prescrito: {s.prescribedLoad}</span>
+                              )}
                               {s.lastLoad && (
                                 <span className="text-[10px] font-dm text-muted">Última carga: {s.lastLoad} kg</span>
                               )}
