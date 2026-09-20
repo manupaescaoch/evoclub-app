@@ -456,6 +456,7 @@ const TreinoTab = () => {
   const [showXpModal, setShowXpModal] = useState(false);
   const [showPostWorkout, setShowPostWorkout] = useState(false);
   const [confirmFinish, setConfirmFinish] = useState(false);
+  const [confirmCompleteExercise, setConfirmCompleteExercise] = useState<{ exIdx: number; pendingSets: number } | null>(null);
   const [saving, setSaving] = useState(false);
   const [pending, setPending] = useState(0);
   const [finalDuration, setFinalDuration] = useState("00:00:00");
