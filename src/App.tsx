@@ -12,6 +12,8 @@ import Dashboard from "./pages/admin/Dashboard.tsx";
 import Operacao from "./pages/admin/Operacao.tsx";
 import Clientes from "./pages/admin/Clientes.tsx";
 import ClienteDetalhe from "./pages/admin/ClienteDetalhe.tsx";
+import AvaliacaoComparar from "./pages/admin/AvaliacaoComparar.tsx";
+import AvaliacaoCompararResultado from "./pages/admin/AvaliacaoCompararResultado.tsx";
 import Grade from "./pages/admin/Grade.tsx";
 import CRM from "./pages/admin/CRM.tsx";
 import Comercial from "./pages/admin/Comercial.tsx";
@@ -156,6 +158,8 @@ const App = () => (
             <Route path="operacao" element={<ModuleGuard module="operacional"><Operacao /></ModuleGuard>} />
             <Route path="clientes" element={<ModuleGuard module="clientes"><Clientes /></ModuleGuard>} />
             <Route path="clientes/:id" element={<ModuleGuard module="clientes"><ClienteDetalhe /></ModuleGuard>} />
+            <Route path="clientes/:id/avaliacoes/comparar" element={<ModuleGuard module="avaliacao"><AvaliacaoComparar /></ModuleGuard>} />
+            <Route path="clientes/:id/avaliacoes/comparar/resultado" element={<ModuleGuard module="avaliacao"><AvaliacaoCompararResultado /></ModuleGuard>} />
             <Route path="grade" element={<ModuleGuard module="grade"><Grade /></ModuleGuard>} />
             <Route path="leads" element={<ModuleGuard module="crm"><Leads /></ModuleGuard>} />
             <Route path="leads/dashboard" element={<Navigate to="/admin/crm" replace />} />

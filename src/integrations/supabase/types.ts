@@ -467,6 +467,67 @@ export type Database = {
           },
         ]
       }
+      assessment_comparisons: {
+        Row: {
+          assessment_ids: Json
+          client_id: number
+          created_at: string
+          file_name: string | null
+          file_path: string | null
+          generated_at: string
+          generated_by: string | null
+          generated_by_name: string | null
+          id: string
+          unit_id: string | null
+        }
+        Insert: {
+          assessment_ids?: Json
+          client_id: number
+          created_at?: string
+          file_name?: string | null
+          file_path?: string | null
+          generated_at?: string
+          generated_by?: string | null
+          generated_by_name?: string | null
+          id?: string
+          unit_id?: string | null
+        }
+        Update: {
+          assessment_ids?: Json
+          client_id?: number
+          created_at?: string
+          file_name?: string | null
+          file_path?: string | null
+          generated_at?: string
+          generated_by?: string | null
+          generated_by_name?: string | null
+          id?: string
+          unit_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assessment_comparisons_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "client_overview"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assessment_comparisons_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assessment_comparisons_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "units"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       assessment_measures: {
         Row: {
           assessment_id: string

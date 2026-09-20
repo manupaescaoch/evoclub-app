@@ -64,6 +64,20 @@
       "when": 1789906784839,
       "tag": "0008_revoke_anonymous_assessment_delete",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1789906857195,
+      "tag": "0009_assessment_comparison_history",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1789907105930,
+      "tag": "0010_assessment_comparison_storage_read",
+      "breakpoints": true
     }
   ]
 }

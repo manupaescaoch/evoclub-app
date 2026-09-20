@@ -11,6 +11,11 @@ export type EvoAssessmentPdfData = {
   previous: { performedAt: string | null; bio: Record<string, any> | null } | null;
 };
 
+export type EvoComparisonEntry = {
+  performedAt: string;
+  bio: Record<string, any> | null;
+};
+
 const BLUE = "#0057FF";
 const BLACK = "#101218";
 const INK = "#151820";
@@ -97,7 +102,7 @@ export const assessmentPdfFileName = (studentName: string, performedAt: string |
   return `avaliacao-evo-${slug(studentName)}-${day}.pdf`;
 };
 
-export function generateAssessmentEvoPdf(data: EvoAssessmentPdfData): Blob {
+export function generateAssessmentEvoPdf(data: EvoAssessmentPdfData, comparison: EvoComparisonEntry[] = []): Blob {
   const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4", compress: true });
   const bio = data.bio || {};
   const ranges = (bio.reference_ranges || {}) as Record<string, string>;
@@ -276,5 +281,72 @@ export function generateAssessmentEvoPdf(data: EvoAssessmentPdfData): Blob {
     writeLines(lines, margin + 7, summaryY + 5, W - margin * 2 - 14, 8.5, INK, true);
   }
   if (data.notes) writeLines(`Observações do avaliador: ${data.notes}`, margin, 270, W - margin * 2, 7, MUTED);
+
+  if (comparison.length >= 2) {
+    const entries = [...comparison].sort((a, b) => +new Date(a.performedAt) - +new Date(b.performedAt));
+    const keys = ["weight", "skeletal_muscle_mass", "fat_mass", "body_fat_pct", "bmi", "total_body_water", "lean_mass", "basal_metabolism", "visceral_fat", "waist_hip_ratio", "inbody_score"];
+    doc.addPage(); header("Comparativo selecionado", `${entries.length} avaliações • ${dateTime(entries[0].performedAt)} a ${dateTime(entries[entries.length - 1].performedAt)}`, 5);
+    section("Tabela comparativa", 44);
+    let y = 58;
+    const colW = 118 / entries.length;
+    doc.setFillColor(PALE); doc.rect(margin, y - 7, W - margin * 2, 9, "F");
+    doc.setFont("helvetica", "bold"); doc.setFontSize(5.8); doc.setTextColor(MUTED); doc.text("INDICADOR", margin + 3, y - 1);
+    entries.forEach((entry, i) => doc.text(new Date(entry.performedAt).toLocaleDateString("pt-BR"), 74 + colW * i, y - 1, { align: "center" }));
+    doc.text("EVOLUÇÃO", 196, y - 1, { align: "right" }); y += 8;
+    keys.forEach(key => {
+      const item = LABELS[key]; const values = entries.map(e => n(e.bio?.[key] ?? (key === "skeletal_muscle_mass" ? e.bio?.muscle_mass : key === "total_body_water" ? e.bio?.body_water : null)));
+      doc.setDrawColor(LINE); doc.line(margin + 2, y + 5, W - margin - 2, y + 5);
+      doc.setFont("helvetica", "normal"); doc.setFontSize(6.2); doc.setTextColor(INK); doc.text(item.label, margin + 3, y);
+      values.forEach((v, i) => doc.text(v == null ? "—" : fmt(v), 74 + colW * i, y, { align: "center" }));
+      const first = values[0], last = values[values.length - 1];
+      if (first != null && last != null) { const d = last - first; const tone = deltaTone(key, last, first); doc.setTextColor(tone === "positive" ? GREEN : tone === "negative" ? RED : tone === "stable" ? MUTED : BLUE); doc.setFont("helvetica", "bold"); doc.text(`${d > 0 ? "+" : ""}${fmt(d, 2)}`, 196, y, { align: "right" }); }
+      else { doc.setTextColor(MUTED); doc.text("—", 196, y, { align: "right" }); }
+      y += 11;
+    });
+    section("Variações consecutivas", Math.min(y + 8, 205));
+    const dy = Math.min(y + 18, 215);
+    entries.slice(1).forEach((entry, i) => {
+      const previous = entries[i]; const changes = ["weight", "skeletal_muscle_mass", "body_fat_pct"].map(key => { const c = n(entry.bio?.[key] ?? (key === "skeletal_muscle_mass" ? entry.bio?.muscle_mass : null)); const p = n(previous.bio?.[key] ?? (key === "skeletal_muscle_mass" ? previous.bio?.muscle_mass : null)); return c == null || p == null ? `${LABELS[key].label}: —` : `${LABELS[key].label}: ${c - p > 0 ? "+" : ""}${fmt(c - p, 2)} ${LABELS[key].unit}`; });
+      writeLines(`${new Date(previous.performedAt).toLocaleDateString("pt-BR")} → ${new Date(entry.performedAt).toLocaleDateString("pt-BR")}: ${changes.join(" • ")}`, margin + 4, dy + i * 13, W - margin * 2 - 8, 6.8, INK, i === entries.length - 2);
+    });
+
+    doc.addPage(); header("Gráficos de evolução", "Indicadores exibidos separadamente por escala", 6);
+    const graphKeys = ["weight", "skeletal_muscle_mass", "fat_mass", "body_fat_pct", "bmi", "visceral_fat"];
+    graphKeys.forEach((key, index) => {
+      const gx = margin + (index % 2) * 95; const gy = 43 + Math.floor(index / 2) * 76; const gw = 88; const gh = 56;
+      doc.setFillColor(PALE); doc.roundedRect(gx, gy, gw, 66, 3, 3, "F"); doc.setFont("helvetica", "bold"); doc.setFontSize(7); doc.setTextColor(INK); doc.text(LABELS[key].label, gx + 5, gy + 9);
+      const vals = entries.map(e => n(e.bio?.[key] ?? (key === "skeletal_muscle_mass" ? e.bio?.muscle_mass : null)));
+      const available = vals.filter((v): v is number => v != null);
+      if (available.length < 2) { doc.setFont("helvetica", "normal"); doc.setTextColor(MUTED); doc.text("Dados insuficientes", gx + 5, gy + 30); return; }
+      const min = Math.min(...available), max = Math.max(...available), span = Math.max(max - min, 1);
+      doc.setDrawColor(LINE); doc.line(gx + 8, gy + gh, gx + gw - 7, gy + gh);
+      let lastPoint: [number, number] | null = null;
+      vals.forEach((v, i) => { if (v == null) { lastPoint = null; return; } const px = gx + 10 + i * ((gw - 20) / Math.max(entries.length - 1, 1)); const py2 = gy + gh - 5 - ((v - min) / span) * 33; if (lastPoint) { doc.setDrawColor(BLUE); doc.setLineWidth(.7); doc.line(lastPoint[0], lastPoint[1], px, py2); } doc.setFillColor(BLUE); doc.circle(px, py2, 1.5, "F"); doc.setFontSize(5.3); doc.setTextColor(MUTED); doc.text(fmt(v), px, py2 - 3, { align: "center" }); doc.text(new Date(entries[i].performedAt).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" }), px, gy + gh + 6, { align: "center" }); lastPoint = [px, py2]; });
+    });
+    const comparisonChanges = keys.flatMap(key => {
+      const first = n(entries[0].bio?.[key] ?? (key === "skeletal_muscle_mass" ? entries[0].bio?.muscle_mass : key === "total_body_water" ? entries[0].bio?.body_water : null));
+      const last = n(entries[entries.length - 1].bio?.[key] ?? (key === "skeletal_muscle_mass" ? entries[entries.length - 1].bio?.muscle_mass : key === "total_body_water" ? entries[entries.length - 1].bio?.body_water : null));
+      return first == null || last == null ? [] : [{ key, tone: deltaTone(key, last, first), delta: last - first }];
+    });
+    const positives = comparisonChanges.filter(c => c.tone === "positive");
+    const attentions = comparisonChanges.filter(c => c.tone === "negative");
+    section("Resumo profissional", 274);
+    writeLines(`${positives.length} indicador(es) apresentou(aram) evolução positiva e ${attentions.length} exige(m) atenção. O peso isolado foi tratado como informação neutra.`, margin + 4, 281, W - margin * 2 - 8, 6.8, INK, true);
+
+    doc.addPage(); header("Síntese profissional", "Principais mudanças nas avaliações selecionadas", 7);
+    section("Resumo das principais mudanças", 46);
+    const firstDate = new Date(entries[0].performedAt).toLocaleDateString("pt-BR");
+    const lastDate = new Date(entries[entries.length - 1].performedAt).toLocaleDateString("pt-BR");
+    doc.setFillColor(PALE); doc.roundedRect(margin, 54, W - margin * 2, 34, 4, 4, "F");
+    writeLines(`Comparação de ${entries.length} avaliações realizadas entre ${firstDate} e ${lastDate}. ${positives.length} indicador(es) teve(tiveram) evolução favorável e ${attentions.length} apresentou(aram) sinal de atenção. Indicadores sem dados foram mantidos como não informados, sem estimativas.`, margin + 7, 65, W - margin * 2 - 14, 8.2, INK, true);
+    section("Pontos positivos", 108);
+    doc.setFillColor("#E9F7F1"); doc.roundedRect(margin, 116, W - margin * 2, 48, 4, 4, "F");
+    const positiveText = positives.length ? positives.map(c => `${LABELS[c.key].label}: ${c.delta > 0 ? "+" : ""}${fmt(c.delta, 2)} ${LABELS[c.key].unit}`.trim()).join(" • ") : "Nenhum ponto positivo classificável nos dados disponíveis.";
+    writeLines(positiveText, margin + 7, 128, W - margin * 2 - 14, 8, GREEN, true);
+    section("Pontos de atenção", 185);
+    doc.setFillColor("#FFF7E4"); doc.roundedRect(margin, 193, W - margin * 2, 48, 4, 4, "F");
+    const attentionText = attentions.length ? attentions.map(c => `${LABELS[c.key].label}: ${c.delta > 0 ? "+" : ""}${fmt(c.delta, 2)} ${LABELS[c.key].unit}`.trim()).join(" • ") : "Nenhum ponto de atenção classificável nos dados disponíveis.";
+    writeLines(attentionText, margin + 7, 205, W - margin * 2 - 14, 8, attentions.length ? RED : MUTED, true);
+  }
   return doc.output("blob");
 }
