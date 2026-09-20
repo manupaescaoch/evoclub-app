@@ -547,8 +547,10 @@ export default function ProHoje() {
                             {s.is_trial && <span className="ml-1.5 rounded bg-warning/20 px-1.5 py-0.5 font-barlow text-[9px] font-bold text-warning-foreground">EXPERIMENTAL</span>}
                           </span>
                           <span className="block truncate font-dm text-[11px] text-muted-foreground">
-                            {s.professor_name ? s.professor_name : "Sem professor"}
-                            {extra?.lastWorkout ? ` · Último treino: ${extra.lastWorkout}` : " · Sem histórico de treino"}
+                            Professor: <span className={s.professor_name ? "font-semibold text-foreground" : "font-semibold"}>{s.professor_name || "sem professor"}</span>
+                          </span>
+                          <span className="block truncate font-dm text-[11px] text-muted-foreground">
+                            {extra?.lastWorkout ? `Último treino: ${extra.lastWorkout}` : "Sem histórico de treino"}
                           </span>
                         </span>
                         <span className={`shrink-0 rounded px-2 py-1 font-dm text-[10px] font-semibold ${STATUS_STYLE[s.attendance_status] || "bg-muted"}`}>
