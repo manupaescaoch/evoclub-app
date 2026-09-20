@@ -15,8 +15,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import ProStudentSheet from "@/components/pro/ProStudentSheet";
 import {
-  SHIFT_LABEL, SHIFT_ORDER, ShiftId, currentShift, isShiftLeader, shiftForTime,
-  useShiftOperations, useShiftRealtime, weekendShift,
+  SHIFT_LABEL, SHIFT_ORDER, ShiftId, currentShift, isShiftLeader, singleShiftDay, slotInShift,
+  useShiftOperations, useShiftRealtime,
 } from "@/hooks/useShiftOperations";
 
 const shiftDate = (iso: string, days: number) => {
@@ -56,9 +56,9 @@ export default function ProHoje() {
   const synced = useShiftRealtime(filterId, refresh);
 
   const canManage = can("grade", "edit");
-  const weekend = weekendShift(dateISO);
+  const singleDay = singleShiftDay(dateISO);
 
-  useEffect(() => { if (weekend) setPeriod(weekend); }, [weekend]);
+  useEffect(() => { if (singleDay) setPeriod("unico"); }, [singleDay]);
 
   const clientIds = useMemo(
     () => Array.from(new Set(roster.map(r => r.client_id).filter((v): v is number => !!v))),
@@ -124,7 +124,7 @@ export default function ProHoje() {
 
   /** horários do turno selecionado */
   const periodSlots = useMemo(
-    () => slots.filter(slot => shiftForTime(slot.start_time) === period),
+    () => slots.filter(slot => slotInShift(slot.start_time, period)),
     [slots, period],
   );
 
@@ -397,17 +397,23 @@ export default function ProHoje() {
         </Button>
       </div>
 
-      <div className="grid grid-cols-3 gap-2">
-        {SHIFT_ORDER.map(item => (
-          <Button key={item} variant={period === item ? "default" : "outline"} className="h-10 text-[11px] uppercase" onClick={() => setPeriod(item)}>
-            {SHIFT_LABEL[item]}
-          </Button>
-        ))}
-      </div>
+      {singleDay ? (
+        <Button variant="default" className="h-10 w-full text-[11px] uppercase" disabled>
+          Turno único · 08h às 14h
+        </Button>
+      ) : (
+        <div className="grid grid-cols-3 gap-2">
+          {SHIFT_ORDER.map(item => (
+            <Button key={item} variant={period === item ? "default" : "outline"} className="h-10 text-[11px] uppercase" onClick={() => setPeriod(item)}>
+              {SHIFT_LABEL[item]}
+            </Button>
+          ))}
+        </div>
+      )}
 
-      {weekend && (
+      {singleDay && (
         <p className="rounded-xl border border-primary/30 bg-primary/5 p-3 font-dm text-[11px] text-primary">
-          Fim de semana: turno responsável da escala é <strong className="uppercase">{SHIFT_LABEL[weekend]}</strong> (rodízio automático).
+          Fim de semana ou feriado: a unidade opera em <strong className="uppercase">turno único, das 08h às 14h</strong>.
         </p>
       )}
 
