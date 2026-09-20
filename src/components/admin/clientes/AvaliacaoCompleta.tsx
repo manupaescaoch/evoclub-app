@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Download, Pencil } from "lucide-react";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 import { MEASURE_KEYS } from "@/components/tabs/AvaliacoesTab";
 import { fetchAssessmentDetail } from "@/hooks/useAdminAssessments";
 import { LoadingState } from "@/components/admin/gerencial/PageShell";
@@ -77,6 +78,13 @@ export default function AvaliacaoCompleta({
 
   const compareRow = comparable.find(o => o.id === compareId) || null;
   const compareLabel = compareRow ? fmt(compareRow.performed_at) : null;
+
+  const openFile = async () => {
+    const { data, error } = await supabase.storage
+      .from("avaliacoes").createSignedUrl(row.file_path, 300);
+    if (error || !data?.signedUrl) { toast.error("Não foi possível abrir o arquivo."); return; }
+    window.open(data.signedUrl, "_blank");
+  };
 
   const toPdf = () => {
     const ok = printAssessment({
