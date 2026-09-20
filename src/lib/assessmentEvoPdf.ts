@@ -162,21 +162,25 @@ export function generateAssessmentEvoPdf(data: EvoAssessmentPdfData): Blob {
   if (ident) doc.text(ident, W - margin, 49, { align: "right" });
   doc.text([data.unitName, data.professional].filter(Boolean).join("  •  ") || "Equipe EVO", W - margin, 54, { align: "right" });
   section("Resumo executivo", 66);
-  const cw = 42; const gap = 5;
-  card("Peso", bio.weight, "kg", margin, 72, cw);
-  card("Massa muscular", bio.skeletal_muscle_mass ?? bio.muscle_mass, "kg", margin + cw + gap, 72, cw);
-  card("Gordura corporal", bio.body_fat_pct, "%", margin + (cw + gap) * 2, 72, cw, YELLOW);
-  card("Pontuação", bio.inbody_score, "/ 100", margin + (cw + gap) * 3, 72, cw, GREEN);
+  const mainCards = [
+    ["Peso", bio.weight, "kg", BLUE],
+    ["Massa muscular", bio.skeletal_muscle_mass ?? bio.muscle_mass, "kg", BLUE],
+    ["Gordura corporal", bio.body_fat_pct, "%", YELLOW],
+    ["Pontuação", bio.inbody_score, "/ 100", GREEN],
+  ].filter(([, value]) => n(value) != null) as [string, unknown, string, string][];
+  const gap = 5; const cw = mainCards.length ? (W - margin * 2 - gap * (mainCards.length - 1)) / mainCards.length : 42;
+  mainCards.forEach(([label, value, unit, tone], i) => card(label, value, unit, margin + (cw + gap) * i, 72, cw, tone));
   section("Indicadores principais", 108);
-  const keys = ["weight", "skeletal_muscle_mass", "fat_mass", "body_fat_pct", "bmi", "visceral_fat"];
+  const keys = ["weight", "skeletal_muscle_mass", "fat_mass", "body_fat_pct", "bmi", "visceral_fat"].filter(key => n(bio[key]) != null);
   keys.forEach((key, i) => indicator(key, margin + (i % 2) * 99, 118 + Math.floor(i / 2) * 22, 88));
-  section("Controle corporal", 188);
-  doc.setFillColor(PALE); doc.roundedRect(margin, 194, W - margin * 2, 41, 3, 3, "F");
-  [["Peso recomendado", "ideal_weight"], ["Controle de peso", "weight_control"], ["Controle de gordura", "fat_control"], ["Controle muscular", "muscle_control"]].forEach(([label, key], i) => {
+  const controls = [["Peso recomendado", "ideal_weight"], ["Controle de peso", "weight_control"], ["Controle de gordura", "fat_control"], ["Controle muscular", "muscle_control"]].filter(([, key]) => n(bio[key]) != null);
+  if (controls.length) { section("Controle corporal", 188);
+  doc.setFillColor(PALE); doc.roundedRect(margin, 194, W - margin * 2, 8 + controls.length * 8, 3, 3, "F");
+  controls.forEach(([label, key], i) => {
     const y = 202 + i * 8; doc.setFont("helvetica", "normal"); doc.setFontSize(7.5); doc.setTextColor(INK); doc.text(label, margin + 5, y);
-    doc.setFont("helvetica", "bold"); doc.text(bio[key] == null ? "—" : `${fmt(bio[key])} kg`, 140, y, { align: "right" });
-    if (i < 3) { doc.setDrawColor(LINE); doc.line(margin + 5, y + 3, W - margin - 5, y + 3); }
-  });
+    doc.setFont("helvetica", "bold"); doc.text(`${fmt(bio[key])} kg`, 140, y, { align: "right" });
+    if (i < controls.length - 1) { doc.setDrawColor(LINE); doc.line(margin + 5, y + 3, W - margin - 5, y + 3); }
+  }); }
   doc.setFont("helvetica", "bold"); doc.setFontSize(7); doc.setTextColor(BLUE); doc.text("LEITURA OBJETIVA", margin, 246);
   const objective: string[] = [];
   if (n(bio.skeletal_muscle_mass ?? bio.muscle_mass) != null) objective.push("A composição muscular foi registrada para acompanhamento da evolução.");
@@ -213,13 +217,15 @@ export function generateAssessmentEvoPdf(data: EvoAssessmentPdfData): Blob {
   const segmentBox = (items: readonly (readonly [string, string])[], x: number, y: number, title: string) => {
     doc.setFillColor(PALE); doc.roundedRect(x, y, 89, 92, 4, 4, "F");
     doc.setFont("helvetica", "bold"); doc.setFontSize(7); doc.setTextColor(MUTED); doc.text(title.toUpperCase(), x + 6, y + 10);
-    items.forEach(([key, label], i) => {
+    const available = items.filter(([key]) => n(bio[key]) != null || segmental[key]?.percentage != null || segmental[key]?.classification);
+    if (!available.length) { doc.setFont("helvetica", "normal"); doc.setFontSize(7); doc.setTextColor(MUTED); doc.text("Sem dados disponíveis", x + 6, y + 24); }
+    available.forEach(([key, label], i) => {
       const yy = y + 23 + i * 13; const meta = segmental[key] || {};
       doc.setFont("helvetica", "normal"); doc.setFontSize(7); doc.setTextColor(INK); doc.text(label, x + 6, yy);
-      doc.setFont("helvetica", "bold"); doc.text(bio[key] == null ? "—" : `${fmt(bio[key], 2)} kg`, x + 82, yy, { align: "right" });
+      doc.setFont("helvetica", "bold"); if (bio[key] != null) doc.text(`${fmt(bio[key], 2)} kg`, x + 82, yy, { align: "right" });
       const sub = [meta.percentage != null ? `${fmt(meta.percentage)}%` : null, meta.classification || null].filter(Boolean).join("  •  ");
       if (sub) { doc.setFont("helvetica", "normal"); doc.setFontSize(5.8); doc.setTextColor(meta.classification === "Normal" ? GREEN : YELLOW); doc.text(sub, x + 6, yy + 5); }
-      if (i < items.length - 1) { doc.setDrawColor(LINE); doc.line(x + 6, yy + 7, x + 83, yy + 7); }
+      if (i < available.length - 1) { doc.setDrawColor(LINE); doc.line(x + 6, yy + 7, x + 83, yy + 7); }
     });
   };
   segmentBox(SEGMENTS, margin, 55, "Massa magra"); segmentBox(FAT_SEGMENTS, 109, 55, "Gordura");

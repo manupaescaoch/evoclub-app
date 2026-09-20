@@ -146,6 +146,7 @@ export default function AvaliacaoCompleta({
     const { data, error } = await supabase.rpc("assessment_delete" as any, { _id: row.id });
     if (error || !(data as any)?.ok) { toast.error("Sem permissão para excluir a avaliação."); return; }
     if (paths.length) await supabase.storage.from("avaliacoes").remove(paths);
+    await logAudit({ action: "delete", entity: "physical_assessments", entity_id: row.id, module: "avaliacao", description: `Avaliação de ${studentName} excluída`, before: { performed_at: row.performed_at, file_name: row.file_name, evo_pdf_name: row.evo_pdf_name } });
     toast.success("Avaliação excluída."); onClose();
   };
 
