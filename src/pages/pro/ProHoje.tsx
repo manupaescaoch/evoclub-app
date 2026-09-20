@@ -592,7 +592,9 @@ export default function ProHoje() {
                             ))}
                           </div>
                           {!s.locked && !s.started_at && availableTeam.length > 0 && (
-                            <div className="mt-2 flex flex-wrap gap-2">
+                            <>
+                            <p className="mt-2 font-barlow text-[10px] font-bold uppercase text-muted-foreground">Designar professor</p>
+                            <div className="mt-1 flex flex-wrap gap-2">
                               {availableTeam.map(person => (
                                 <button key={person.id} type="button" disabled={busy || person.id === s.collaborator_id}
                                   onClick={() => manualAssign(s.booking_id, person.id)}
