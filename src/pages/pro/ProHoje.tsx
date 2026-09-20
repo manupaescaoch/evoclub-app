@@ -265,6 +265,14 @@ export default function ProHoje() {
     refresh();
   };
 
+  const unassign = async (bookingId: string) => {
+    setBusy(true);
+    const { error: err } = await supabase.rpc("unassign_professor" as any, { _booking_id: bookingId });
+    setBusy(false);
+    if (err) toast.error(err.message); else { toast.success("Professor removido."); setAssigningId(null); }
+    refresh();
+  };
+
   /** marca/desmarca o aluno como aula experimental (visit_type no cadastro) */
   const toggleTrial = async (s: GradeStudent) => {
     if (!s.client_id) return;
