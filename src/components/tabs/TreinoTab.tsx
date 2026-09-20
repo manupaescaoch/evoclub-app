@@ -757,9 +757,19 @@ const TreinoTab = () => {
   };
 
   const toggleSet = (exIdx: number, rowIdx: number) => {
-    const row = exercises[exIdx].sets[rowIdx];
+    const ex = exercises[exIdx];
+    const row = ex.sets[rowIdx];
     const next = !row.completed;
     updateRow(exIdx, rowIdx, { completed: next, completedAt: next ? new Date().toISOString() : null });
+    if (next && row.performedLoad) {
+      // Carga digitada em uma série vale para as demais ainda sem carga —
+      // basta anotar o peso uma vez (ex.: só na última série).
+      ex.sets.forEach((s, j) => {
+        if (j !== rowIdx && !s.performedLoad) {
+          updateRow(exIdx, j, { performedLoad: row.performedLoad });
+        }
+      });
+    }
     if (next && row.rest > 0) { setRestSeconds(row.rest); setRestKey((k) => k + 1); }
   };
 
