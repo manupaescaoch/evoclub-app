@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { Lock, AlertTriangle, Download, Pencil } from "lucide-react";
+import { Lock, AlertTriangle, Download, Pencil, MoreHorizontal, GitCompare, Eye } from "lucide-react";
 import { printContract, CONTRACT_STATUS_LABEL, contractStatusClass } from "@/lib/contractPdf";
 import { EmptyState, LoadingState, SummaryCard } from "@/components/admin/gerencial/PageShell";
 import { useAccess } from "@/contexts/AccessContext";
@@ -20,6 +20,9 @@ import NovaAvaliacaoDialog from "./NovaAvaliacaoDialog";
 import ImportarAvaliacaoDialog from "./ImportarAvaliacaoDialog";
 import RealizarAvaliacaoDialog from "@/components/admin/avaliacoes/RealizarAvaliacaoDialog";
 import { AssessmentRow } from "@/hooks/useAdminAssessments";
+import { assessmentDate, assessmentType, fetchClientAssessments, formatAssessmentValue, valueOf, AssessmentComparisonItem } from "@/lib/assessmentComparison";
+import { downloadBlob, getAssessmentPdf } from "@/lib/assessmentPdfService";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 export const fmtDate = (d?: string | null) =>
   d ? new Date(d.length <= 10 ? `${d}T12:00:00` : d).toLocaleDateString("pt-BR") : "—";
@@ -893,15 +896,46 @@ export function AvaliacoesTab({ c }: { c: OverviewRow }) {
   const canEdit = isAdmin || can("avaliacao", "edit");
   const canCreate = isAdmin || can("avaliacao", "create");
   const [reloadKey, setReloadKey] = useState(0);
-  const a = useClientRows("physical_assessments", c.id, "client_id", "created_at", reloadKey);
+  const [rows, setRows] = useState<AssessmentComparisonItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [open, setOpen] = useState<any | null>(null);
   const [edit, setEdit] = useState<any | null>(null);
   const [creating, setCreating] = useState(false);
   const [choose, setChoose] = useState(false);
   const [importing, setImporting] = useState(false);
 
-  const rows = a.rows;
+  const [page, setPage] = useState(1);
+  const [from, setFrom] = useState(""); const [to, setTo] = useState("");
+  const [unit, setUnit] = useState("all"); const [type, setType] = useState("all"); const [equipment, setEquipment] = useState("all");
+  const [sort, setSort] = useState<"desc" | "asc">("desc");
   const reload = () => setReloadKey(k => k + 1);
+
+  useEffect(() => {
+    let alive = true; setLoading(true); setError(null);
+    fetchClientAssessments(c.id).then(r => { if (alive) setRows(r.items); }).catch(e => { if (alive) setError(e.message); }).finally(() => { if (alive) setLoading(false); });
+    return () => { alive = false; };
+  }, [c.id, reloadKey]);
+
+  const units = [...new Map(rows.filter(r => r.unit_id).map(r => [r.unit_id, r.unit_name || "Unidade"])).entries()];
+  const equipments = [...new Set(rows.map(r => r.bio?.device_model).filter(Boolean))] as string[];
+  const chronological = [...rows].sort((a, b) => +new Date(assessmentDate(a)) - +new Date(assessmentDate(b)));
+  const numberById = new Map(chronological.map((r, i) => [r.id, i + 1]));
+  const filtered = rows.filter(r => {
+    const time = +new Date(assessmentDate(r));
+    return (!from || time >= +new Date(`${from}T00:00:00`)) && (!to || time <= +new Date(`${to}T23:59:59`)) &&
+      (unit === "all" || r.unit_id === unit) && (type === "all" || assessmentType(r) === type) &&
+      (equipment === "all" || r.bio?.device_model === equipment);
+  }).sort((a, b) => (sort === "desc" ? -1 : 1) * (+new Date(assessmentDate(a)) - +new Date(assessmentDate(b))));
+  const pages = Math.max(1, Math.ceil(filtered.length / 10));
+  const visible = filtered.slice((Math.min(page, pages) - 1) * 10, Math.min(page, pages) * 10);
+
+  useEffect(() => { setPage(1); }, [from, to, unit, type, equipment, sort]);
+
+  const pdf = async (r: AssessmentComparisonItem, action: "view" | "download") => {
+    try { const result = await getAssessmentPdf(r.id); if (action === "download") downloadBlob(result.blob, result.name); else { const url = URL.createObjectURL(result.blob); window.open(url, "_blank"); setTimeout(() => URL.revokeObjectURL(url), 60000); } }
+    catch (e: any) { toast.error(e?.message || "Não foi possível abrir o PDF."); }
+  };
 
   const toAssessmentRow = (r: any): AssessmentRow => ({
     id: r.id, client_id: c.id, client_name: c.name, unit_id: c.unit_id,
@@ -934,31 +968,36 @@ export function AvaliacoesTab({ c }: { c: OverviewRow }) {
 
   return (
     <Section title="Avaliações físicas">
-      {canCreate && (
-        <div className="flex justify-end mb-3">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <p className="font-dm text-sm text-muted-foreground"><strong className="text-foreground">{rows.length}</strong> avaliações cadastradas</p>
+        <div className="flex flex-wrap gap-2">
+          <Button size="sm" variant="outline" className="font-dm" onClick={() => navigate(`/admin/clientes/${c.id}/avaliacoes/comparar`)} disabled={rows.filter(r => r.status === "realizada").length < 2}><GitCompare size={14} className="mr-1.5" />COMPARAR AVALIAÇÕES</Button>
+          {canCreate && (
           <Button size="sm" className="font-dm" onClick={() => setChoose(true)} disabled={creating}>
             {creating ? "CRIANDO..." : "NOVA AVALIAÇÃO"}
           </Button>
+          )}
         </div>
-      )}
-      <ListShell {...a} empty="Nenhuma avaliação registrada.">
-        <div className="space-y-2">
-          {rows.map(r => (
-            <button key={r.id} onClick={() => (r.performed_at ? setOpen(r) : setEdit(toAssessmentRow(r)))}
-              className="w-full flex items-center justify-between gap-2 text-left border-b border-border pb-2 last:border-0 hover:bg-muted/40 rounded-lg px-2 py-1.5 transition-colors">
-              <div className="min-w-0">
-                <p className="text-sm font-dm text-foreground truncate">{r.professional_name || "Equipe EVO"}</p>
-                <p className="text-[11px] font-dm text-muted-foreground">
-                  Agendada {fmtDate(r.scheduled_at)} · Realizada {fmtDate(r.performed_at)}
-                </p>
-              </div>
-              <span className="flex items-center gap-2 shrink-0">
-                <span className="text-[10px] font-dm px-2 py-0.5 rounded-full bg-muted/50 text-muted-foreground">{r.status || "—"}</span>
-                <span className="text-[10px] font-dm text-primary">{r.performed_at ? "Ver completa" : "Realizar"}</span>
-              </span>
-            </button>
-          ))}
+      </div>
+      <div className="mb-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-6">
+        <Input type="date" aria-label="Período inicial" value={from} onChange={e => setFrom(e.target.value)} className="font-dm text-xs" />
+        <Input type="date" aria-label="Período final" value={to} onChange={e => setTo(e.target.value)} className="font-dm text-xs" />
+        <select aria-label="Filtrar por unidade" value={unit} onChange={e => setUnit(e.target.value)} className="h-10 rounded-md border border-input bg-background px-3 font-dm text-xs"><option value="all">Todas as unidades</option>{units.map(([id, name]) => <option key={id} value={id || ""}>{name}</option>)}</select>
+        <select aria-label="Filtrar por tipo" value={type} onChange={e => setType(e.target.value)} className="h-10 rounded-md border border-input bg-background px-3 font-dm text-xs"><option value="all">Todos os tipos</option><option>Avaliação física</option><option>Bioimpedância</option></select>
+        <select aria-label="Filtrar por equipamento" value={equipment} onChange={e => setEquipment(e.target.value)} className="h-10 rounded-md border border-input bg-background px-3 font-dm text-xs"><option value="all">Todos os equipamentos</option>{equipments.map(e => <option key={e}>{e}</option>)}</select>
+        <select aria-label="Ordenar avaliações" value={sort} onChange={e => setSort(e.target.value as "asc" | "desc")} className="h-10 rounded-md border border-input bg-background px-3 font-dm text-xs"><option value="desc">Mais recente</option><option value="asc">Mais antiga</option></select>
+      </div>
+      <ListShell loading={loading} error={error} rows={rows} empty="Nenhuma avaliação registrada.">
+        <div className="space-y-3">
+          {visible.map(r => <article key={r.id} className="rounded-lg border border-border bg-card p-4">
+            <div className="flex items-start justify-between gap-3"><div><div className="flex flex-wrap items-center gap-2"><p className="font-barlow text-lg font-bold">AVALIAÇÃO Nº {numberById.get(r.id)}</p><span className="rounded bg-muted px-2 py-0.5 font-dm text-[10px] uppercase text-muted-foreground">{r.status === "cancelou" ? "cancelada" : r.status}</span></div><p className="font-dm text-sm text-foreground">{fmtDateTime(assessmentDate(r))} • {assessmentType(r)}{r.bio?.device_model ? ` • ${r.bio.device_model}` : ""}</p><p className="font-dm text-xs text-muted-foreground">{r.unit_name || "Unidade não informada"} • {r.professional_name || "Avaliador não informado"} • {r.origin === "manual" ? "Manual" : "Importada"}</p></div>
+              <DropdownMenu><DropdownMenuTrigger asChild><Button variant="ghost" size="icon" aria-label="Ações da avaliação"><MoreHorizontal size={18}/></Button></DropdownMenuTrigger><DropdownMenuContent align="end"><DropdownMenuItem onClick={() => r.performed_at ? setOpen(r) : setEdit(toAssessmentRow(r))}><Eye size={14} className="mr-2" />{r.performed_at ? "Ver completa" : "Realizar"}</DropdownMenuItem>{r.performed_at && <DropdownMenuItem onClick={() => pdf(r, "download")}><Download size={14} className="mr-2" />Baixar PDF</DropdownMenuItem>}{canEdit && <DropdownMenuItem onClick={() => setEdit(toAssessmentRow(r))}><Pencil size={14} className="mr-2" />Editar</DropdownMenuItem>}</DropdownMenuContent></DropdownMenu>
+            </div>
+            <div className="mt-3 grid grid-cols-3 gap-2 border-t border-border pt-3"><div><p className="font-dm text-[10px] uppercase text-muted-foreground">Peso</p><p className="font-barlow text-lg font-bold">{formatAssessmentValue(valueOf(r, "weight"), "kg")}</p></div><div><p className="font-dm text-[10px] uppercase text-muted-foreground">Massa muscular</p><p className="font-barlow text-lg font-bold">{formatAssessmentValue(valueOf(r, "skeletal_muscle_mass", "muscle_mass"), "kg")}</p></div><div><p className="font-dm text-[10px] uppercase text-muted-foreground">Gordura</p><p className="font-barlow text-lg font-bold">{formatAssessmentValue(valueOf(r, "body_fat_pct"), "%")}</p></div></div>
+            <div className="mt-3 flex flex-wrap gap-2"><Button size="sm" variant="outline" onClick={() => r.performed_at ? setOpen(r) : setEdit(toAssessmentRow(r))}>{r.performed_at ? "Ver completa" : "Realizar"}</Button>{r.performed_at && <Button size="sm" variant="outline" onClick={() => pdf(r, "download")}><Download size={14} className="mr-1.5" />Baixar PDF</Button>}</div>
+          </article>)}
         </div>
+        {filtered.length > 10 && <div className="mt-4 flex items-center justify-between"><p className="font-dm text-xs text-muted-foreground">Página {Math.min(page, pages)} de {pages} • {filtered.length} resultados</p><div className="flex gap-2"><Button size="sm" variant="outline" disabled={page <= 1} onClick={() => setPage(p => p - 1)}>Anterior</Button><Button size="sm" variant="outline" disabled={page >= pages} onClick={() => setPage(p => p + 1)}>Próxima</Button></div></div>}
       </ListShell>
 
       {open && (
