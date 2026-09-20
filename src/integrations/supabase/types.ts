@@ -7382,6 +7382,7 @@ export type Database = {
       workout_log_sets: {
         Row: {
           completed: boolean
+          completed_at: string | null
           created_at: string
           exercise_name: string
           exercise_order: number
@@ -7399,13 +7400,17 @@ export type Database = {
           prescribed_reps: string | null
           prescribed_set_id: string | null
           prescribed_sets: number | null
+          rest_seconds: number | null
           session_exercise_id: string | null
+          set_index: number
           set_type: string | null
+          side_mode: string | null
           updated_at: string
           workout_log_id: string
         }
         Insert: {
           completed?: boolean
+          completed_at?: string | null
           created_at?: string
           exercise_name: string
           exercise_order?: number
@@ -7423,13 +7428,17 @@ export type Database = {
           prescribed_reps?: string | null
           prescribed_set_id?: string | null
           prescribed_sets?: number | null
+          rest_seconds?: number | null
           session_exercise_id?: string | null
+          set_index?: number
           set_type?: string | null
+          side_mode?: string | null
           updated_at?: string
           workout_log_id: string
         }
         Update: {
           completed?: boolean
+          completed_at?: string | null
           created_at?: string
           exercise_name?: string
           exercise_order?: number
@@ -7447,8 +7456,11 @@ export type Database = {
           prescribed_reps?: string | null
           prescribed_set_id?: string | null
           prescribed_sets?: number | null
+          rest_seconds?: number | null
           session_exercise_id?: string | null
+          set_index?: number
           set_type?: string | null
+          side_mode?: string | null
           updated_at?: string
           workout_log_id?: string
         }
@@ -7480,12 +7492,14 @@ export type Database = {
         Row: {
           client_id: number
           created_at: string
+          duration_seconds: number | null
           finished_at: string | null
           followup_note: string | null
           followup_stars: number | null
           id: string
           pain: boolean | null
           pain_note: string | null
+          paused_ms: number
           rpe: number | null
           session_name: string | null
           started_at: string
@@ -7499,12 +7513,14 @@ export type Database = {
         Insert: {
           client_id: number
           created_at?: string
+          duration_seconds?: number | null
           finished_at?: string | null
           followup_note?: string | null
           followup_stars?: number | null
           id?: string
           pain?: boolean | null
           pain_note?: string | null
+          paused_ms?: number
           rpe?: number | null
           session_name?: string | null
           started_at?: string
@@ -7518,12 +7534,14 @@ export type Database = {
         Update: {
           client_id?: number
           created_at?: string
+          duration_seconds?: number | null
           finished_at?: string | null
           followup_note?: string | null
           followup_stars?: number | null
           id?: string
           pain?: boolean | null
           pain_note?: string | null
+          paused_ms?: number
           rpe?: number | null
           session_name?: string | null
           started_at?: string
