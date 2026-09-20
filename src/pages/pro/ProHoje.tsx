@@ -47,6 +47,7 @@ export default function ProHoje() {
   const [term, setTerm] = useState("");
   const [found, setFound] = useState<{ id: number; name: string }[]>([]);
   const [adding, setAdding] = useState(false);
+  const [pendingAdd, setPendingAdd] = useState<{ id: number; name: string } | null>(null);
   const [assigningId, setAssigningId] = useState<string | null>(null);
   const [report, setReport] = useState<string | null>(null);
 
@@ -334,17 +335,18 @@ export default function ProHoje() {
     setFound(((data as any[]) || []).map(row => ({ id: row.id, name: row.name })));
   };
 
-  const addStudent = async (client: { id: number; name: string }) => {
+  const addStudent = async (client: { id: number; name: string }, muscleGroup: "inferior" | "superior") => {
     if (!slot) return;
     setBusy(true);
     const { error: err } = await supabase.from("class_bookings").insert({
       class_id: slot.class_id, class_date: dateISO, client_id: client.id,
       student_name: client.name, status: "confirmed", attendance_status: "agendado", kind: "agendamento",
+      muscle_group: muscleGroup,
     });
     setBusy(false);
     if (err) return toast.error(err.message);
-    toast.success(`${client.name} incluído às ${slot.start_time.slice(0, 5)}.`);
-    setTerm(""); setFound([]);
+    toast.success(`${client.name} incluído às ${slot.start_time.slice(0, 5)} · ${muscleGroup === "inferior" ? "Inferior" : "Superior"}.`);
+    setTerm(""); setFound([]); setPendingAdd(null);
     refresh();
   };
 
@@ -544,10 +546,26 @@ export default function ProHoje() {
                         <Input autoFocus value={term} onChange={e => searchStudents(e.target.value)} placeholder="Digite o nome do aluno" className="h-11 pl-9" />
                       </div>
                       {found.map(client => (
-                        <button key={client.id} type="button" disabled={busy} onClick={() => { setAdding(false); addStudent(client); }}
-                          className="flex w-full items-center gap-2 rounded-lg bg-muted/60 px-3 py-2 text-left font-dm text-xs font-semibold">
-                          <Plus size={13} className="text-primary" /> {client.name}
-                        </button>
+                        <div key={client.id} className="rounded-lg bg-muted/60 px-3 py-2">
+                          <button type="button" disabled={busy} onClick={() => setPendingAdd(pendingAdd?.id === client.id ? null : client)}
+                            className="flex w-full items-center gap-2 text-left font-dm text-xs font-semibold">
+                            <Plus size={13} className="text-primary" /> {client.name}
+                          </button>
+                          {pendingAdd?.id === client.id && (
+                            <div className="mt-2">
+                              <p className="mb-1.5 font-dm text-[10px] font-bold uppercase tracking-wide text-muted-foreground">Qual treino o aluno vai fazer? (obrigatório)</p>
+                              <div className="grid grid-cols-2 gap-2">
+                                {(["inferior", "superior"] as const).map(g => (
+                                  <button key={g} type="button" disabled={busy}
+                                    onClick={() => { setAdding(false); addStudent(client, g); }}
+                                    className="rounded-lg border-2 border-border bg-card py-2.5 font-barlow text-xs font-bold uppercase tracking-wider transition-colors hover:border-primary hover:bg-primary hover:text-primary-foreground">
+                                    {g === "inferior" ? "Inferior" : "Superior"}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
                       ))}
                       {term.trim().length >= 2 && !found.length && (
                         <p className="font-dm text-[11px] text-muted-foreground">Nenhum aluno encontrado com esse nome nesta unidade.</p>
