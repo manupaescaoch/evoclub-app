@@ -4,8 +4,9 @@ import { toast } from "sonner";
 import {
   ChevronLeft, ChevronRight, AlertTriangle, Lock, RefreshCw, Radio, Users, UserRoundCheck,
   Sparkles, Shuffle, Check, CheckCheck, Copy, Send, RotateCcw, Search, Plus, Crown, History,
-  UserPlus, FlaskConical, Trash2, X,
+  UserPlus, FlaskConical, Trash2, X, ChevronDown,
 } from "lucide-react";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { useAccess } from "@/contexts/AccessContext";
 import { useUnit } from "@/contexts/UnitContext";
 import {
