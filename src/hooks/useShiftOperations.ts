@@ -100,6 +100,8 @@ export const isShiftLeader = (person: { role_title: string | null }) =>
 /** turno atual pelo horário de Brasília */
 export const currentShift = (): ShiftId => {
   const now = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Sao_Paulo" }));
+  const iso = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+  if (singleShiftDay(iso)) return "unico";
   return shiftForTime(`${String(now.getHours()).padStart(2, "0")}:00`);
 };
 
@@ -144,12 +146,18 @@ export function useShiftOperations(dateISO: string, unitId: string | null) {
 
   const teams = useMemo(() => {
     const weekday = new Date(`${dateISO}T12:00:00`).getDay();
-    const result: Record<ShiftId, ShiftCollaborator[]> = { manha: [], tarde: [], noite: [] };
+    const single = singleShiftDay(dateISO);
+    const result: Record<ShiftId, ShiftCollaborator[]> = { manha: [], tarde: [], noite: [], unico: [] };
     collaborators.forEach(person => {
       if (person.unit_id !== unitId) return;
       if (person.shift_weekdays?.length && !person.shift_weekdays.includes(weekday)) return;
       const start = minutes(person.shift_start);
       const end = minutes(person.shift_end);
+      if (single) {
+        // turno único 08h–14h: entra quem cobre qualquer parte desse intervalo
+        if (start == null || end == null || (start < SINGLE_SHIFT_END && end > SINGLE_SHIFT_START)) result.unico.push(person);
+        return;
+      }
       if (start == null || end == null) {
         // sem horário no cadastro: considera escalado em todos os turnos da unidade
         result.manha.push(person); result.tarde.push(person); result.noite.push(person);
