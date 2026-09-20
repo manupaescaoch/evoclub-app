@@ -1,18 +1,24 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { ChevronLeft, ChevronRight, AlertTriangle, Lock, RefreshCw, Radio, Users, UserRoundCheck, Sparkles } from "lucide-react";
+import {
+  ChevronLeft, ChevronRight, AlertTriangle, Lock, RefreshCw, Radio, Users, UserRoundCheck,
+  Sparkles, Shuffle, Check, CheckCheck, Copy, Send, RotateCcw, Search, Plus, Crown, History,
+} from "lucide-react";
 import { useAccess } from "@/contexts/AccessContext";
 import { useUnit } from "@/contexts/UnitContext";
 import {
   GradeStudent, RPC_REASONS, STATUS_LABEL, STATUS_STYLE, brToday, useGradeDay,
 } from "@/hooks/useGradeDay";
 import { Button } from "@/components/ui/button";
-import DistribuirDialog from "@/components/admin/grade/DistribuirDialog";
+import { Input } from "@/components/ui/input";
 import ProStudentSheet from "@/components/pro/ProStudentSheet";
-import { SHIFT_LABEL, ShiftId, shiftForTime, useShiftOperations } from "@/hooks/useShiftOperations";
+import {
+  SHIFT_LABEL, SHIFT_ORDER, ShiftId, currentShift, isShiftLeader, shiftForTime,
+  useShiftOperations, useShiftRealtime, weekendShift,
+} from "@/hooks/useShiftOperations";
 
-const shift = (iso: string, days: number) => {
+const shiftDate = (iso: string, days: number) => {
   const [y, m, d] = iso.split("-").map(Number);
   const dt = new Date(y, m - 1, d + days);
   return `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, "0")}-${String(dt.getDate()).padStart(2, "0")}`;
@@ -21,30 +27,32 @@ const pretty = (iso: string) =>
   new Date(`${iso}T12:00:00`).toLocaleDateString("pt-BR", { weekday: "short", day: "2-digit", month: "2-digit" });
 
 type PlanInfo = { name: string; sessions: string[]; expires_at: string | null };
-
-/** grupo muscular do dia: escolha do check-in + sessão correspondente da ficha ativa */
-const sessionForGroup = (plan: PlanInfo | undefined, group: string | null) => {
-  if (!plan) return null;
-  if (group) {
-    const hit = plan.sessions.find(s => s.toLowerCase().includes(group.toLowerCase()));
-    if (hit) return hit;
-  }
-  return plan.sessions[0] || null;
-};
+type StudentExtra = { alerts: string[]; lastWorkout: string | null };
 
 export default function ProHoje() {
   const { can, collaboratorId } = useAccess();
-  const { filterId } = useUnit();
+  const { filterId, currentUnit } = useUnit();
   const [dateISO, setDateISO] = useState(brToday());
-  const [scope, setScope] = useState<"meus" | "todos">("meus");
+  const [period, setPeriod] = useState<ShiftId>(currentShift());
+  const [slotId, setSlotId] = useState<string | null>(null);
+  const [scope, setScope] = useState<"meus" | "todos">("todos");
   const [plans, setPlans] = useState<Record<number, PlanInfo>>({});
+  const [extras, setExtras] = useState<Record<number, StudentExtra>>({});
   const [active, setActive] = useState<GradeStudent | null>(null);
-  const [period, setPeriod] = useState<"todos" | ShiftId>("todos");
-  const [distClassId, setDistClassId] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [term, setTerm] = useState("");
+  const [found, setFound] = useState<{ id: number; name: string }[]>([]);
+  const [report, setReport] = useState<string | null>(null);
+
   const { slots, roster, loading, error, reload } = useGradeDay(dateISO, filterId);
   const shifts = useShiftOperations(dateISO, filterId);
+  const refresh = useCallback(() => { reload(); shifts.reload(); }, [reload, shifts.reload]);
+  const synced = useShiftRealtime(filterId, refresh);
 
   const canManage = can("grade", "edit");
+  const weekend = weekendShift(dateISO);
+
+  useEffect(() => { if (weekend) setPeriod(weekend); }, [weekend]);
 
   const clientIds = useMemo(
     () => Array.from(new Set(roster.map(r => r.client_id).filter((v): v is number => !!v))),
@@ -52,54 +60,115 @@ export default function ProHoje() {
   );
 
   useEffect(() => {
-    if (clientIds.length === 0) { setPlans({}); return; }
+    if (clientIds.length === 0) { setPlans({}); setExtras({}); return; }
     let alive = true;
     (async () => {
-      const { data } = await supabase
-        .from("training_plans")
-        .select("id, name, student_id, expires_at, training_weeks(id, training_sessions(name, order_index))")
-        .in("student_id", clientIds)
-        .eq("is_active", true);
+      const [plansRes, pains, anam, logs] = await Promise.all([
+        supabase.from("training_plans")
+          .select("id, name, student_id, expires_at, training_weeks(id, training_sessions(name, order_index))")
+          .in("student_id", clientIds).eq("is_active", true),
+        supabase.from("pain_reports").select("client_id,note,status").in("client_id", clientIds).neq("status", "resolvido"),
+        supabase.from("clients").select("id,limitations").in("id", clientIds),
+        supabase.from("workout_logs").select("client_id,session_name,workout_date")
+          .in("client_id", clientIds).order("workout_date", { ascending: false }),
+      ]);
       if (!alive) return;
-      const map: Record<number, PlanInfo> = {};
-      ((data as any[]) || []).forEach(p => {
+      const planMap: Record<number, PlanInfo> = {};
+      ((plansRes.data as any[]) || []).forEach(p => {
         const sessions: { name: string; order_index: number }[] = [];
         (p.training_weeks || []).forEach((w: any) => (w.training_sessions || []).forEach((s: any) => sessions.push(s)));
         sessions.sort((a, b) => (a.order_index ?? 0) - (b.order_index ?? 0));
-        map[p.student_id] = {
-          name: p.name,
-          expires_at: p.expires_at,
-          sessions: Array.from(new Set(sessions.map(s => s.name))),
-        };
+        planMap[p.student_id] = { name: p.name, expires_at: p.expires_at, sessions: Array.from(new Set(sessions.map(s => s.name))) };
       });
-      setPlans(map);
+      const extraMap: Record<number, StudentExtra> = {};
+      clientIds.forEach(id => { extraMap[id] = { alerts: [], lastWorkout: null }; });
+      ((pains.data as any[]) || []).forEach(row => {
+        if (extraMap[row.client_id]) extraMap[row.client_id].alerts.push(`Dor relatada${row.note ? `: ${row.note}` : ""}`);
+      });
+      ((anam.data as any[]) || []).forEach(row => {
+        if (extraMap[row.id] && row.limitations) extraMap[row.id].alerts.push(row.limitations);
+      });
+      ((logs.data as any[]) || []).forEach(row => {
+        const target = extraMap[row.client_id];
+        if (target && !target.lastWorkout && row.session_name) {
+          target.lastWorkout = `${row.session_name}${row.workout_date ? ` · ${new Date(`${row.workout_date}T12:00:00`).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" })}` : ""}`;
+        }
+      });
+      setPlans(planMap);
+      setExtras(extraMap);
     })();
     return () => { alive = false; };
   }, [clientIds.join(",")]);
 
-  const mySlots = useMemo(() => {
-    const byClass: Record<string, GradeStudent[]> = {};
-    roster.forEach(s => { (byClass[s.class_id] ||= []).push(s); });
-    return slots
-      .filter(slot => period === "todos" || shiftForTime(slot.start_time) === period)
-      .map(slot => {
-        const all = (byClass[slot.class_id] || []).filter(s => !s.waitlisted);
-        const mine = all.filter(s => s.collaborator_id && s.collaborator_id === collaboratorId);
-        return { slot, all, mine, list: scope === "meus" ? mine : all };
-      })
-      .filter(g => (scope === "meus" ? g.mine.length > 0 : g.all.length > 0 || !g.slot.blocked));
-  }, [slots, roster, collaboratorId, scope, period]);
+  /** horários do turno selecionado */
+  const periodSlots = useMemo(
+    () => slots.filter(slot => shiftForTime(slot.start_time) === period),
+    [slots, period],
+  );
 
-  const activeProfessionals = useMemo(() => {
-    const unique = new Map<string, (typeof shifts.collaborators)[number]>();
-    Object.values(shifts.teams).flat().forEach(person => unique.set(person.id, person));
-    return Array.from(unique.values());
-  }, [shifts.teams]);
+  useEffect(() => {
+    if (!periodSlots.length) { setSlotId(null); return; }
+    if (!periodSlots.some(slot => slot.class_id === slotId)) setSlotId(periodSlots[0].class_id);
+  }, [periodSlots, slotId]);
 
-  const distGroup = mySlots.find(group => group.slot.class_id === distClassId);
-  const totalBooked = mySlots.reduce((sum, group) => sum + group.all.length, 0);
-  const totalPresent = mySlots.reduce((sum, group) => sum + group.slot.present, 0);
-  const totalTrials = mySlots.reduce((sum, group) => sum + group.slot.trials, 0);
+  const byClass = useMemo(() => {
+    const map: Record<string, GradeStudent[]> = {};
+    roster.forEach(s => { if (!s.waitlisted) (map[s.class_id] ||= []).push(s); });
+    return map;
+  }, [roster]);
+
+  const slot = periodSlots.find(item => item.class_id === slotId) || null;
+  const slotStudents = useMemo(() => {
+    const list = slot ? byClass[slot.class_id] || [] : [];
+    const seen = new Set<string>();
+    return list.filter(s => (seen.has(s.booking_id) ? false : (seen.add(s.booking_id), true)));
+  }, [slot, byClass]);
+  const visibleStudents = scope === "meus"
+    ? slotStudents.filter(s => s.collaborator_id && s.collaborator_id === collaboratorId)
+    : slotStudents;
+  const unassigned = slotStudents.filter(s => !s.collaborator_id && s.attendance_status !== "cancelou");
+
+  /** equipe do turno, sem quem está ausente */
+  const presenceMap = useMemo(
+    () => new Map(shifts.presence.map(row => [`${row.shift}:${row.collaborator_id}`, row])),
+    [shifts.presence],
+  );
+  const team = shifts.teams[period];
+  const absentIds = useMemo(
+    () => new Set(team.filter(p => presenceMap.get(`${period}:${p.id}`)?.present === false).map(p => p.id)),
+    [team, presenceMap, period],
+  );
+  const availableTeam = team.filter(person => !absentIds.has(person.id));
+  const leader = team.find(isShiftLeader) || null;
+  const capacity = availableTeam.length * shifts.maxPerProfessional;
+
+  const periodStudents = useMemo(() => {
+    const seen = new Set<string>();
+    return periodSlots.flatMap(item => (byClass[item.class_id] || []))
+      .filter(s => (seen.has(s.booking_id) ? false : (seen.add(s.booking_id), true)));
+  }, [periodSlots, byClass]);
+  const totalBooked = periodStudents.length;
+  const totalPresent = periodStudents.filter(s => s.attendance_status === "presente").length;
+  const totalTrials = periodStudents.filter(s => s.is_trial).length;
+
+  /** atendimentos do dia por treinador (deduplicado por agendamento) */
+  const attendanceByTrainer = useMemo(() => {
+    const counts = new Map<string, number>();
+    const seen = new Set<string>();
+    roster.forEach(s => {
+      if (!s.collaborator_id || s.waitlisted || seen.has(s.booking_id)) return;
+      seen.add(s.booking_id);
+      counts.set(s.collaborator_id, (counts.get(s.collaborator_id) || 0) + 1);
+    });
+    const people = new Map(shifts.collaborators.map(p => [p.id, p]));
+    const ids = new Set<string>([...availableTeam.map(p => p.id), ...counts.keys()]);
+    return Array.from(ids).map(id => ({
+      id,
+      name: people.get(id)?.full_name || "Equipe",
+      role: people.get(id)?.role_title || null,
+      count: counts.get(id) || 0,
+    })).sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
+  }, [roster, shifts.collaborators, availableTeam]);
 
   const setStatus = async (s: GradeStudent, status: string) => {
     const { data, error: err } = await supabase.rpc("set_attendance" as any, { _booking_id: s.booking_id, _status: status });
@@ -107,38 +176,195 @@ export default function ProHoje() {
     const res = (data || {}) as { ok?: boolean; reason?: string };
     if (!res.ok) { toast.error(RPC_REASONS[res.reason || ""] || "Não foi possível atualizar."); return; }
     toast.success(`${s.student_name}: ${STATUS_LABEL[status]}`);
-    reload();
+    refresh();
   };
+
+  const assign = async (bookingId: string, collaboratorId2: string) => {
+    const { data, error: err } = await supabase.rpc("assign_professor" as any, { _booking_id: bookingId, _collaborator_id: collaboratorId2 });
+    if (err) return err.message;
+    const res = (data || {}) as { ok?: boolean; reason?: string };
+    return res.ok ? null : (RPC_REASONS[res.reason || ""] || "Não foi possível distribuir.");
+  };
+
+  const distribute = async (redistribute = false) => {
+    if (!slot || !availableTeam.length) { toast.error("Nenhum treinador disponível neste turno."); return; }
+    setBusy(true);
+    let pending = slotStudents.filter(s => s.attendance_status !== "cancelou");
+    if (redistribute) {
+      for (const s of pending) {
+        if (s.collaborator_id && !s.locked && !s.started_at) {
+          await supabase.rpc("unassign_professor" as any, { _booking_id: s.booking_id });
+        }
+      }
+      pending = pending.map(s => (s.locked || s.started_at ? s : { ...s, collaborator_id: null }));
+    }
+    const load: Record<string, number> = {};
+    availableTeam.forEach(person => { load[person.id] = 0; });
+    pending.forEach(s => { if (s.collaborator_id && load[s.collaborator_id] != null) load[s.collaborator_id] += 1; });
+
+    let assigned = 0;
+    let lastError: string | null = null;
+    for (const student of pending.filter(s => !s.collaborator_id)) {
+      const target = availableTeam
+        .filter(person => load[person.id] < shifts.maxPerProfessional)
+        .sort((a, b) => load[a.id] - load[b.id])[0];
+      if (!target) { lastError = "Capacidade do turno atingida."; break; }
+      const failure = await assign(student.booking_id, target.id);
+      if (failure) { lastError = failure; continue; }
+      load[target.id] += 1;
+      assigned += 1;
+    }
+    setBusy(false);
+    if (assigned) toast.success(`${assigned} aluno(s) distribuído(s).`);
+    if (lastError) toast.error(lastError);
+    refresh();
+  };
+
+  const manualAssign = async (bookingId: string, collaboratorId2: string) => {
+    setBusy(true);
+    const failure = await assign(bookingId, collaboratorId2);
+    setBusy(false);
+    if (failure) toast.error(failure); else toast.success("Professor designado.");
+    refresh();
+  };
+
+  const togglePresence = async (collaboratorId2: string, present: boolean) => {
+    if (!filterId) return;
+    const { error: err } = await supabase.from("staff_shift_presence" as any).upsert({
+      unit_id: filterId, shift_date: dateISO, shift: period, collaborator_id: collaboratorId2,
+      present, confirmed_at: new Date().toISOString(),
+    }, { onConflict: "unit_id,shift_date,shift,collaborator_id" });
+    if (err) return toast.error(err.message);
+    refresh();
+  };
+
+  const confirmAllTeam = async () => {
+    if (!filterId || !team.length) return;
+    const rows = team.map(person => ({
+      unit_id: filterId, shift_date: dateISO, shift: period, collaborator_id: person.id,
+      present: true, confirmed_at: new Date().toISOString(),
+    }));
+    const { error: err } = await supabase.from("staff_shift_presence" as any).upsert(rows, { onConflict: "unit_id,shift_date,shift,collaborator_id" });
+    if (err) return toast.error(err.message);
+    toast.success("Equipe do turno confirmada.");
+    refresh();
+  };
+
+  const toggleSupport = async (collaboratorId2: string) => {
+    if (!filterId) return;
+    if (shifts.supportIds.includes(collaboratorId2)) {
+      const { error: err } = await supabase.from("staff_shift_support" as any).delete()
+        .eq("unit_id", filterId).eq("shift_date", dateISO).eq("shift", period).eq("collaborator_id", collaboratorId2);
+      if (err) return toast.error(err.message);
+    } else {
+      const { error: err } = await supabase.from("staff_shift_support" as any)
+        .insert({ unit_id: filterId, shift_date: dateISO, shift: period, collaborator_id: collaboratorId2 });
+      if (err) return toast.error(err.message);
+    }
+    refresh();
+  };
+
+  const undoChange = async (id: string) => {
+    const { error: err } = await supabase.from("staff_shift_changes" as any)
+      .update({ cancelled_at: new Date().toISOString() }).eq("id", id);
+    if (err) return toast.error(err.message);
+    toast.success("Alteração desfeita — o registro fica no histórico.");
+    refresh();
+  };
+
+  const searchStudents = async (value: string) => {
+    setTerm(value);
+    if (value.trim().length < 3) { setFound([]); return; }
+    const query = supabase.from("clients").select("id,name").ilike("name", `%${value.trim()}%`).limit(8);
+    const { data } = filterId ? await query.eq("unit_id", filterId) : await query;
+    setFound(((data as any[]) || []).map(row => ({ id: row.id, name: row.name })));
+  };
+
+  const addStudent = async (client: { id: number; name: string }) => {
+    if (!slot) return;
+    setBusy(true);
+    const { error: err } = await supabase.from("class_bookings").insert({
+      class_id: slot.class_id, class_date: dateISO, client_id: client.id,
+      student_name: client.name, status: "confirmed", attendance_status: "agendado", kind: "agendamento",
+    });
+    setBusy(false);
+    if (err) return toast.error(err.message);
+    toast.success(`${client.name} incluído às ${slot.start_time.slice(0, 5)}.`);
+    setTerm(""); setFound([]);
+    refresh();
+  };
+
+  const buildReport = () => {
+    const lines = [
+      `RELATÓRIO DE EXPEDIENTE — ${currentUnit?.name || "EVO CLUB"}`,
+      `${new Date(`${dateISO}T12:00:00`).toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long" })} · ${SHIFT_LABEL[period]}`,
+      leader ? `Líder do turno: ${leader.full_name}` : "Líder do turno: não definido no cadastro",
+      "",
+      `EQUIPE PRESENTE (${availableTeam.length})`,
+      ...(availableTeam.length ? availableTeam.map(p => `• ${p.full_name}${shifts.supportIds.includes(p.id) ? " (Rádio Apoio)" : ""}`) : ["• Nenhum profissional confirmado"]),
+      "",
+      "ATENDIMENTOS POR TREINADOR",
+      ...(attendanceByTrainer.length ? attendanceByTrainer.map(p => `• ${p.name}: ${p.count}`) : ["• Nenhum atendimento registrado"]),
+      "",
+      `Agendados: ${totalBooked} · Presentes: ${totalPresent} · Experimentais: ${totalTrials}`,
+      `Capacidade do turno: ${capacity} aluno(s) por horário`,
+    ];
+    setReport(lines.join("\n"));
+  };
+
+  const copyReport = async () => {
+    if (!report) return;
+    try { await navigator.clipboard.writeText(report); toast.success("Relatório copiado."); }
+    catch { toast.error("Não foi possível copiar aqui. Use o envio pelo WhatsApp."); }
+  };
+
+  const sendReport = () => {
+    if (!report) return;
+    window.open(`https://wa.me/?text=${encodeURIComponent(report)}`, "_blank", "noopener,noreferrer");
+  };
+
+  const dayChanges = shifts.changes.filter(change => change.shift === period);
 
   return (
     <div className="space-y-4">
-      <div>
-        <p className="font-dm text-xs font-semibold uppercase text-primary">Painel de turno</p>
-        <h1 className="font-barlow text-2xl font-extrabold uppercase">Atendimento do dia</h1>
-        <p className="font-dm text-xs capitalize text-muted-foreground">{new Date(`${dateISO}T12:00:00`).toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long" })}</p>
+      <div className="flex items-start gap-2">
+        <div className="min-w-0">
+          <p className="font-dm text-xs font-semibold uppercase text-primary">Painel de atendimento</p>
+          <h1 className="font-barlow text-2xl font-extrabold uppercase">Turno do dia</h1>
+          <p className="font-dm text-xs capitalize text-muted-foreground">
+            {new Date(`${dateISO}T12:00:00`).toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long" })} · {SHIFT_LABEL[period]}
+          </p>
+        </div>
+        <span className={`ml-auto shrink-0 rounded-full px-2 py-1 font-dm text-[10px] font-semibold ${synced ? "text-success" : "text-muted-foreground"}`}>
+          ● {synced ? "Sincronizado" : "Conectando"}
+        </span>
       </div>
+
       <div className="flex items-center gap-2">
-        <Button variant="outline" size="icon" onClick={() => setDateISO(d => shift(d, -1))} aria-label="Dia anterior"
-          className="h-11 w-11 rounded-xl">
+        <Button variant="outline" size="icon" onClick={() => setDateISO(d => shiftDate(d, -1))} aria-label="Dia anterior" className="h-11 w-11 rounded-xl">
           <ChevronLeft size={20} />
         </Button>
-        <Button variant="outline" onClick={() => setDateISO(brToday())}
-          className="flex-1 h-11 rounded-xl font-barlow font-bold text-base uppercase">
+        <Button variant="outline" onClick={() => setDateISO(brToday())} className="h-11 flex-1 rounded-xl font-barlow text-base font-bold uppercase">
           {dateISO === brToday() ? "HOJE" : pretty(dateISO)}
         </Button>
-        <Button variant="outline" size="icon" onClick={() => setDateISO(d => shift(d, 1))} aria-label="Próximo dia"
-          className="h-11 w-11 rounded-xl">
+        <Button variant="outline" size="icon" onClick={() => setDateISO(d => shiftDate(d, 1))} aria-label="Próximo dia" className="h-11 w-11 rounded-xl">
           <ChevronRight size={20} />
         </Button>
       </div>
 
-      <div className="grid grid-cols-4 gap-2">
-        {(["todos", "manha", "tarde", "noite"] as const).map(item => (
-          <Button key={item} variant={period === item ? "default" : "outline"} className="h-10 px-1 text-[10px] uppercase" onClick={() => setPeriod(item)}>
-            {item === "todos" ? "Todos" : SHIFT_LABEL[item]}
+      <div className="grid grid-cols-3 gap-2">
+        {SHIFT_ORDER.map(item => (
+          <Button key={item} variant={period === item ? "default" : "outline"} className="h-10 text-[11px] uppercase" onClick={() => setPeriod(item)}>
+            {SHIFT_LABEL[item]}
           </Button>
         ))}
       </div>
+
+      {weekend && (
+        <p className="rounded-xl border border-primary/30 bg-primary/5 p-3 font-dm text-[11px] text-primary">
+          Fim de semana: turno responsável da escala é <strong className="uppercase">{SHIFT_LABEL[weekend]}</strong> (rodízio automático).
+        </p>
+      )}
 
       <div className="grid grid-cols-3 gap-2">
         <div className="rounded-xl border border-border bg-card p-3"><Users size={16} className="text-primary" /><strong className="mt-2 block font-barlow text-xl">{totalBooked}</strong><span className="text-[10px] text-muted-foreground">Agendados</span></div>
@@ -146,132 +372,259 @@ export default function ProHoje() {
         <div className="rounded-xl border border-border bg-card p-3"><Sparkles size={16} className="text-warning" /><strong className="mt-2 block font-barlow text-xl">{totalTrials}</strong><span className="text-[10px] text-muted-foreground">Experimentais</span></div>
       </div>
 
+      {/* equipe do turno */}
       <section className="rounded-xl border border-border bg-card p-4">
-        <div className="flex items-center gap-2"><Radio size={17} className="text-primary" /><h2 className="font-barlow text-sm font-extrabold uppercase">Equipe ativa</h2><span className="ml-auto text-[10px] text-muted-foreground">{activeProfessionals.length} no dia</span></div>
-        <div className="mt-3 flex gap-2 overflow-x-auto no-scrollbar">
-          {activeProfessionals.length === 0 && <p className="text-xs text-muted-foreground">Nenhum profissional escalado para esta data.</p>}
-          {activeProfessionals.map(person => <span key={person.id} className="shrink-0 rounded-full border border-border bg-muted/50 px-3 py-2 text-xs font-semibold">{person.full_name}</span>)}
+        <div className="flex items-center gap-2">
+          <Radio size={17} className="text-primary" />
+          <h2 className="font-barlow text-sm font-extrabold uppercase">Equipe do turno</h2>
+          <span className="ml-auto text-[10px] text-muted-foreground">capacidade {capacity}</span>
+        </div>
+        <p className="mt-1 font-dm text-[11px] text-muted-foreground">
+          {leader ? <><Crown size={11} className="mr-1 inline text-warning" />Líder do turno: {leader.full_name}</> : "Líder do turno não identificado no cadastro."}
+        </p>
+        {shifts.supportIds.length > 0 && (
+          <p className="mt-1 font-dm text-[11px] text-primary">
+            Rádio Apoio · turno: {shifts.supportIds.map(id => shifts.collaborators.find(p => p.id === id)?.full_name || "Equipe").join(", ")}
+          </p>
+        )}
+        {canManage && team.length > 0 && (
+          <Button variant="secondary" className="mt-3 h-10 w-full text-xs" onClick={confirmAllTeam}>
+            <CheckCheck size={15} /> Confirmar todos
+          </Button>
+        )}
+        <div className="mt-3 divide-y divide-border overflow-hidden rounded-lg border border-border">
+          {team.length === 0 && <p className="p-4 text-center font-dm text-xs text-muted-foreground">Nenhum profissional escalado neste turno.</p>}
+          {team.map(person => {
+            const row = presenceMap.get(`${period}:${person.id}`);
+            const absent = row?.present === false;
+            const supported = shifts.supportIds.includes(person.id);
+            return (
+              <div key={person.id} className="flex items-center gap-2 p-3">
+                <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${absent ? "bg-destructive" : "bg-success"}`} />
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate font-dm text-sm font-semibold">
+                    {person.full_name}{isShiftLeader(person) && <Crown size={12} className="ml-1 inline text-warning" />}
+                  </span>
+                  <span className="block truncate font-dm text-[10px] text-muted-foreground">{person.role_title || "Equipe"} · {absent ? "Ausente" : "Presente"}</span>
+                </span>
+                {canManage && (
+                  <>
+                    <Button size="icon" className="h-9 w-9" variant={absent ? "outline" : "default"} onClick={() => togglePresence(person.id, absent)} aria-label={`Presença de ${person.full_name}`}><Check size={15} /></Button>
+                    <Button size="icon" className="h-9 w-9" variant={supported ? "default" : "outline"} onClick={() => toggleSupport(person.id)} aria-label={`Rádio Apoio ${person.full_name}`}><Radio size={15} /></Button>
+                  </>
+                )}
+              </div>
+            );
+          })}
         </div>
       </section>
 
-      <div className="flex gap-2">
-        {(["meus", "todos"] as const).map(s => (
-          <Button key={s} onClick={() => setScope(s)} variant={scope === s ? "default" : "outline"}
-            className="flex-1 h-10 rounded-xl font-dm text-xs font-bold uppercase">
-            {s === "meus" ? "Meus alunos" : "Todos os horários"}
-          </Button>
-        ))}
-      </div>
-
-      {loading && <p className="py-10 text-center font-dm text-sm text-muted-foreground">Carregando sua grade...</p>}
+      {loading && <p className="py-10 text-center font-dm text-sm text-muted-foreground">Carregando o turno...</p>}
 
       {error && (
-        <div className="rounded-xl border border-red-200 bg-red-50 p-4 font-dm text-sm text-red-700">
+        <div className="rounded-xl border border-destructive/30 bg-destructive/10 p-4 font-dm text-sm text-destructive">
           <p className="flex items-center gap-2"><AlertTriangle size={16} /> Não foi possível carregar: {error}</p>
-          <Button variant="outline" onClick={reload} className="mt-3 h-10 w-full rounded-lg font-semibold">
-            <RefreshCw size={14} /> Tentar de novo
-          </Button>
+          <Button variant="outline" onClick={refresh} className="mt-3 h-10 w-full rounded-lg font-semibold"><RefreshCw size={14} /> Tentar de novo</Button>
         </div>
       )}
 
-      {!loading && !error && mySlots.length === 0 && (
-        <div className="rounded-xl border border-border bg-card p-8 text-center font-dm text-sm text-muted-foreground">
-          {scope === "meus"
-            ? "Nenhum aluno distribuído para você neste dia. A distribuição abre 20 minutos antes de cada horário."
-            : "Nenhum horário com alunos neste dia."}
-        </div>
-      )}
-
-      {!loading && !error && mySlots.map(({ slot, list, mine, all }) => (
-        <section key={slot.class_id} className="rounded-2xl border border-border bg-card overflow-hidden">
-          <div className="flex items-center gap-3 px-4 py-3 border-b border-border">
-            <span className="font-barlow font-black text-2xl leading-none">{slot.start_time.slice(0, 5)}</span>
-            <div className="min-w-0 flex-1">
-              <p className="font-dm text-xs font-semibold truncate">{slot.name || "Musculação"}</p>
-              <p className="font-dm text-[11px] text-muted-foreground">
-                {scope === "meus" ? `${mine.length} seu(s) aluno(s)` : `${all.length} aluno(s)`} · presentes {slot.present} · faltas {slot.absent}
-              </p>
-            </div>
-            {slot.blocked && (
-              <span className="flex items-center gap-1 text-[10px] font-barlow font-bold bg-red-100 text-red-700 px-2 py-1 rounded-full shrink-0">
-                <Lock size={10} /> BLOQUEADO
-              </span>
-            )}
-          </div>
-
-          {scope === "todos" && canManage && (
-            <div className="border-b border-border px-4 py-2">
-              <Button variant="outline" size="sm" className="h-9 w-full text-xs" onClick={() => setDistClassId(slot.class_id)}>
-                <Users size={14} /> Distribuir alunos
-              </Button>
-            </div>
-          )}
-
-          <div className="divide-y divide-border">
-            {list.length === 0 && (
-              <p className="px-4 py-5 font-dm text-xs text-muted-foreground">Nenhum aluno neste horário.</p>
-            )}
-            {list.map(s => {
-              const plan = s.client_id ? plans[s.client_id] : undefined;
-              const session = sessionForGroup(plan, s.muscle_group);
+      {!loading && !error && (
+        <>
+          {/* abas de horário */}
+          <div className="flex gap-2 overflow-x-auto no-scrollbar">
+            {periodSlots.length === 0 && <p className="font-dm text-xs text-muted-foreground">Nenhum horário cadastrado neste turno.</p>}
+            {periodSlots.map(item => {
+              const count = (byClass[item.class_id] || []).length;
               return (
-                <div key={s.booking_id} className="px-4 py-3">
-                  <button type="button" onClick={() => setActive(s)} className="w-full flex items-center gap-3 text-left">
-                    {s.avatar_url ? (
-                      <img src={s.avatar_url} alt={`Foto de ${s.student_name}`} className="w-11 h-11 rounded-full object-cover shrink-0" />
-                    ) : (
-                      <span className="w-11 h-11 rounded-full bg-primary/10 text-primary font-barlow font-bold text-sm flex items-center justify-center shrink-0">
-                        {s.student_name.slice(0, 2).toUpperCase()}
-                      </span>
-                    )}
-                    <span className="min-w-0 flex-1">
-                      <span className="block font-dm text-sm font-semibold truncate">
-                        {s.student_name}
-                        {s.is_trial && <span className="ml-1.5 text-[9px] font-barlow font-bold bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded">EXPERIMENTAL</span>}
-                      </span>
-                      <span className="block font-dm text-[11px] text-muted-foreground truncate">
-                        {s.muscle_group ? (s.muscle_group === "inferior" ? "Inferior" : "Superior") : "Grupo não informado"}
-                        {session ? ` · ${session}` : plan ? ` · ${plan.name}` : " · sem ficha ativa"}
-                      </span>
-                    </span>
-                    <span className={`shrink-0 text-[10px] font-dm font-semibold px-2 py-1 rounded ${STATUS_STYLE[s.attendance_status] || "bg-muted"}`}>
-                      {STATUS_LABEL[s.attendance_status] || s.attendance_status}
-                    </span>
-                  </button>
-
-                  {canManage && (
-                    <div className="flex gap-2 mt-2.5">
-                      {(["presente", "faltou", "agendado"] as const).map(st => (
-                        <button key={st} onClick={() => setStatus(s, st)}
-                          disabled={s.attendance_status === st}
-                          className={`flex-1 h-10 rounded-xl font-dm text-xs font-bold ${s.attendance_status === st ? "bg-primary text-white" : "bg-muted/60 text-foreground"}`}>
-                          {STATUS_LABEL[st]}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
+                <button key={item.class_id} type="button" onClick={() => setSlotId(item.class_id)}
+                  className={`shrink-0 rounded-xl border px-3 py-2 font-barlow text-sm font-bold ${slotId === item.class_id ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card"}`}>
+                  {item.start_time.slice(0, 5)} <span className="font-dm text-[10px] font-semibold">({count})</span>
+                </button>
               );
             })}
           </div>
-        </section>
-      ))}
+
+          <div className="flex gap-2">
+            {(["todos", "meus"] as const).map(s => (
+              <Button key={s} onClick={() => setScope(s)} variant={scope === s ? "default" : "outline"} className="h-10 flex-1 rounded-xl font-dm text-xs font-bold uppercase">
+                {s === "meus" ? "Meus alunos hoje" : "Todos do horário"}
+              </Button>
+            ))}
+          </div>
+
+          {slot && (
+            <section className="overflow-hidden rounded-2xl border border-border bg-card">
+              <div className="flex items-center gap-3 border-b border-border px-4 py-3">
+                <span className="font-barlow text-2xl font-black leading-none">{slot.start_time.slice(0, 5)}</span>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate font-dm text-xs font-semibold">{slot.name || "Musculação"}</p>
+                  <p className="font-dm text-[11px] text-muted-foreground">{slotStudents.length} aluno(s) · presentes {slot.present} · faltas {slot.absent} · capacidade {capacity}</p>
+                </div>
+                {slot.blocked && <span className="shrink-0 rounded-full bg-destructive/10 px-2 py-1 font-barlow text-[10px] font-bold text-destructive"><Lock size={10} className="mr-1 inline" />BLOQUEADO</span>}
+              </div>
+
+              {canManage && (
+                <div className="space-y-2 border-b border-border px-4 py-3">
+                  <div className="flex gap-2">
+                    <Button className="h-10 flex-1 text-xs" disabled={busy || !unassigned.length} onClick={() => distribute(false)}>
+                      <Users size={14} /> Distribuir ({unassigned.length})
+                    </Button>
+                    <Button variant="outline" className="h-10 flex-1 text-xs" disabled={busy || !slotStudents.length} onClick={() => distribute(true)}>
+                      <Shuffle size={14} /> Redistribuir
+                    </Button>
+                  </div>
+                  <div className="relative">
+                    <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                    <Input value={term} onChange={e => searchStudents(e.target.value)} placeholder="Buscar aluno para incluir neste horário" className="h-11 pl-9" />
+                  </div>
+                  {found.map(client => (
+                    <button key={client.id} type="button" disabled={busy} onClick={() => addStudent(client)}
+                      className="flex w-full items-center gap-2 rounded-lg bg-muted/60 px-3 py-2 text-left font-dm text-xs font-semibold">
+                      <Plus size={13} className="text-primary" /> {client.name}
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {unassigned.length > 0 && (
+                <div className="border-b border-border bg-warning/10 px-4 py-3">
+                  <p className="font-barlow text-xs font-bold uppercase text-warning-foreground">Sem professor ({unassigned.length})</p>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {unassigned.map(s => <span key={s.booking_id} className="rounded-full bg-card px-2.5 py-1 font-dm text-[11px] font-semibold">{s.student_name}</span>)}
+                  </div>
+                </div>
+              )}
+
+              <div className="divide-y divide-border">
+                {visibleStudents.length === 0 && (
+                  <p className="px-4 py-5 font-dm text-xs text-muted-foreground">
+                    {scope === "meus" ? "Nenhum aluno distribuído para você neste horário." : "Nenhum aluno neste horário."}
+                  </p>
+                )}
+                {visibleStudents.map(s => {
+                  const plan = s.client_id ? plans[s.client_id] : undefined;
+                  const extra = s.client_id ? extras[s.client_id] : undefined;
+                  return (
+                    <div key={s.booking_id} className="px-4 py-3">
+                      <button type="button" onClick={() => setActive(s)} className="flex w-full items-center gap-3 text-left">
+                        {s.avatar_url
+                          ? <img src={s.avatar_url} alt={`Foto de ${s.student_name}`} className="h-11 w-11 shrink-0 rounded-full object-cover" />
+                          : <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary/10 font-barlow text-sm font-bold text-primary">{s.student_name.slice(0, 2).toUpperCase()}</span>}
+                        <span className="min-w-0 flex-1">
+                          <span className="block truncate font-dm text-sm font-semibold">
+                            {s.student_name}
+                            {s.is_trial && <span className="ml-1.5 rounded bg-warning/20 px-1.5 py-0.5 font-barlow text-[9px] font-bold text-warning-foreground">EXPERIMENTAL</span>}
+                          </span>
+                          <span className="block truncate font-dm text-[11px] text-muted-foreground">
+                            {s.professor_name ? s.professor_name : "Sem professor"}
+                            {extra?.lastWorkout ? ` · Último treino: ${extra.lastWorkout}` : " · Sem histórico de treino"}
+                          </span>
+                        </span>
+                        <span className={`shrink-0 rounded px-2 py-1 font-dm text-[10px] font-semibold ${STATUS_STYLE[s.attendance_status] || "bg-muted"}`}>
+                          {STATUS_LABEL[s.attendance_status] || s.attendance_status}
+                        </span>
+                      </button>
+
+                      {extra?.alerts?.length ? (
+                        <p className="mt-2 flex items-start gap-1.5 rounded-lg bg-destructive/10 px-2 py-1.5 font-dm text-[11px] text-destructive">
+                          <AlertTriangle size={12} className="mt-0.5 shrink-0" /> {extra.alerts.join(" · ")}
+                        </p>
+                      ) : null}
+
+                      {plan && <p className="mt-1 font-dm text-[11px] text-muted-foreground">Ficha: {plan.name}</p>}
+
+                      {canManage && (
+                        <>
+                          <div className="mt-2.5 flex gap-2">
+                            {(["presente", "faltou", "agendado"] as const).map(st => (
+                              <button key={st} onClick={() => setStatus(s, st)} disabled={s.attendance_status === st}
+                                className={`h-10 flex-1 rounded-xl font-dm text-xs font-bold ${s.attendance_status === st ? "bg-primary text-primary-foreground" : "bg-muted/60 text-foreground"}`}>
+                                {STATUS_LABEL[st]}
+                              </button>
+                            ))}
+                          </div>
+                          {!s.locked && !s.started_at && availableTeam.length > 0 && (
+                            <div className="mt-2 flex flex-wrap gap-2">
+                              {availableTeam.map(person => (
+                                <button key={person.id} type="button" disabled={busy || person.id === s.collaborator_id}
+                                  onClick={() => manualAssign(s.booking_id, person.id)}
+                                  className={`rounded-full border px-2.5 py-1 font-dm text-[11px] font-semibold ${person.id === s.collaborator_id ? "border-primary bg-primary/10 text-primary" : "border-border bg-card"}`}>
+                                  {person.full_name.split(" ")[0]}
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
+          )}
+
+          {/* atendimentos do dia */}
+          <section className="rounded-xl border border-border bg-card p-4">
+            <h2 className="font-barlow text-sm font-extrabold uppercase">Atendimentos do dia</h2>
+            <div className="mt-3 space-y-2">
+              {attendanceByTrainer.length === 0 && <p className="font-dm text-xs text-muted-foreground">Nenhum atendimento registrado neste dia.</p>}
+              {attendanceByTrainer.map(person => (
+                <div key={person.id} className="flex items-center gap-2 rounded-lg bg-muted/50 px-3 py-2">
+                  <span className="min-w-0 flex-1 truncate font-dm text-sm font-semibold">{person.name}</span>
+                  <span className="font-barlow text-base font-bold">{person.count}</span>
+                  {canManage && (
+                    <Button size="icon" variant={presenceMap.get(`${period}:${person.id}`)?.present ? "default" : "outline"} className="h-8 w-8"
+                      onClick={() => togglePresence(person.id, !presenceMap.get(`${period}:${person.id}`)?.present)} aria-label={`Confirmar ${person.name}`}>
+                      <Check size={13} />
+                    </Button>
+                  )}
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* histórico do dia */}
+          {dayChanges.length > 0 && (
+            <section className="rounded-xl border border-border bg-card p-4">
+              <div className="flex items-center gap-2"><History size={16} className="text-primary" /><h2 className="font-barlow text-sm font-extrabold uppercase">Alterações do dia</h2></div>
+              <div className="mt-3 space-y-2">
+                {dayChanges.map(change => (
+                  <div key={change.id} className="flex items-center gap-2 rounded-lg bg-muted/50 p-3 font-dm text-xs">
+                    <span className="min-w-0 flex-1">
+                      {shifts.collaborators.find(p => p.id === change.outgoing_collaborator_id)?.full_name || "Equipe"} → {shifts.collaborators.find(p => p.id === change.incoming_collaborator_id)?.full_name || "Substituto"}
+                      {change.reason ? ` · ${change.reason}` : ""}{change.cancelled_at ? " · desfeita" : ""}
+                    </span>
+                    {canManage && !change.cancelled_at && (
+                      <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => undoChange(change.id)} aria-label="Desfazer alteração"><RotateCcw size={14} /></Button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* relatório de expediente */}
+          <section className="rounded-xl border border-border bg-card p-4">
+            <h2 className="font-barlow text-sm font-extrabold uppercase">Relatório de expediente</h2>
+            <Button className="mt-3 h-11 w-full text-xs" onClick={buildReport}>Gerar relatório de expediente</Button>
+            {report && (
+              <>
+                <pre className="mt-3 max-h-56 overflow-auto whitespace-pre-wrap rounded-lg bg-muted/60 p-3 font-dm text-[11px]">{report}</pre>
+                <div className="mt-2 flex gap-2">
+                  <Button variant="outline" className="h-10 flex-1 text-xs" onClick={copyReport}><Copy size={14} /> Copiar</Button>
+                  <Button className="h-10 flex-1 text-xs" onClick={sendReport}><Send size={14} /> WhatsApp</Button>
+                </div>
+              </>
+            )}
+          </section>
+        </>
+      )}
 
       <ProStudentSheet
         student={active}
         open={!!active}
         onOpenChange={v => !v && setActive(null)}
         planName={active?.client_id ? plans[active.client_id]?.name ?? null : null}
-      />
-      <DistribuirDialog
-        open={!!distGroup}
-        onOpenChange={open => !open && setDistClassId(null)}
-        slot={distGroup?.slot || null}
-        dateISO={dateISO}
-        students={distGroup?.all || []}
-        professors={activeProfessionals}
-        maxPerProfessor={shifts.maxPerProfessional}
-        onChanged={() => { reload(); setDistClassId(null); }}
       />
     </div>
   );

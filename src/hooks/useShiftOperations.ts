@@ -52,6 +52,28 @@ export const SHIFT_LABEL: Record<ShiftId, string> = {
   noite: "Noite",
 };
 
+export const SHIFT_ORDER: ShiftId[] = ["manha", "tarde", "noite"];
+
+/** rodízio automático de fim de semana com âncora fixa (sábado 03/01/2026 = Manhã) */
+const WEEKEND_ANCHOR = Date.UTC(2026, 0, 3);
+export const weekendShift = (dateISO: string): ShiftId | null => {
+  const date = new Date(`${dateISO}T12:00:00`);
+  const dow = date.getDay();
+  if (dow !== 0 && dow !== 6) return null;
+  const utc = Date.UTC(date.getFullYear(), date.getMonth(), date.getDate());
+  const weeks = Math.floor((utc - WEEKEND_ANCHOR) / (7 * 86400000));
+  return SHIFT_ORDER[((weeks % 3) + 3) % 3];
+};
+
+export const isShiftLeader = (person: { role_title: string | null }) =>
+  /l[ií]der/i.test(person.role_title || "");
+
+/** turno atual pelo horário de Brasília */
+export const currentShift = (): ShiftId => {
+  const now = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Sao_Paulo" }));
+  return shiftForTime(`${String(now.getHours()).padStart(2, "0")}:00`);
+};
+
 export function useShiftOperations(dateISO: string, unitId: string | null) {
   const [collaborators, setCollaborators] = useState<ShiftCollaborator[]>([]);
   const [presence, setPresence] = useState<ShiftPresence[]>([]);
@@ -99,7 +121,11 @@ export function useShiftOperations(dateISO: string, unitId: string | null) {
       if (person.shift_weekdays?.length && !person.shift_weekdays.includes(weekday)) return;
       const start = minutes(person.shift_start);
       const end = minutes(person.shift_end);
-      if (start == null || end == null) return;
+      if (start == null || end == null) {
+        // sem horário no cadastro: considera escalado em todos os turnos da unidade
+        result.manha.push(person); result.tarde.push(person); result.noite.push(person);
+        return;
+      }
       if (start < 12 * 60 && end > 5 * 60) result.manha.push(person);
       if (start < 18 * 60 && end > 12 * 60) result.tarde.push(person);
       if (end > 18 * 60) result.noite.push(person);
@@ -115,4 +141,19 @@ export function useShiftOperations(dateISO: string, unitId: string | null) {
   }, [collaborators, changes, dateISO, unitId]);
 
   return { collaborators, teams, presence, supportIds, changes, maxPerProfessional, loading, error, reload: load };
+}
+
+/** sincronização em tempo real por unidade (presença, distribuição, equipe) */
+export function useShiftRealtime(unitId: string | null, onChange: () => void) {
+  const [synced, setSynced] = useState(false);
+  useEffect(() => {
+    if (!unitId) { setSynced(false); return; }
+    const channel = supabase.channel(`shift-panel-${unitId}`);
+    ["class_bookings", "class_assignments", "staff_shift_presence", "staff_shift_support", "staff_shift_changes"].forEach(table => {
+      channel.on("postgres_changes", { event: "*", schema: "public", table }, () => onChange());
+    });
+    channel.subscribe(status => setSynced(status === "SUBSCRIBED"));
+    return () => { supabase.removeChannel(channel); setSynced(false); };
+  }, [unitId, onChange]);
+  return synced;
 }
