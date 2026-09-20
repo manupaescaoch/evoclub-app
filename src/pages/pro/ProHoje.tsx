@@ -150,6 +150,15 @@ export default function ProHoje() {
     : slotStudents;
   const unassigned = slotStudents.filter(s => !s.collaborator_id && s.attendance_status !== "cancelou");
 
+  /** carga de cada professor NESTE horário (máx. por profissional vem das configurações) */
+  const slotLoads = useMemo(() => {
+    const map = new Map<string, number>();
+    slotStudents.forEach(s => {
+      if (s.collaborator_id && s.attendance_status !== "cancelou") map.set(s.collaborator_id, (map.get(s.collaborator_id) || 0) + 1);
+    });
+    return map;
+  }, [slotStudents]);
+
   /** equipe do turno, sem quem está ausente */
   const presenceMap = useMemo(
     () => new Map(shifts.presence.map(row => [`${row.shift}:${row.collaborator_id}`, row])),
@@ -246,7 +255,20 @@ export default function ProHoje() {
     setBusy(true);
     const failure = await assign(bookingId, collaboratorId2);
     setBusy(false);
-    if (failure) toast.error(failure); else toast.success("Professor designado.");
+    if (failure) toast.error(failure); else { toast.success("Professor designado."); setAssigningId(null); }
+    refresh();
+  };
+
+  /** marca/desmarca o agendamento como aula experimental */
+  const toggleTrial = async (s: GradeStudent) => {
+    setBusy(true);
+    const { error: err } = await supabase
+      .from("class_bookings")
+      .update({ is_trial: !s.is_trial })
+      .eq("id", s.booking_id);
+    setBusy(false);
+    if (err) toast.error("Não foi possível alterar o status experimental.");
+    else toast.success(s.is_trial ? "Marcação experimental removida." : "Aula marcada como experimental.");
     refresh();
   };
 
