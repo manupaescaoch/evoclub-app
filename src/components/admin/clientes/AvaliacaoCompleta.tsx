@@ -21,6 +21,32 @@ const BIO_FIELDS = [
   { key: "bmi", label: "IMC", unit: "" },
 ] as const;
 
+const EXTRA_BIO = [
+  { key: "skeletal_muscle_mass", label: "Massa muscular esquelética", unit: "kg" },
+  { key: "total_body_water", label: "Água corporal total", unit: "L" },
+  { key: "protein", label: "Proteína", unit: "kg" },
+  { key: "minerals", label: "Minerais", unit: "kg" },
+  { key: "waist_hip_ratio", label: "Relação cintura-quadril", unit: "" },
+  { key: "obesity_degree", label: "Grau de obesidade", unit: "%" },
+  { key: "inbody_score", label: "Pontuação InBody", unit: "" },
+  { key: "ideal_weight", label: "Peso ideal", unit: "kg" },
+  { key: "weight_control", label: "Controle de peso", unit: "kg" },
+  { key: "fat_control", label: "Controle de gordura", unit: "kg" },
+  { key: "muscle_control", label: "Controle muscular", unit: "kg" },
+  { key: "lean_arm_left", label: "Massa magra braço esq.", unit: "kg" },
+  { key: "lean_arm_right", label: "Massa magra braço dir.", unit: "kg" },
+  { key: "lean_trunk", label: "Massa magra tronco", unit: "kg" },
+  { key: "lean_leg_left", label: "Massa magra perna esq.", unit: "kg" },
+  { key: "lean_leg_right", label: "Massa magra perna dir.", unit: "kg" },
+  { key: "fat_arm_left", label: "Gordura braço esq.", unit: "kg" },
+  { key: "fat_arm_right", label: "Gordura braço dir.", unit: "kg" },
+  { key: "fat_trunk", label: "Gordura tronco", unit: "kg" },
+  { key: "fat_leg_left", label: "Gordura perna esq.", unit: "kg" },
+  { key: "fat_leg_right", label: "Gordura perna dir.", unit: "kg" },
+  { key: "height_cm", label: "Altura", unit: "cm" },
+  { key: "device_model", label: "Equipamento", unit: "" },
+] as const;
+
 const fmt = (d?: string | null) =>
   d ? new Date(d.length <= 10 ? `${d}T12:00:00` : d).toLocaleDateString("pt-BR") : "—";
 
@@ -171,6 +197,10 @@ export default function AvaliacaoCompleta({
             <div className="rounded-xl border border-border p-3">
               <Head title="Bioimpedância" />
               {BIO_FIELDS.map(f => (
+                <Row key={f.key} label={f.label} unit={f.unit || undefined}
+                  a={detail?.bio?.[f.key] ?? null} b={compare?.bio?.[f.key] ?? null} />
+              ))}
+              {EXTRA_BIO.filter(f => detail?.bio?.[f.key] != null).map(f => (
                 <Row key={f.key} label={f.label} unit={f.unit || undefined}
                   a={detail?.bio?.[f.key] ?? null} b={compare?.bio?.[f.key] ?? null} />
               ))}
