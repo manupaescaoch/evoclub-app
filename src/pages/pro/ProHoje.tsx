@@ -659,15 +659,73 @@ export default function ProHoje() {
                           {!s.locked && !s.started_at && (
                             <div className="mt-2.5 space-y-2">
                               <Button type="button" variant="outline" disabled={busy}
-                                onClick={() => setAssigningId(s.booking_id)}
+                                onClick={() => setAssigningId(assigningId === s.booking_id ? null : s.booking_id)}
                                 className="h-11 w-full rounded-xl font-dm text-xs font-bold">
                                 <UserPlus size={15} /> Designar professor
                               </Button>
-                              <Button type="button" variant="ghost" disabled={busy} onClick={() => toggleTrial(s)}
-                                className="h-9 w-full rounded-xl font-dm text-xs font-semibold text-muted-foreground hover:text-foreground">
-                                <FlaskConical size={14} className="mr-2" />
-                                {s.is_trial ? "Remover marcação experimental" : "Marcar experimental"}
-                              </Button>
+
+                              {assigning && (
+                                <div className="overflow-hidden rounded-xl border border-border bg-card shadow-lg">
+                                  <p className="border-b border-border px-3 py-2.5 font-dm text-[10px] font-bold uppercase tracking-wide text-muted-foreground">
+                                    Professores do turno · Máx. {shifts.maxPerProfessional} alunos
+                                  </p>
+                                  <div className="max-h-[260px] space-y-1.5 overflow-y-auto p-2 [scrollbar-width:thin] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border">
+                                    {availableTeam.length === 0 && (
+                                      <p className="py-4 text-center font-dm text-xs text-muted-foreground">
+                                        Nenhum professor presente neste turno.
+                                      </p>
+                                    )}
+                                    {availableTeam.map(person => {
+                                      const load = slotLoads.get(person.id) || 0;
+                                      const current = person.id === s.collaborator_id;
+                                      const full = load >= shifts.maxPerProfessional && !current;
+                                      return (
+                                        <button
+                                          key={person.id}
+                                          type="button"
+                                          disabled={busy || current || full}
+                                          onClick={() => manualAssign(s.booking_id, person.id)}
+                                          className={`flex w-full items-center justify-between rounded-lg border px-3 py-2.5 text-left font-dm text-sm font-semibold transition-colors ${
+                                            current
+                                              ? "border-primary bg-primary/10 text-primary"
+                                              : full
+                                              ? "cursor-not-allowed border-border bg-muted/30 text-muted-foreground"
+                                              : "border-border bg-card hover:border-primary/60 hover:bg-primary/5"
+                                          }`}
+                                        >
+                                          <span className="flex min-w-0 flex-1 items-center gap-2">
+                                            <span className={`h-2 w-2 shrink-0 rounded-full ${absentIds.has(person.id) ? "bg-destructive" : "bg-success"}`} />
+                                            <span className="min-w-0 truncate">{person.full_name}</span>
+                                          </span>
+                                          <span className={`ml-2 shrink-0 font-barlow text-sm font-bold ${current ? "text-primary" : full ? "text-muted-foreground" : "text-foreground"}`}>
+                                            {load}/{shifts.maxPerProfessional}
+                                            {current && <span className="ml-1.5 align-middle text-[10px] font-medium uppercase tracking-wide">atual</span>}
+                                          </span>
+                                        </button>
+                                      );
+                                    })}
+                                    {s.collaborator_id && (
+                                      <button
+                                        type="button"
+                                        disabled={busy}
+                                        onClick={() => unassign(s.booking_id)}
+                                        className="flex w-full items-center rounded-lg border border-border px-3 py-2.5 text-left font-dm text-sm font-semibold text-muted-foreground transition-colors hover:border-destructive/50 hover:text-destructive"
+                                      >
+                                        Sem professor
+                                      </button>
+                                    )}
+                                  </div>
+                                  <button
+                                    type="button"
+                                    disabled={busy}
+                                    onClick={() => toggleTrial(s)}
+                                    className="flex w-full items-center gap-2 border-t border-border px-3 py-2.5 text-left font-dm text-xs font-semibold text-muted-foreground transition-colors hover:text-foreground"
+                                  >
+                                    <FlaskConical size={14} />
+                                    {s.is_trial ? "Remover marcação experimental" : "Marcar experimental"}
+                                  </button>
+                                </div>
+                              )}
                             </div>
                           )}
                         </>
