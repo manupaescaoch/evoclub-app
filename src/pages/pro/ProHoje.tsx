@@ -575,10 +575,6 @@ export default function ProHoje() {
                 {visibleStudents.map(s => {
                   const plan = s.client_id ? plans[s.client_id] : undefined;
                   const extra = s.client_id ? extras[s.client_id] : undefined;
-                  const lastName = extra?.lastWorkout?.split(" · ")[0]?.toLowerCase() || "";
-                  const lastGroup = lastName.includes("inferior") ? "INFERIOR" : lastName.includes("superior") ? "SUPERIOR" : null;
-                  const nextGroup = lastGroup === "INFERIOR" ? "SUPERIOR" : lastGroup === "SUPERIOR" ? "INFERIOR" : null;
-                  const lastDate = extra?.lastWorkout?.split(" · ")[1] || null;
                   const assigning = assigningId === s.booking_id;
                   const maxPer = shifts.maxPerProfessional;
                   return (
@@ -603,12 +599,13 @@ export default function ProHoje() {
                         )}
                       </div>
 
-                      {/* treino do check-in */}
-                      {s.muscle_group && (
-                        <span className="mt-1.5 inline-block rounded-md bg-primary/10 px-2.5 py-1 font-barlow text-[11px] font-bold uppercase text-primary">
-                          {MUSCLE_LABEL[s.muscle_group] || s.muscle_group.toUpperCase()}
-                        </span>
-                      )}
+                      {/* treino escolhido no check-in */}
+                      <p className="mt-1.5 font-dm text-[13px] text-muted-foreground">
+                        Treino:{" "}
+                        {s.muscle_group
+                          ? <span className="font-bold uppercase text-primary">{MUSCLE_LABEL[s.muscle_group] || s.muscle_group}</span>
+                          : <span className="font-semibold">Não informado no check-in</span>}
+                      </p>
 
                       {/* resumo da anamnese (alerta âmbar) */}
                       {extra?.anamnese?.length ? (
@@ -622,20 +619,6 @@ export default function ProHoje() {
                           <AlertTriangle size={14} className="mt-0.5 shrink-0" /> {extra.alerts.join(" · ")}
                         </p>
                       ) : null}
-
-                      {/* último treino */}
-                      <p className="mt-2.5 font-dm text-[13px] text-muted-foreground">
-                        Último treino:{" "}
-                        <span className="font-semibold text-foreground">{extra?.lastWorkout ? extra.lastWorkout.split(" · ")[0] : "Sem histórico"}</span>
-                      </p>
-                      {lastDate && <p className="font-dm text-[12px] text-muted-foreground">{lastDate}</p>}
-                      {lastGroup && nextGroup && (
-                        <p className="mt-1.5 font-dm text-[13px]">
-                          Último: <span className="font-bold">{lastGroup}</span>
-                          <span className="mx-2 text-muted-foreground">·</span>
-                          Próximo: <span className="font-bold text-primary">{nextGroup}</span>
-                        </p>
-                      )}
 
                       {/* professor atual */}
                       <p className="mt-2 font-dm text-[13px] text-muted-foreground">
