@@ -57,6 +57,13 @@
       "when": 1789906755113,
       "tag": "0007_harden_assessment_updates_and_delete_rpc",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1789906784839,
+      "tag": "0008_revoke_anonymous_assessment_delete",
+      "breakpoints": true
     }
   ]
 }
