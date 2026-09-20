@@ -323,7 +323,30 @@ export function generateAssessmentEvoPdf(data: EvoAssessmentPdfData, comparison:
       let lastPoint: [number, number] | null = null;
       vals.forEach((v, i) => { if (v == null) { lastPoint = null; return; } const px = gx + 10 + i * ((gw - 20) / Math.max(entries.length - 1, 1)); const py2 = gy + gh - 5 - ((v - min) / span) * 33; if (lastPoint) { doc.setDrawColor(BLUE); doc.setLineWidth(.7); doc.line(lastPoint[0], lastPoint[1], px, py2); } doc.setFillColor(BLUE); doc.circle(px, py2, 1.5, "F"); doc.setFontSize(5.3); doc.setTextColor(MUTED); doc.text(fmt(v), px, py2 - 3, { align: "center" }); doc.text(new Date(entries[i].performedAt).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" }), px, gy + gh + 6, { align: "center" }); lastPoint = [px, py2]; });
     });
+    const comparisonChanges = keys.flatMap(key => {
+      const first = n(entries[0].bio?.[key] ?? (key === "skeletal_muscle_mass" ? entries[0].bio?.muscle_mass : key === "total_body_water" ? entries[0].bio?.body_water : null));
+      const last = n(entries[entries.length - 1].bio?.[key] ?? (key === "skeletal_muscle_mass" ? entries[entries.length - 1].bio?.muscle_mass : key === "total_body_water" ? entries[entries.length - 1].bio?.body_water : null));
+      return first == null || last == null ? [] : [{ key, tone: deltaTone(key, last, first), delta: last - first }];
+    });
+    const positives = comparisonChanges.filter(c => c.tone === "positive");
+    const attentions = comparisonChanges.filter(c => c.tone === "negative");
     section("Resumo profissional", 274);
+    writeLines(`${positives.length} indicador(es) apresentou(aram) evolução positiva e ${attentions.length} exige(m) atenção. O peso isolado foi tratado como informação neutra.`, margin + 4, 281, W - margin * 2 - 8, 6.8, INK, true);
+
+    doc.addPage(); header("Síntese profissional", "Principais mudanças nas avaliações selecionadas", 7);
+    section("Resumo das principais mudanças", 46);
+    const firstDate = new Date(entries[0].performedAt).toLocaleDateString("pt-BR");
+    const lastDate = new Date(entries[entries.length - 1].performedAt).toLocaleDateString("pt-BR");
+    doc.setFillColor(PALE); doc.roundedRect(margin, 54, W - margin * 2, 34, 4, 4, "F");
+    writeLines(`Comparação de ${entries.length} avaliações realizadas entre ${firstDate} e ${lastDate}. ${positives.length} indicador(es) teve(tiveram) evolução favorável e ${attentions.length} apresentou(aram) sinal de atenção. Indicadores sem dados foram mantidos como não informados, sem estimativas.`, margin + 7, 65, W - margin * 2 - 14, 8.2, INK, true);
+    section("Pontos positivos", 108);
+    doc.setFillColor("#E9F7F1"); doc.roundedRect(margin, 116, W - margin * 2, 48, 4, 4, "F");
+    const positiveText = positives.length ? positives.map(c => `${LABELS[c.key].label}: ${c.delta > 0 ? "+" : ""}${fmt(c.delta, 2)} ${LABELS[c.key].unit}`.trim()).join(" • ") : "Nenhum ponto positivo classificável nos dados disponíveis.";
+    writeLines(positiveText, margin + 7, 128, W - margin * 2 - 14, 8, GREEN, true);
+    section("Pontos de atenção", 185);
+    doc.setFillColor("#FFF7E4"); doc.roundedRect(margin, 193, W - margin * 2, 48, 4, 4, "F");
+    const attentionText = attentions.length ? attentions.map(c => `${LABELS[c.key].label}: ${c.delta > 0 ? "+" : ""}${fmt(c.delta, 2)} ${LABELS[c.key].unit}`.trim()).join(" • ") : "Nenhum ponto de atenção classificável nos dados disponíveis.";
+    writeLines(attentionText, margin + 7, 205, W - margin * 2 - 14, 8, attentions.length ? RED : MUTED, true);
   }
   return doc.output("blob");
 }
