@@ -75,6 +75,9 @@ export default function ProHoje() {
         supabase.from("clients").select("id,limitations").in("id", clientIds),
         supabase.from("workout_logs").select("client_id,session_name,workout_date")
           .in("client_id", clientIds).order("workout_date", { ascending: false }),
+        supabase.from("anamnesis")
+          .select("client_id,objective,injuries,limitations,restrictions,pain,created_at")
+          .in("client_id", clientIds).order("created_at", { ascending: false }),
       ]);
       if (!alive) return;
       const planMap: Record<number, PlanInfo> = {};
