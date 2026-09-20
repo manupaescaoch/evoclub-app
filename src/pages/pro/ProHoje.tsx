@@ -88,7 +88,20 @@ export default function ProHoje() {
         planMap[p.student_id] = { name: p.name, expires_at: p.expires_at, sessions: Array.from(new Set(sessions.map(s => s.name))) };
       });
       const extraMap: Record<number, StudentExtra> = {};
-      clientIds.forEach(id => { extraMap[id] = { alerts: [], lastWorkout: null }; });
+      clientIds.forEach(id => { extraMap[id] = { alerts: [], lastWorkout: null, anamnese: [] }; });
+      const seenAnam = new Set<number>();
+      ((anamRows.data as any[]) || []).forEach(row => {
+        const target = extraMap[row.client_id];
+        if (!target || seenAnam.has(row.client_id)) return;
+        seenAnam.add(row.client_id);
+        const parts: string[] = [];
+        if (row.objective) parts.push(`Objetivo: ${shortText(row.objective)}`);
+        if (row.injuries) parts.push(`Lesões: ${shortText(row.injuries)}`);
+        if (row.limitations) parts.push(`Limitações: ${shortText(row.limitations)}`);
+        if (row.restrictions) parts.push(`Restrições: ${shortText(row.restrictions)}`);
+        if (row.pain) parts.push(`Dor: ${shortText(row.pain)}`);
+        target.anamnese = parts;
+      });
       ((pains.data as any[]) || []).forEach(row => {
         if (extraMap[row.client_id]) extraMap[row.client_id].alerts.push(`Dor relatada${row.note ? `: ${row.note}` : ""}`);
       });
