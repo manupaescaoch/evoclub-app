@@ -657,50 +657,17 @@ export default function ProHoje() {
 
                           {/* designar professor */}
                           {!s.locked && !s.started_at && (
-                            <div className="mt-2.5">
+                            <div className="mt-2.5 space-y-2">
                               <Button type="button" variant="outline" disabled={busy || !availableTeam.length}
-                                onClick={() => setAssigningId(assigning ? null : s.booking_id)}
+                                onClick={() => setAssigningId(s.booking_id)}
                                 className="h-11 w-full rounded-xl font-dm text-xs font-bold">
-                                <UserPlus size={15} /> {assigning ? "Fechar lista de professores" : "Designar professor"}
+                                <UserPlus size={15} /> Designar professor
                               </Button>
-
-                              {assigning && (
-                                <div className="mt-2 overflow-hidden rounded-2xl border border-border bg-card shadow-lg">
-                                  <div className="flex items-center justify-between px-4 pt-3">
-                                    <p className="font-barlow text-[11px] font-bold uppercase text-muted-foreground">
-                                      Professores do turno · máx. {maxPer} alunos
-                                    </p>
-                                    <button type="button" onClick={() => setAssigningId(null)} aria-label="Fechar"
-                                      className="rounded-lg p-1 text-muted-foreground hover:bg-muted"><X size={14} /></button>
-                                  </div>
-                                  <div className="mt-2 space-y-1.5 px-3 pb-3">
-                                    {availableTeam.map(person => {
-                                      const load = slotLoads.get(person.id) || 0;
-                                      const current = person.id === s.collaborator_id;
-                                      const full = load >= maxPer && !current;
-                                      return (
-                                        <button key={person.id} type="button" disabled={busy || current || full}
-                                          onClick={() => manualAssign(s.booking_id, person.id)}
-                                          className={`flex w-full items-center justify-between rounded-xl border px-4 py-3 font-dm text-sm font-semibold transition-colors ${
-                                            current ? "border-primary bg-primary/5 text-primary"
-                                            : full ? "border-border bg-muted/40 text-muted-foreground"
-                                            : "border-border bg-card hover:border-primary/60"}`}>
-                                          <span>{person.full_name}</span>
-                                          <span className="font-barlow text-sm font-bold">{load}/{maxPer}</span>
-                                        </button>
-                                      );
-                                    })}
-                                    {!availableTeam.length && (
-                                      <p className="px-1 py-2 font-dm text-[11px] text-muted-foreground">Nenhum professor presente neste turno.</p>
-                                    )}
-                                    <button type="button" disabled={busy} onClick={() => toggleTrial(s)}
-                                      className="mt-1 flex w-full items-center gap-2.5 rounded-xl px-4 py-3 text-left font-dm text-sm font-semibold hover:bg-muted/60">
-                                      <FlaskConical size={15} className="text-muted-foreground" />
-                                      {s.is_trial ? "Remover marcação experimental" : "Marcar experimental"}
-                                    </button>
-                                  </div>
-                                </div>
-                              )}
+                              <Button type="button" variant="ghost" disabled={busy} onClick={() => toggleTrial(s)}
+                                className="h-9 w-full rounded-xl font-dm text-xs font-semibold text-muted-foreground hover:text-foreground">
+                                <FlaskConical size={14} className="mr-2" />
+                                {s.is_trial ? "Remover marcação experimental" : "Marcar experimental"}
+                              </Button>
                             </div>
                           )}
                         </>
