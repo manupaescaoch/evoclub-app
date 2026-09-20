@@ -142,3 +142,18 @@ export function useShiftOperations(dateISO: string, unitId: string | null) {
 
   return { collaborators, teams, presence, supportIds, changes, maxPerProfessional, loading, error, reload: load };
 }
+
+/** sincronização em tempo real por unidade (presença, distribuição, equipe) */
+export function useShiftRealtime(unitId: string | null, onChange: () => void) {
+  const [synced, setSynced] = useState(false);
+  useEffect(() => {
+    if (!unitId) { setSynced(false); return; }
+    const channel = supabase.channel(`shift-panel-${unitId}`);
+    ["class_bookings", "class_assignments", "staff_shift_presence", "staff_shift_support", "staff_shift_changes"].forEach(table => {
+      channel.on("postgres_changes", { event: "*", schema: "public", table }, () => onChange());
+    });
+    channel.subscribe(status => setSynced(status === "SUBSCRIBED"));
+    return () => { supabase.removeChannel(channel); setSynced(false); };
+  }, [unitId, onChange]);
+  return synced;
+}
