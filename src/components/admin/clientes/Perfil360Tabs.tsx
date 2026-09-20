@@ -892,6 +892,7 @@ function DailyCheckinsSection({ clientId }: { clientId: number }) {
 }
 
 export function AvaliacoesTab({ c }: { c: OverviewRow }) {
+  const navigate = useNavigate();
   const { can, isAdmin } = useAccess();
   const canEdit = isAdmin || can("avaliacao", "edit");
   const canCreate = isAdmin || can("avaliacao", "create");
