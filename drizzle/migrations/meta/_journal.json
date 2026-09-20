@@ -29,6 +29,41 @@
       "when": 1789904093133,
       "tag": "0003_avaliacoes_bucket_policies",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1789906405447,
+      "tag": "0004_assessment_evo_pdf_fields",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1789906627070,
+      "tag": "0005_student_read_evo_assessment_pdfs",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1789906646124,
+      "tag": "0006_harden_student_evo_pdf_policy",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1789906755113,
+      "tag": "0007_harden_assessment_updates_and_delete_rpc",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1789906784839,
+      "tag": "0008_revoke_anonymous_assessment_delete",
+      "breakpoints": true
     }
   ]
 }

@@ -10,16 +10,36 @@ const NUM_FIELDS = [
   "height_cm", "age",
 ];
 const TEXT_FIELDS = ["student_name", "device_client_id", "measured_at", "sex", "device_model"];
+const RANGE_KEYS = [
+  "weight", "skeletal_muscle_mass", "fat_mass", "body_fat_pct", "bmi", "visceral_fat",
+  "total_body_water", "protein", "minerals", "lean_mass", "basal_metabolism",
+  "waist_hip_ratio", "obesity_degree",
+];
+const SEGMENT_KEYS = [
+  "lean_arm_left", "lean_arm_right", "lean_trunk", "lean_leg_left", "lean_leg_right",
+  "fat_arm_left", "fat_arm_right", "fat_trunk", "fat_leg_left", "fat_leg_right",
+];
 
 function schema() {
   const props: Record<string, unknown> = {};
   for (const k of NUM_FIELDS) props[k] = { type: ["number", "null"] };
   for (const k of TEXT_FIELDS) props[k] = { type: ["string", "null"] };
   props["low_confidence"] = { type: "array", items: { type: "string" } };
+  props["reference_ranges"] = {
+    type: "object", additionalProperties: false, required: RANGE_KEYS,
+    properties: Object.fromEntries(RANGE_KEYS.map(k => [k, { type: ["string", "null"] }])),
+  };
+  props["segmental_meta"] = {
+    type: "object", additionalProperties: false, required: SEGMENT_KEYS,
+    properties: Object.fromEntries(SEGMENT_KEYS.map(k => [k, {
+      type: "object", additionalProperties: false, required: ["percentage", "classification"],
+      properties: { percentage: { type: ["number", "null"] }, classification: { type: ["string", "null"] } },
+    }])),
+  };
   return {
     type: "object",
     additionalProperties: false,
-    required: [...NUM_FIELDS, ...TEXT_FIELDS, "low_confidence"],
+    required: [...NUM_FIELDS, ...TEXT_FIELDS, "low_confidence", "reference_ranges", "segmental_meta"],
     properties: props,
   };
 }
@@ -33,6 +53,8 @@ Regras absolutas:
 - sex: "masculino" ou "feminino".
 - height_cm em centímetros. Percentuais sem o símbolo.
 - Se o documento tiver várias páginas, considere todas.
+- reference_ranges: copie literalmente a faixa impressa para cada indicador; se não existir, null.
+- segmental_meta: para cada região, extraia o percentual e a classificação impressos; se ausente, null.
 - low_confidence: liste os nomes dos campos cuja leitura ficou duvidosa.`;
 
 Deno.serve(async (req) => {

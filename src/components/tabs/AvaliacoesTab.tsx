@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { ChevronLeft, ClipboardList, CalendarPlus, AlertTriangle } from "lucide-react";
+import { ChevronLeft, ClipboardList, CalendarPlus, AlertTriangle, Download, Eye } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
@@ -37,6 +37,8 @@ type Assessment = {
   professional_name: string | null;
   status: string;
   notes: string | null;
+  evo_pdf_path: string | null;
+  evo_pdf_name: string | null;
 };
 
 const fmt = (iso: string | null) =>
@@ -57,7 +59,7 @@ const AvaliacoesTab = ({ onBack }: { onBack: () => void }) => {
     if (!clientId) { setLoading(false); return; }
     const { data } = await supabase
       .from("physical_assessments")
-      .select("id, scheduled_at, performed_at, professional_name, status, notes, student_rating")
+      .select("id, scheduled_at, performed_at, professional_name, status, notes, student_rating, evo_pdf_path, evo_pdf_name")
       .eq("client_id", clientId)
       .order("scheduled_at", { ascending: false, nullsFirst: false });
     setItems((data || []) as Assessment[]);
@@ -90,6 +92,16 @@ const AvaliacoesTab = ({ onBack }: { onBack: () => void }) => {
     setRating(n);
     toast.success("Nota enviada. Obrigado!");
     load();
+  };
+
+  const openPdf = async (download = false) => {
+    if (!detail?.evo_pdf_path) { toast.info("O laudo EVO ainda está sendo preparado pela equipe."); return; }
+    const { data, error } = await supabase.storage.from("avaliacoes").download(detail.evo_pdf_path);
+    if (error || !data) { toast.error("Não foi possível abrir o PDF EVO."); return; }
+    const url = URL.createObjectURL(data);
+    if (download) { const a = document.createElement("a"); a.href = url; a.download = detail.evo_pdf_name || "avaliacao-evo.pdf"; a.click(); }
+    else window.open(url, "_blank");
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
   };
 
   const schedule = async () => {
@@ -215,6 +227,13 @@ const AvaliacoesTab = ({ onBack }: { onBack: () => void }) => {
               AVALIAÇÃO {fmt(detail?.performed_at ?? null)}
             </h2>
             <p className="text-xs text-muted font-dm">{detail?.professional_name || "Equipe EVO"}</p>
+
+            {detail?.evo_pdf_path && (
+              <div className="grid grid-cols-2 gap-2 mt-4">
+                <button onClick={() => openPdf(false)} className="bg-primary text-white rounded-xl py-3 text-xs font-dm font-bold flex items-center justify-center gap-2"><Eye size={15} /> Ver PDF EVO</button>
+                <button onClick={() => openPdf(true)} className="bg-secondary text-foreground rounded-xl py-3 text-xs font-dm font-bold flex items-center justify-center gap-2"><Download size={15} /> Baixar</button>
+              </div>
+            )}
 
             <div className="border-t border-border mt-4 pt-4">
               <p className="font-barlow font-bold text-sm text-foreground mb-2">Medidas (cm)</p>

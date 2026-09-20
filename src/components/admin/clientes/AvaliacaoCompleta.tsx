@@ -1,13 +1,15 @@
 import { useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Download, Pencil } from "lucide-react";
+import { Download, Eye, MessageCircle, Pencil, RefreshCw, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { MEASURE_KEYS } from "@/components/tabs/AvaliacoesTab";
 import { fetchAssessmentDetail } from "@/hooks/useAdminAssessments";
 import { LoadingState } from "@/components/admin/gerencial/PageShell";
-import { printAssessment } from "@/lib/assessmentPdf";
+import { downloadBlob, getAssessmentPdf, buildAssessmentPdfData } from "@/lib/assessmentPdfService";
+import { logAudit } from "@/lib/audit";
+import { useAccess } from "@/contexts/AccessContext";
 
 const BIO_FIELDS = [
   { key: "weight", label: "Peso", unit: "kg" },
@@ -77,6 +79,8 @@ export default function AvaliacaoCompleta({
   const [loading, setLoading] = useState(true);
   const [compareId, setCompareId] = useState<string>("");
   const [compare, setCompare] = useState<Detail | null>(null);
+  const [pdfBusy, setPdfBusy] = useState(false);
+  const { can, isAdmin } = useAccess();
 
   const comparable = others.filter(o => o.id !== row.id && o.performed_at);
 
@@ -112,28 +116,38 @@ export default function AvaliacaoCompleta({
     window.open(data.signedUrl, "_blank");
   };
 
-  const toPdf = () => {
-    const ok = printAssessment({
-      studentName,
-      performedAt: row.performed_at || row.scheduled_at,
-      professional: row.professional_name,
-      status: row.status,
-      notes: row.notes,
-      origin: detail?.bio?.origin || row.origin || null,
-      compareLabel: compare ? compareLabel : null,
-      measures: MEASURE_KEYS.map(m => ({
-        label: m.label,
-        value: detail?.measures?.[m.key] ?? null,
-        compare: compare?.measures?.[m.key] ?? null,
-      })),
-      bio: BIO_FIELDS.map(f => ({
-        label: f.label,
-        unit: f.unit || undefined,
-        value: detail?.bio?.[f.key] ?? null,
-        compare: compare?.bio?.[f.key] ?? null,
-      })),
-    });
-    if (!ok) toast.error("Libere pop-ups para salvar em PDF.");
+  const pdfAction = async (action: "view" | "download" | "share" | "regenerate") => {
+    setPdfBusy(true);
+    try {
+      const result = await getAssessmentPdf(row.id, action === "regenerate");
+      if (action === "download" || action === "regenerate") downloadBlob(result.blob, result.name);
+      if (action === "view") {
+        const url = URL.createObjectURL(result.blob); window.open(url, "_blank"); setTimeout(() => URL.revokeObjectURL(url), 60000);
+      }
+      if (action === "share") {
+        const file = new File([result.blob], result.name, { type: "application/pdf" });
+        if (navigator.share && (!navigator.canShare || navigator.canShare({ files: [file] }))) {
+          await navigator.share({ title: "Avaliação EVO Club", text: `Avaliação de ${studentName}`, files: [file] });
+        } else {
+          downloadBlob(result.blob, result.name);
+          const { phone } = await buildAssessmentPdfData(row.id);
+          window.open(`https://wa.me/${phone.replace(/\D/g, "")}?text=${encodeURIComponent(`Olá! Segue a avaliação EVO Club de ${studentName}. O PDF foi baixado neste dispositivo para anexar à conversa.`)}`, "_blank");
+        }
+      }
+      await logAudit({ action: action === "regenerate" ? "update" : "custom", entity: "physical_assessments", entity_id: row.id, module: "avaliacao", description: `${action} do PDF EVO de ${studentName}` });
+      if (action === "regenerate") toast.success("PDF EVO gerado novamente.");
+    } catch (e: any) { toast.error(e?.message || "Não foi possível processar o PDF EVO."); }
+    setPdfBusy(false);
+  };
+
+  const remove = async () => {
+    if (!window.confirm("Excluir esta avaliação e seu histórico? Esta ação não pode ser desfeita.")) return;
+    const paths = [row.file_path, row.evo_pdf_path].filter(Boolean);
+    const { data, error } = await supabase.rpc("assessment_delete" as any, { _id: row.id });
+    if (error || !(data as any)?.ok) { toast.error("Sem permissão para excluir a avaliação."); return; }
+    if (paths.length) await supabase.storage.from("avaliacoes").remove(paths);
+    await logAudit({ action: "delete", entity: "physical_assessments", entity_id: row.id, module: "avaliacao", description: `Avaliação de ${studentName} excluída`, before: { performed_at: row.performed_at, file_name: row.file_name, evo_pdf_name: row.evo_pdf_name } });
+    toast.success("Avaliação excluída."); onClose();
   };
 
   const Row = ({ label, unit, a, b }: { label: string; unit?: string; a: any; b: any }) => (
@@ -174,14 +188,18 @@ export default function AvaliacaoCompleta({
               <option key={o.id} value={o.id}>Comparar com {fmt(o.performed_at)}</option>
             ))}
           </select>
-          <Button size="sm" variant="outline" className="font-dm" onClick={toPdf} disabled={loading}>
-            <Download size={14} className="mr-1.5" /> SALVAR PDF
+          <Button size="sm" variant="outline" className="font-dm" onClick={() => pdfAction("view")} disabled={loading || pdfBusy}>
+            <Eye size={14} className="mr-1.5" /> VISUALIZAR PDF
           </Button>
+          <Button size="sm" variant="outline" className="font-dm" onClick={() => pdfAction("download")} disabled={loading || pdfBusy}><Download size={14} className="mr-1.5" /> BAIXAR</Button>
+          <Button size="sm" variant="outline" className="font-dm" onClick={() => pdfAction("share")} disabled={loading || pdfBusy}><MessageCircle size={14} className="mr-1.5" /> WHATSAPP</Button>
           {canEdit && (
             <Button size="sm" variant="outline" className="font-dm" onClick={onEdit}>
               <Pencil size={14} className="mr-1.5" /> EDITAR / CORRIGIR
             </Button>
           )}
+          {canEdit && <Button size="sm" variant="outline" className="font-dm" onClick={() => pdfAction("regenerate")} disabled={loading || pdfBusy}><RefreshCw size={14} className="mr-1.5" /> GERAR NOVAMENTE</Button>}
+          {(isAdmin || can("avaliacao", "delete")) && <Button size="sm" variant="outline" className="font-dm text-destructive" onClick={remove}><Trash2 size={14} className="mr-1.5" /> EXCLUIR</Button>}
         </div>
 
         {loading ? <LoadingState /> : (

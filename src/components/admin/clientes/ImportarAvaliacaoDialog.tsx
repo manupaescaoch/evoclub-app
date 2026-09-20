@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { AlertTriangle, FileText, Loader2, Upload } from "lucide-react";
 import { logAudit } from "@/lib/audit";
+import { generateAndStoreAssessmentPdf } from "@/lib/assessmentPdfService";
 
 const MAX_MB = 10;
 const ACCEPT = "application/pdf,image/png,image/jpeg";
@@ -164,11 +165,16 @@ export default function ImportarAvaliacaoDialog({
       const d = (data as any).data as Record<string, any>;
       const v: Record<string, string> = {};
       Object.entries(d).forEach(([k, val]) => {
-        if (k === "low_confidence") return;
+        if (k === "low_confidence" || k === "reference_ranges" || k === "segmental_meta") return;
         v[k] = val == null ? "" : String(val).replace(",", ".");
       });
       setValues(v);
       setLowConf(Array.isArray(d.low_confidence) ? d.low_confidence : []);
+      setValues(current => ({
+        ...current,
+        __reference_ranges: JSON.stringify(d.reference_ranges || {}),
+        __segmental_meta: JSON.stringify(d.segmental_meta || {}),
+      }));
       const at = toLocalInput(d.measured_at || null);
       setMeasuredAt(at);
 
@@ -197,9 +203,11 @@ export default function ImportarAvaliacaoDialog({
   const set = (k: string, v: string) => setValues(s => ({ ...s, [k]: v }));
 
   const bioPayload = useMemo(() => {
-    const p: Record<string, string> = {};
+    const p: Record<string, any> = {};
     NUM_KEYS.forEach(k => { if ((values[k] || "").trim() !== "") p[k] = values[k].replace(",", "."); });
     ["sex", "device_model", "device_client_id"].forEach(k => { if ((values[k] || "").trim()) p[k] = values[k].trim(); });
+    try { p.reference_ranges = JSON.parse(values.__reference_ranges || "{}"); } catch { p.reference_ranges = {}; }
+    try { p.segmental_meta = JSON.parse(values.__segmental_meta || "{}"); } catch { p.segmental_meta = {}; }
     return p;
   }, [values]);
 
@@ -227,6 +235,10 @@ export default function ImportarAvaliacaoDialog({
         setSaving(false);
         return;
       }
+      await supabase.from("assessment_bioimpedance").update({
+        reference_ranges: bioPayload.reference_ranges,
+        segmental_meta: bioPayload.segmental_meta,
+      }).eq("assessment_id", res.id);
       await logAudit({
         action: "create", entity: "physical_assessments", entity_id: res.id,
         module: "avaliacao",
@@ -234,7 +246,12 @@ export default function ImportarAvaliacaoDialog({
         metadata: { file: file.name, low_confidence: lowConf, name_warning: nameWarn },
         after: bioPayload,
       });
-      toast.success("Avaliação importada e salva no histórico do aluno.");
+      try {
+        await generateAndStoreAssessmentPdf(res.id);
+        toast.success("Avaliação importada e PDF EVO gerado.");
+      } catch {
+        toast.warning("Avaliação salva. O PDF EVO poderá ser gerado novamente na avaliação completa.");
+      }
       onSaved();
       onClose();
     } catch {
