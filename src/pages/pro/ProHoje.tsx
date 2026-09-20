@@ -753,6 +753,7 @@ export default function ProHoje() {
                 </div>
               </SheetContent>
             </Sheet>
+          </>
           )}
 
           {/* atendimentos do dia */}
