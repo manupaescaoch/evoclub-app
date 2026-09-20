@@ -152,9 +152,7 @@ export default function ImportarAvaliacaoDialog({
       setMeasuredAt(at);
 
       if (d.student_name) {
-        const a = norm(String(d.student_name)).split(" ").filter(Boolean);
-        const b = norm(clientName).split(" ").filter(Boolean);
-        const match = a.length && b.length && a[0] === b[0] && (a.length < 2 || b.length < 2 || a[a.length - 1] === b[b.length - 1]);
+        const match = samePerson(String(d.student_name), clientName);
         setNameWarn(match ? null : `O laudo está no nome de "${d.student_name}", diferente de ${clientName}.`);
       }
 
