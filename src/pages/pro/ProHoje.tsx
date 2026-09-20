@@ -27,7 +27,10 @@ const pretty = (iso: string) =>
   new Date(`${iso}T12:00:00`).toLocaleDateString("pt-BR", { weekday: "short", day: "2-digit", month: "2-digit" });
 
 type PlanInfo = { name: string; sessions: string[]; expires_at: string | null };
-type StudentExtra = { alerts: string[]; lastWorkout: string | null };
+type StudentExtra = { alerts: string[]; lastWorkout: string | null; anamnese: string[] };
+
+const MUSCLE_LABEL: Record<string, string> = { inferior: "INFERIOR", superior: "SUPERIOR", full: "CORPO INTEIRO" };
+const shortText = (v: string, max = 90) => (v.length > max ? `${v.slice(0, max).trim()}…` : v);
 
 export default function ProHoje() {
   const { can, collaboratorId } = useAccess();
