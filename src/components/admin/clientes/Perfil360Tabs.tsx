@@ -894,6 +894,8 @@ export function AvaliacoesTab({ c }: { c: OverviewRow }) {
   const [open, setOpen] = useState<any | null>(null);
   const [edit, setEdit] = useState<any | null>(null);
   const [creating, setCreating] = useState(false);
+  const [choose, setChoose] = useState(false);
+  const [importing, setImporting] = useState(false);
 
   const rows = a.rows;
   const reload = () => setReloadKey(k => k + 1);
@@ -930,7 +932,7 @@ export function AvaliacoesTab({ c }: { c: OverviewRow }) {
     <Section title="Avaliações físicas">
       {canEdit && (
         <div className="flex justify-end mb-3">
-          <Button size="sm" className="font-dm" onClick={novaAvaliacao} disabled={creating}>
+          <Button size="sm" className="font-dm" onClick={() => setChoose(true)} disabled={creating}>
             {creating ? "CRIANDO..." : "NOVA AVALIAÇÃO"}
           </Button>
         </div>
@@ -962,6 +964,18 @@ export function AvaliacoesTab({ c }: { c: OverviewRow }) {
       )}
       {edit && (
         <RealizarAvaliacaoDialog row={edit} onClose={() => setEdit(null)} onSaved={reload} />
+      )}
+      {choose && (
+        <NovaAvaliacaoDialog
+          creating={creating}
+          onClose={() => setChoose(false)}
+          onManual={async () => { setChoose(false); await novaAvaliacao(); }}
+          onImport={() => { setChoose(false); setImporting(true); }}
+        />
+      )}
+      {importing && (
+        <ImportarAvaliacaoDialog clientId={c.id} clientName={c.name}
+          onClose={() => setImporting(false)} onSaved={reload} />
       )}
     </Section>
   );
