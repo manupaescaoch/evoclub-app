@@ -603,6 +603,7 @@ export default function ProHoje() {
                                 </button>
                               ))}
                             </div>
+                            </>
                           )}
                         </>
                       )}
