@@ -81,7 +81,28 @@ const BLOCKS: { title: string; fields: Field[] }[] = [
 const NUM_KEYS = BLOCKS.flatMap(b => b.fields.filter(f => !f.text).map(f => f.key));
 
 const norm = (s: string) =>
-  s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z ]/g, "").trim();
+  s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z ]/g, " ").replace(/\s+/g, " ").trim();
+
+const PARTICLES = new Set(["de", "da", "do", "das", "dos", "e", "di", "del", "van", "von", "la", "le"]);
+
+const tokens = (s: string) =>
+  norm(s).split(" ").filter(t => t.length > 1 && !PARTICLES.has(t));
+
+// Aceita apelidos e nomes parciais: "manu paes" == "Emanuel Paes"
+const similar = (a: string, b: string) => {
+  if (a === b) return true;
+  const [short, long] = a.length <= b.length ? [a, b] : [b, a];
+  return short.length >= 3 && long.includes(short);
+};
+
+const samePerson = (laudo: string, cliente: string) => {
+  const a = tokens(laudo);
+  const b = tokens(cliente);
+  if (!a.length || !b.length) return true;
+  const hits = a.filter(t => b.some(u => similar(t, u))).length;
+  // sobrenome igual OU pelo menos um nome compatível já indica a mesma pessoa
+  return hits >= Math.min(2, Math.min(a.length, b.length)) || similar(a[a.length - 1], b[b.length - 1]);
+};
 
 const toLocalInput = (iso: string | null) => {
   if (!iso) return "";
@@ -152,9 +173,7 @@ export default function ImportarAvaliacaoDialog({
       setMeasuredAt(at);
 
       if (d.student_name) {
-        const a = norm(String(d.student_name)).split(" ").filter(Boolean);
-        const b = norm(clientName).split(" ").filter(Boolean);
-        const match = a.length && b.length && a[0] === b[0] && (a.length < 2 || b.length < 2 || a[a.length - 1] === b[b.length - 1]);
+        const match = samePerson(String(d.student_name), clientName);
         setNameWarn(match ? null : `O laudo está no nome de "${d.student_name}", diferente de ${clientName}.`);
       }
 
