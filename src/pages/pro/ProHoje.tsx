@@ -259,13 +259,14 @@ export default function ProHoje() {
     refresh();
   };
 
-  /** marca/desmarca o agendamento como aula experimental */
+  /** marca/desmarca o aluno como aula experimental (visit_type no cadastro) */
   const toggleTrial = async (s: GradeStudent) => {
+    if (!s.client_id) return;
     setBusy(true);
     const { error: err } = await supabase
-      .from("class_bookings")
-      .update({ is_trial: !s.is_trial })
-      .eq("id", s.booking_id);
+      .from("clients")
+      .update({ visit_type: s.is_trial ? "aluno" : "experimental" })
+      .eq("id", s.client_id);
     setBusy(false);
     if (err) toast.error("Não foi possível alterar o status experimental.");
     else toast.success(s.is_trial ? "Marcação experimental removida." : "Aula marcada como experimental.");
