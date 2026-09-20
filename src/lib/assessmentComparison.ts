@@ -48,7 +48,7 @@ export const valueOf = (item: AssessmentComparisonItem, key: string, fallback?: 
 
 export const assessmentDate = (item: AssessmentComparisonItem) => item.performed_at || item.scheduled_at || item.created_at;
 export const assessmentType = (item: AssessmentComparisonItem) => item.bio?.device_model ? "Bioimpedância" : "Avaliação física";
-export const isComparable = (item: AssessmentComparisonItem) => item.status === "realizada" && !!item.performed_at && !!item.bio && COMPARISON_INDICATORS.some(i => valueOf(item, i.key, "fallback" in i ? i.fallback : undefined) != null);
+export const isComparable = (item: AssessmentComparisonItem) => ["realizada", "concluida", "published"].includes(item.status?.toLowerCase()) && !!item.performed_at && !!item.bio && COMPARISON_INDICATORS.some(i => valueOf(item, i.key, "fallback" in i ? i.fallback : undefined) != null);
 export const isIncomplete = (item: AssessmentComparisonItem) => ["weight", "skeletal_muscle_mass", "body_fat_pct"].some(key => valueOf(item, key, key === "skeletal_muscle_mass" ? "muscle_mass" : undefined) == null);
 
 export const formatAssessmentValue = (value: number | null, unit = "") => value == null ? "Não informado" : `${value.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}${unit ? ` ${unit}` : ""}`;

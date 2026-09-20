@@ -15,7 +15,8 @@ export default function AvaliacaoCompararResultado() {
   const [params] = useSearchParams();
   const navigate = useNavigate();
   const clientId = Number(id);
-  const ids = useMemo(() => (params.get("ids") || "").split(",").filter(Boolean).slice(0, 5), [params]);
+  const idsParam = params.get("ids") || "";
+  const ids = useMemo(() => idsParam.split(",").filter(Boolean).slice(0, 5), [idsParam]);
   const [client, setClient] = useState<any>(null);
   const [items, setItems] = useState<AssessmentComparisonItem[]>([]);
   const [busy, setBusy] = useState(false);
