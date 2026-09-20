@@ -67,7 +67,7 @@ export default function ProHoje() {
     if (clientIds.length === 0) { setPlans({}); setExtras({}); return; }
     let alive = true;
     (async () => {
-      const [plansRes, pains, anam, logs] = await Promise.all([
+      const [plansRes, pains, anam, logs, anamRows] = await Promise.all([
         supabase.from("training_plans")
           .select("id, name, student_id, expires_at, training_weeks(id, training_sessions(name, order_index))")
           .in("student_id", clientIds).eq("is_active", true),
