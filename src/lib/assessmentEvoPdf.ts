@@ -308,7 +308,7 @@ export function generateAssessmentEvoPdf(data: EvoAssessmentPdfData, comparison:
     const dy = Math.min(y + 18, 215);
     entries.slice(1).forEach((entry, i) => {
       const previous = entries[i]; const changes = ["weight", "skeletal_muscle_mass", "body_fat_pct"].map(key => { const c = n(entry.bio?.[key] ?? (key === "skeletal_muscle_mass" ? entry.bio?.muscle_mass : null)); const p = n(previous.bio?.[key] ?? (key === "skeletal_muscle_mass" ? previous.bio?.muscle_mass : null)); return c == null || p == null ? `${LABELS[key].label}: —` : `${LABELS[key].label}: ${c - p > 0 ? "+" : ""}${fmt(c - p, 2)} ${LABELS[key].unit}`; });
-      writeLines(`${new Date(previous.performedAt).toLocaleDateString("pt-BR")} → ${new Date(entry.performedAt).toLocaleDateString("pt-BR")}: ${changes.join(" • ")}`, margin + 4, dy + i * 13, W - margin * 2 - 8, 6.8, INK, i === entries.length - 2);
+      writeLines(`${new Date(previous.performedAt).toLocaleDateString("pt-BR")} a ${new Date(entry.performedAt).toLocaleDateString("pt-BR")}: ${changes.join(" • ")}`, margin + 4, dy + i * 13, W - margin * 2 - 8, 6.8, INK, i === entries.length - 2);
     });
 
     doc.addPage(); header("Gráficos de evolução", "Indicadores exibidos separadamente por escala", 6);
