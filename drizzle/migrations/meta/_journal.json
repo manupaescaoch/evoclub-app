@@ -85,6 +85,13 @@
       "when": 1789923368006,
       "tag": "0011_realtime_shift_panel",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1789926173403,
+      "tag": "0012_grade_slots_global_classes",
+      "breakpoints": true
     }
   ]
 }
