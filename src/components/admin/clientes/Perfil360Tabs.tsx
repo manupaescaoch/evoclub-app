@@ -908,6 +908,7 @@ export function AvaliacoesTab({ c }: { c: OverviewRow }) {
     status: r.status, professional_id: r.professional_id, professional_name: r.professional_name,
     origin: r.origin, next_due_at: r.next_due_at, student_rating: r.student_rating,
     revisions: 0, created_at: r.created_at,
+    evo_pdf_path: r.evo_pdf_path, evo_pdf_name: r.evo_pdf_name,
   });
 
   const novaAvaliacao = async () => {

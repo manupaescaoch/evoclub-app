@@ -134,7 +134,7 @@ export default function AvaliacaoCompleta({
           window.open(`https://wa.me/${phone.replace(/\D/g, "")}?text=${encodeURIComponent(`Olá! Segue a avaliação EVO Club de ${studentName}. O PDF foi baixado neste dispositivo para anexar à conversa.`)}`, "_blank");
         }
       }
-      await logAudit({ action: action === "regenerate" ? "update" : "view", entity: "physical_assessments", entity_id: row.id, module: "avaliacao", description: `${action} do PDF EVO de ${studentName}` });
+      await logAudit({ action: action === "regenerate" ? "update" : "custom", entity: "physical_assessments", entity_id: row.id, module: "avaliacao", description: `${action} do PDF EVO de ${studentName}` });
       if (action === "regenerate") toast.success("PDF EVO gerado novamente.");
     } catch (e: any) { toast.error(e?.message || "Não foi possível processar o PDF EVO."); }
     setPdfBusy(false);

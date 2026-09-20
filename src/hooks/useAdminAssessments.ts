@@ -17,6 +17,8 @@ export type AssessmentRow = {
   student_rating: number | null;
   revisions: number;
   created_at: string;
+  evo_pdf_path?: string | null;
+  evo_pdf_name?: string | null;
 };
 
 export type AssessmentDashboard = {
