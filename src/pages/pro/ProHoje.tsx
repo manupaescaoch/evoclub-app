@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import {
   ChevronLeft, ChevronRight, AlertTriangle, Lock, RefreshCw, Radio, Users, UserRoundCheck,
   Sparkles, Shuffle, Check, CheckCheck, Copy, Send, RotateCcw, Search, Plus, Crown, History,
+  UserPlus, FlaskConical, Trash2, X,
 } from "lucide-react";
 import { useAccess } from "@/contexts/AccessContext";
 import { useUnit } from "@/contexts/UnitContext";
@@ -46,6 +47,7 @@ export default function ProHoje() {
   const [term, setTerm] = useState("");
   const [found, setFound] = useState<{ id: number; name: string }[]>([]);
   const [adding, setAdding] = useState(false);
+  const [assigningId, setAssigningId] = useState<string | null>(null);
   const [report, setReport] = useState<string | null>(null);
 
   const { slots, roster, loading, error, reload } = useGradeDay(dateISO, filterId);
