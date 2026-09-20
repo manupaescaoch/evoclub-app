@@ -558,6 +558,21 @@ export default function ProHoje() {
                         </span>
                       </button>
 
+                      {s.muscle_group && (
+                        <span className="mt-2 inline-block rounded bg-primary/10 px-2 py-0.5 font-barlow text-[10px] font-bold text-primary">
+                          TREINO NO CHECK-IN: {MUSCLE_LABEL[s.muscle_group] || s.muscle_group.toUpperCase()}
+                        </span>
+                      )}
+
+                      {extra?.anamnese?.length ? (
+                        <div className="mt-2 rounded-lg bg-muted/50 px-2 py-1.5">
+                          <p className="font-barlow text-[10px] font-bold uppercase text-muted-foreground">Resumo da anamnese</p>
+                          {extra.anamnese.map(line => (
+                            <p key={line} className="font-dm text-[11px] text-foreground">{line}</p>
+                          ))}
+                        </div>
+                      ) : null}
+
                       {extra?.alerts?.length ? (
                         <p className="mt-2 flex items-start gap-1.5 rounded-lg bg-destructive/10 px-2 py-1.5 font-dm text-[11px] text-destructive">
                           <AlertTriangle size={12} className="mt-0.5 shrink-0" /> {extra.alerts.join(" · ")}
