@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { assessmentDate, assessmentType, fetchClientAssessments, formatAssessmentValue, isComparable, isIncomplete, valueOf, AssessmentComparisonItem } from "@/lib/assessmentComparison";
-import { generateAndStoreComparisonPdf } from "@/lib/assessmentComparisonPdf";
+import { downloadComparisonBlob, generateAndStoreComparisonPdf } from "@/lib/assessmentComparisonPdf";
 
 export default function AvaliacaoComparar() {
   const { id } = useParams<{ id: string }>();
@@ -27,7 +27,7 @@ export default function AvaliacaoComparar() {
     else setSelected(v => [...v, item.id]);
   };
   const resultUrl = `/admin/clientes/${clientId}/avaliacoes/comparar/resultado?ids=${orderedIds.join(",")}`;
-  const generate = async () => { if (orderedIds.length < 2) return; setPdfBusy(true); try { const r = await generateAndStoreComparisonPdf(clientId, orderedIds); const url = URL.createObjectURL(r.blob); window.open(url, "_blank"); setTimeout(() => URL.revokeObjectURL(url), 60000); toast.success("Comparativo salvo no histórico do aluno."); } catch (e: any) { toast.error(e?.message || "Não foi possível gerar o comparativo."); } finally { setPdfBusy(false); } };
+  const generate = async () => { if (orderedIds.length < 2) return; setPdfBusy(true); try { const r = await generateAndStoreComparisonPdf(clientId, orderedIds); downloadComparisonBlob(r.blob, r.name); toast.success("Comparativo salvo no histórico do aluno."); } catch (e: any) { toast.error(e?.message || "Não foi possível gerar o comparativo."); } finally { setPdfBusy(false); } };
 
   return <div className="mx-auto max-w-5xl space-y-5 p-4 md:p-6">
     <div className="flex items-start gap-3">
