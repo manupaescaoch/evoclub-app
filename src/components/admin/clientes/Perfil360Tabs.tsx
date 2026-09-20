@@ -16,6 +16,8 @@ import { useNavigate } from "react-router-dom";
 import { useWorkoutHistory } from "@/hooks/useWorkoutHistory";
 import { WorkoutLogItem } from "@/components/shared/WorkoutHistoryViews";
 import AvaliacaoCompleta from "./AvaliacaoCompleta";
+import NovaAvaliacaoDialog from "./NovaAvaliacaoDialog";
+import ImportarAvaliacaoDialog from "./ImportarAvaliacaoDialog";
 import RealizarAvaliacaoDialog from "@/components/admin/avaliacoes/RealizarAvaliacaoDialog";
 import { AssessmentRow } from "@/hooks/useAdminAssessments";
 
