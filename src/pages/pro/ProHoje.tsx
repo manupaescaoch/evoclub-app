@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import {
   ChevronLeft, ChevronRight, AlertTriangle, Lock, RefreshCw, Radio, Users, UserRoundCheck,
   Sparkles, Shuffle, Check, CheckCheck, Copy, Send, RotateCcw, Search, Plus, Crown, History,
+  UserPlus, FlaskConical, Trash2, X,
 } from "lucide-react";
 import { useAccess } from "@/contexts/AccessContext";
 import { useUnit } from "@/contexts/UnitContext";
@@ -46,6 +47,7 @@ export default function ProHoje() {
   const [term, setTerm] = useState("");
   const [found, setFound] = useState<{ id: number; name: string }[]>([]);
   const [adding, setAdding] = useState(false);
+  const [assigningId, setAssigningId] = useState<string | null>(null);
   const [report, setReport] = useState<string | null>(null);
 
   const { slots, roster, loading, error, reload } = useGradeDay(dateISO, filterId);
@@ -148,6 +150,15 @@ export default function ProHoje() {
     : slotStudents;
   const unassigned = slotStudents.filter(s => !s.collaborator_id && s.attendance_status !== "cancelou");
 
+  /** carga de cada professor NESTE horário (máx. por profissional vem das configurações) */
+  const slotLoads = useMemo(() => {
+    const map = new Map<string, number>();
+    slotStudents.forEach(s => {
+      if (s.collaborator_id && s.attendance_status !== "cancelou") map.set(s.collaborator_id, (map.get(s.collaborator_id) || 0) + 1);
+    });
+    return map;
+  }, [slotStudents]);
+
   /** equipe do turno, sem quem está ausente */
   const presenceMap = useMemo(
     () => new Map(shifts.presence.map(row => [`${row.shift}:${row.collaborator_id}`, row])),
@@ -244,7 +255,21 @@ export default function ProHoje() {
     setBusy(true);
     const failure = await assign(bookingId, collaboratorId2);
     setBusy(false);
-    if (failure) toast.error(failure); else toast.success("Professor designado.");
+    if (failure) toast.error(failure); else { toast.success("Professor designado."); setAssigningId(null); }
+    refresh();
+  };
+
+  /** marca/desmarca o aluno como aula experimental (visit_type no cadastro) */
+  const toggleTrial = async (s: GradeStudent) => {
+    if (!s.client_id) return;
+    setBusy(true);
+    const { error: err } = await supabase
+      .from("clients")
+      .update({ visit_type: s.is_trial ? "aluno" : "experimental" })
+      .eq("id", s.client_id);
+    setBusy(false);
+    if (err) toast.error("Não foi possível alterar o status experimental.");
+    else toast.success(s.is_trial ? "Marcação experimental removida." : "Aula marcada como experimental.");
     refresh();
   };
 
@@ -535,54 +560,80 @@ export default function ProHoje() {
                 {visibleStudents.map(s => {
                   const plan = s.client_id ? plans[s.client_id] : undefined;
                   const extra = s.client_id ? extras[s.client_id] : undefined;
+                  const lastName = extra?.lastWorkout?.split(" · ")[0]?.toLowerCase() || "";
+                  const lastGroup = lastName.includes("inferior") ? "INFERIOR" : lastName.includes("superior") ? "SUPERIOR" : null;
+                  const nextGroup = lastGroup === "INFERIOR" ? "SUPERIOR" : lastGroup === "SUPERIOR" ? "INFERIOR" : null;
+                  const lastDate = extra?.lastWorkout?.split(" · ")[1] || null;
+                  const assigning = assigningId === s.booking_id;
+                  const maxPer = shifts.maxPerProfessional;
                   return (
                     <div key={s.booking_id} className="px-4 py-3">
-                      <button type="button" onClick={() => setActive(s)} className="flex w-full items-center gap-3 text-left">
-                        {s.avatar_url
-                          ? <img src={s.avatar_url} alt={`Foto de ${s.student_name}`} className="h-11 w-11 shrink-0 rounded-full object-cover" />
-                          : <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary/10 font-barlow text-sm font-bold text-primary">{s.student_name.slice(0, 2).toUpperCase()}</span>}
-                        <span className="min-w-0 flex-1">
-                          <span className="block truncate font-dm text-sm font-semibold">
+                      {/* cabeçalho do cartão */}
+                      <div className="flex items-start gap-2">
+                        <button type="button" onClick={() => setActive(s)} className="min-w-0 flex-1 text-left">
+                          <p className="truncate font-barlow text-lg font-extrabold uppercase leading-tight">
                             {s.student_name}
-                            {s.is_trial && <span className="ml-1.5 rounded bg-warning/20 px-1.5 py-0.5 font-barlow text-[9px] font-bold text-warning-foreground">EXPERIMENTAL</span>}
-                          </span>
-                          <span className="block truncate font-dm text-[11px] text-muted-foreground">
-                            Professor: <span className={s.professor_name ? "font-semibold text-foreground" : "font-semibold"}>{s.professor_name || "sem professor"}</span>
-                          </span>
-                          <span className="block truncate font-dm text-[11px] text-muted-foreground">
-                            {extra?.lastWorkout ? `Último treino: ${extra.lastWorkout}` : "Sem histórico de treino"}
-                          </span>
-                        </span>
+                            {s.is_trial && <span className="ml-1.5 rounded bg-warning/20 px-1.5 py-0.5 align-middle font-barlow text-[9px] font-bold text-warning-foreground">EXPERIMENTAL</span>}
+                          </p>
+                        </button>
                         <span className={`shrink-0 rounded px-2 py-1 font-dm text-[10px] font-semibold ${STATUS_STYLE[s.attendance_status] || "bg-muted"}`}>
                           {STATUS_LABEL[s.attendance_status] || s.attendance_status}
                         </span>
-                      </button>
+                        {canManage && (
+                          <button type="button" disabled={busy || s.attendance_status === "cancelou"} onClick={() => setStatus(s, "cancelou")}
+                            className="shrink-0 rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+                            aria-label={`Remover ${s.student_name} do horário`}>
+                            <Trash2 size={16} />
+                          </button>
+                        )}
+                      </div>
 
+                      {/* treino do check-in */}
                       {s.muscle_group && (
-                        <span className="mt-2 inline-block rounded bg-primary/10 px-2 py-0.5 font-barlow text-[10px] font-bold text-primary">
-                          TREINO NO CHECK-IN: {MUSCLE_LABEL[s.muscle_group] || s.muscle_group.toUpperCase()}
+                        <span className="mt-1.5 inline-block rounded-md bg-primary/10 px-2.5 py-1 font-barlow text-[11px] font-bold uppercase text-primary">
+                          {MUSCLE_LABEL[s.muscle_group] || s.muscle_group.toUpperCase()}
                         </span>
                       )}
 
+                      {/* resumo da anamnese (alerta âmbar) */}
                       {extra?.anamnese?.length ? (
-                        <div className="mt-2 rounded-lg bg-muted/50 px-2 py-1.5">
-                          <p className="font-barlow text-[10px] font-bold uppercase text-muted-foreground">Resumo da anamnese</p>
-                          {extra.anamnese.map(line => (
-                            <p key={line} className="font-dm text-[11px] text-foreground">{line}</p>
-                          ))}
-                        </div>
+                        <p className="mt-2 flex items-start gap-2 rounded-lg bg-warning/15 px-3 py-2 font-dm text-[12px] font-semibold text-warning-foreground">
+                          <AlertTriangle size={14} className="mt-0.5 shrink-0" />
+                          <span>{extra.anamnese.join(" · ")}</span>
+                        </p>
                       ) : null}
-
                       {extra?.alerts?.length ? (
-                        <p className="mt-2 flex items-start gap-1.5 rounded-lg bg-destructive/10 px-2 py-1.5 font-dm text-[11px] text-destructive">
-                          <AlertTriangle size={12} className="mt-0.5 shrink-0" /> {extra.alerts.join(" · ")}
+                        <p className="mt-2 flex items-start gap-2 rounded-lg bg-destructive/10 px-3 py-2 font-dm text-[12px] font-semibold text-destructive">
+                          <AlertTriangle size={14} className="mt-0.5 shrink-0" /> {extra.alerts.join(" · ")}
                         </p>
                       ) : null}
 
+                      {/* último treino */}
+                      <p className="mt-2.5 font-dm text-[13px] text-muted-foreground">
+                        Último treino:{" "}
+                        <span className="font-semibold text-foreground">{extra?.lastWorkout ? extra.lastWorkout.split(" · ")[0] : "Sem histórico"}</span>
+                      </p>
+                      {lastDate && <p className="font-dm text-[12px] text-muted-foreground">{lastDate}</p>}
+                      {lastGroup && nextGroup && (
+                        <p className="mt-1.5 font-dm text-[13px]">
+                          Último: <span className="font-bold">{lastGroup}</span>
+                          <span className="mx-2 text-muted-foreground">·</span>
+                          Próximo: <span className="font-bold text-primary">{nextGroup}</span>
+                        </p>
+                      )}
+
+                      {/* professor atual */}
+                      <p className="mt-2 font-dm text-[13px] text-muted-foreground">
+                        Professor atual:{" "}
+                        {s.professor_name
+                          ? <span className="font-bold text-foreground">{s.professor_name}</span>
+                          : <span className="font-bold text-destructive">SEM PROFESSOR</span>}
+                      </p>
                       {plan && <p className="mt-1 font-dm text-[11px] text-muted-foreground">Ficha: {plan.name}</p>}
 
                       {canManage && (
                         <>
+                          {/* presença */}
                           <div className="mt-2.5 flex gap-2">
                             {(["presente", "faltou", "agendado"] as const).map(st => (
                               <button key={st} onClick={() => setStatus(s, st)} disabled={s.attendance_status === st}
@@ -591,19 +642,54 @@ export default function ProHoje() {
                               </button>
                             ))}
                           </div>
-                          {!s.locked && !s.started_at && availableTeam.length > 0 && (
-                            <>
-                            <p className="mt-2 font-barlow text-[10px] font-bold uppercase text-muted-foreground">Designar professor</p>
-                            <div className="mt-1 flex flex-wrap gap-2">
-                              {availableTeam.map(person => (
-                                <button key={person.id} type="button" disabled={busy || person.id === s.collaborator_id}
-                                  onClick={() => manualAssign(s.booking_id, person.id)}
-                                  className={`rounded-full border px-2.5 py-1 font-dm text-[11px] font-semibold ${person.id === s.collaborator_id ? "border-primary bg-primary/10 text-primary" : "border-border bg-card"}`}>
-                                  {person.full_name.split(" ")[0]}
-                                </button>
-                              ))}
+
+                          {/* designar professor */}
+                          {!s.locked && !s.started_at && (
+                            <div className="mt-2.5">
+                              <Button type="button" variant="outline" disabled={busy || !availableTeam.length}
+                                onClick={() => setAssigningId(assigning ? null : s.booking_id)}
+                                className="h-11 w-full rounded-xl font-dm text-xs font-bold">
+                                <UserPlus size={15} /> {assigning ? "Fechar lista de professores" : "Designar professor"}
+                              </Button>
+
+                              {assigning && (
+                                <div className="mt-2 overflow-hidden rounded-2xl border border-border bg-card shadow-lg">
+                                  <div className="flex items-center justify-between px-4 pt-3">
+                                    <p className="font-barlow text-[11px] font-bold uppercase text-muted-foreground">
+                                      Professores do turno · máx. {maxPer} alunos
+                                    </p>
+                                    <button type="button" onClick={() => setAssigningId(null)} aria-label="Fechar"
+                                      className="rounded-lg p-1 text-muted-foreground hover:bg-muted"><X size={14} /></button>
+                                  </div>
+                                  <div className="mt-2 space-y-1.5 px-3 pb-3">
+                                    {availableTeam.map(person => {
+                                      const load = slotLoads.get(person.id) || 0;
+                                      const current = person.id === s.collaborator_id;
+                                      const full = load >= maxPer && !current;
+                                      return (
+                                        <button key={person.id} type="button" disabled={busy || current || full}
+                                          onClick={() => manualAssign(s.booking_id, person.id)}
+                                          className={`flex w-full items-center justify-between rounded-xl border px-4 py-3 font-dm text-sm font-semibold transition-colors ${
+                                            current ? "border-primary bg-primary/5 text-primary"
+                                            : full ? "border-border bg-muted/40 text-muted-foreground"
+                                            : "border-border bg-card hover:border-primary/60"}`}>
+                                          <span>{person.full_name}</span>
+                                          <span className="font-barlow text-sm font-bold">{load}/{maxPer}</span>
+                                        </button>
+                                      );
+                                    })}
+                                    {!availableTeam.length && (
+                                      <p className="px-1 py-2 font-dm text-[11px] text-muted-foreground">Nenhum professor presente neste turno.</p>
+                                    )}
+                                    <button type="button" disabled={busy} onClick={() => toggleTrial(s)}
+                                      className="mt-1 flex w-full items-center gap-2.5 rounded-xl px-4 py-3 text-left font-dm text-sm font-semibold hover:bg-muted/60">
+                                      <FlaskConical size={15} className="text-muted-foreground" />
+                                      {s.is_trial ? "Remover marcação experimental" : "Marcar experimental"}
+                                    </button>
+                                  </div>
+                                </div>
+                              )}
                             </div>
-                            </>
                           )}
                         </>
                       )}
