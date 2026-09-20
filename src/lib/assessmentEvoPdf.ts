@@ -209,7 +209,7 @@ export function generateAssessmentEvoPdf(data: EvoAssessmentPdfData): Blob {
 
   // Página 3
   doc.addPage(); header("Análise segmentar", "Distribuição de massa magra e gordura", 3);
-  section("Massa magra segmentar", 46); section("Gordura segmentar", 46);
+  section("Massa magra e gordura segmentar", 46);
   const segmentBox = (items: readonly (readonly [string, string])[], x: number, y: number, title: string) => {
     doc.setFillColor(PALE); doc.roundedRect(x, y, 89, 92, 4, 4, "F");
     doc.setFont("helvetica", "bold"); doc.setFontSize(7); doc.setTextColor(MUTED); doc.text(title.toUpperCase(), x + 6, y + 10);

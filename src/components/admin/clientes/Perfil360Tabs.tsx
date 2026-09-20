@@ -891,6 +891,7 @@ function DailyCheckinsSection({ clientId }: { clientId: number }) {
 export function AvaliacoesTab({ c }: { c: OverviewRow }) {
   const { can, isAdmin } = useAccess();
   const canEdit = isAdmin || can("avaliacao", "edit");
+  const canCreate = isAdmin || can("avaliacao", "create");
   const [reloadKey, setReloadKey] = useState(0);
   const a = useClientRows("physical_assessments", c.id, "client_id", "created_at", reloadKey);
   const [open, setOpen] = useState<any | null>(null);
@@ -933,7 +934,7 @@ export function AvaliacoesTab({ c }: { c: OverviewRow }) {
 
   return (
     <Section title="Avaliações físicas">
-      {canEdit && (
+      {canCreate && (
         <div className="flex justify-end mb-3">
           <Button size="sm" className="font-dm" onClick={() => setChoose(true)} disabled={creating}>
             {creating ? "CRIANDO..." : "NOVA AVALIAÇÃO"}
