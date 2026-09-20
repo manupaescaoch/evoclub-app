@@ -27,7 +27,10 @@ const pretty = (iso: string) =>
   new Date(`${iso}T12:00:00`).toLocaleDateString("pt-BR", { weekday: "short", day: "2-digit", month: "2-digit" });
 
 type PlanInfo = { name: string; sessions: string[]; expires_at: string | null };
-type StudentExtra = { alerts: string[]; lastWorkout: string | null };
+type StudentExtra = { alerts: string[]; lastWorkout: string | null; anamnese: string[] };
+
+const MUSCLE_LABEL: Record<string, string> = { inferior: "INFERIOR", superior: "SUPERIOR", full: "CORPO INTEIRO" };
+const shortText = (v: string, max = 90) => (v.length > max ? `${v.slice(0, max).trim()}…` : v);
 
 export default function ProHoje() {
   const { can, collaboratorId } = useAccess();
@@ -64,7 +67,7 @@ export default function ProHoje() {
     if (clientIds.length === 0) { setPlans({}); setExtras({}); return; }
     let alive = true;
     (async () => {
-      const [plansRes, pains, anam, logs] = await Promise.all([
+      const [plansRes, pains, anam, logs, anamRows] = await Promise.all([
         supabase.from("training_plans")
           .select("id, name, student_id, expires_at, training_weeks(id, training_sessions(name, order_index))")
           .in("student_id", clientIds).eq("is_active", true),
@@ -72,6 +75,9 @@ export default function ProHoje() {
         supabase.from("clients").select("id,limitations").in("id", clientIds),
         supabase.from("workout_logs").select("client_id,session_name,workout_date")
           .in("client_id", clientIds).order("workout_date", { ascending: false }),
+        supabase.from("anamnesis")
+          .select("client_id,objective,injuries,limitations,restrictions,pain,created_at")
+          .in("client_id", clientIds).order("created_at", { ascending: false }),
       ]);
       if (!alive) return;
       const planMap: Record<number, PlanInfo> = {};
@@ -82,7 +88,20 @@ export default function ProHoje() {
         planMap[p.student_id] = { name: p.name, expires_at: p.expires_at, sessions: Array.from(new Set(sessions.map(s => s.name))) };
       });
       const extraMap: Record<number, StudentExtra> = {};
-      clientIds.forEach(id => { extraMap[id] = { alerts: [], lastWorkout: null }; });
+      clientIds.forEach(id => { extraMap[id] = { alerts: [], lastWorkout: null, anamnese: [] }; });
+      const seenAnam = new Set<number>();
+      ((anamRows.data as any[]) || []).forEach(row => {
+        const target = extraMap[row.client_id];
+        if (!target || seenAnam.has(row.client_id)) return;
+        seenAnam.add(row.client_id);
+        const parts: string[] = [];
+        if (row.objective) parts.push(`Objetivo: ${shortText(row.objective)}`);
+        if (row.injuries) parts.push(`Lesões: ${shortText(row.injuries)}`);
+        if (row.limitations) parts.push(`Limitações: ${shortText(row.limitations)}`);
+        if (row.restrictions) parts.push(`Restrições: ${shortText(row.restrictions)}`);
+        if (row.pain) parts.push(`Dor: ${shortText(row.pain)}`);
+        target.anamnese = parts;
+      });
       ((pains.data as any[]) || []).forEach(row => {
         if (extraMap[row.client_id]) extraMap[row.client_id].alerts.push(`Dor relatada${row.note ? `: ${row.note}` : ""}`);
       });
@@ -528,14 +547,31 @@ export default function ProHoje() {
                             {s.is_trial && <span className="ml-1.5 rounded bg-warning/20 px-1.5 py-0.5 font-barlow text-[9px] font-bold text-warning-foreground">EXPERIMENTAL</span>}
                           </span>
                           <span className="block truncate font-dm text-[11px] text-muted-foreground">
-                            {s.professor_name ? s.professor_name : "Sem professor"}
-                            {extra?.lastWorkout ? ` · Último treino: ${extra.lastWorkout}` : " · Sem histórico de treino"}
+                            Professor: <span className={s.professor_name ? "font-semibold text-foreground" : "font-semibold"}>{s.professor_name || "sem professor"}</span>
+                          </span>
+                          <span className="block truncate font-dm text-[11px] text-muted-foreground">
+                            {extra?.lastWorkout ? `Último treino: ${extra.lastWorkout}` : "Sem histórico de treino"}
                           </span>
                         </span>
                         <span className={`shrink-0 rounded px-2 py-1 font-dm text-[10px] font-semibold ${STATUS_STYLE[s.attendance_status] || "bg-muted"}`}>
                           {STATUS_LABEL[s.attendance_status] || s.attendance_status}
                         </span>
                       </button>
+
+                      {s.muscle_group && (
+                        <span className="mt-2 inline-block rounded bg-primary/10 px-2 py-0.5 font-barlow text-[10px] font-bold text-primary">
+                          TREINO NO CHECK-IN: {MUSCLE_LABEL[s.muscle_group] || s.muscle_group.toUpperCase()}
+                        </span>
+                      )}
+
+                      {extra?.anamnese?.length ? (
+                        <div className="mt-2 rounded-lg bg-muted/50 px-2 py-1.5">
+                          <p className="font-barlow text-[10px] font-bold uppercase text-muted-foreground">Resumo da anamnese</p>
+                          {extra.anamnese.map(line => (
+                            <p key={line} className="font-dm text-[11px] text-foreground">{line}</p>
+                          ))}
+                        </div>
+                      ) : null}
 
                       {extra?.alerts?.length ? (
                         <p className="mt-2 flex items-start gap-1.5 rounded-lg bg-destructive/10 px-2 py-1.5 font-dm text-[11px] text-destructive">
@@ -556,7 +592,9 @@ export default function ProHoje() {
                             ))}
                           </div>
                           {!s.locked && !s.started_at && availableTeam.length > 0 && (
-                            <div className="mt-2 flex flex-wrap gap-2">
+                            <>
+                            <p className="mt-2 font-barlow text-[10px] font-bold uppercase text-muted-foreground">Designar professor</p>
+                            <div className="mt-1 flex flex-wrap gap-2">
                               {availableTeam.map(person => (
                                 <button key={person.id} type="button" disabled={busy || person.id === s.collaborator_id}
                                   onClick={() => manualAssign(s.booking_id, person.id)}
@@ -565,6 +603,7 @@ export default function ProHoje() {
                                 </button>
                               ))}
                             </div>
+                            </>
                           )}
                         </>
                       )}
