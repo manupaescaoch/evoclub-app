@@ -47,6 +47,7 @@ export default function ProHoje() {
   const [term, setTerm] = useState("");
   const [found, setFound] = useState<{ id: number; name: string }[]>([]);
   const [adding, setAdding] = useState(false);
+  const [pendingAdd, setPendingAdd] = useState<{ id: number; name: string } | null>(null);
   const [assigningId, setAssigningId] = useState<string | null>(null);
   const [report, setReport] = useState<string | null>(null);
 
