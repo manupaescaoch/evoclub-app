@@ -121,7 +121,11 @@ export function useShiftOperations(dateISO: string, unitId: string | null) {
       if (person.shift_weekdays?.length && !person.shift_weekdays.includes(weekday)) return;
       const start = minutes(person.shift_start);
       const end = minutes(person.shift_end);
-      if (start == null || end == null) return;
+      if (start == null || end == null) {
+        // sem horário no cadastro: considera escalado em todos os turnos da unidade
+        result.manha.push(person); result.tarde.push(person); result.noite.push(person);
+        return;
+      }
       if (start < 12 * 60 && end > 5 * 60) result.manha.push(person);
       if (start < 18 * 60 && end > 12 * 60) result.tarde.push(person);
       if (end > 18 * 60) result.noite.push(person);
