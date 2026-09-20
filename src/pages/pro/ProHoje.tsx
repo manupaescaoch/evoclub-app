@@ -710,6 +710,82 @@ export default function ProHoje() {
                 })}
               </div>
             </section>
+
+            {/* designar professor — folha inferior com rolagem */}
+            <Sheet open={!!assigningId} onOpenChange={open => { if (!open) setAssigningId(null); }}>
+              <SheetContent side="bottom" className="flex max-h-[85vh] flex-col overflow-hidden rounded-t-2xl border-t border-border bg-background p-0 sm:max-w-none">
+                <SheetHeader className="sticky top-0 z-10 border-b border-border bg-background px-4 py-4 text-left">
+                  <SheetTitle className="font-barlow text-lg font-extrabold uppercase">Designar professor</SheetTitle>
+                  <SheetDescription className="font-dm text-xs">
+                    {assigningStudent
+                      ? `Escolha o profissional que vai atender ${assigningStudent.student_name}.`
+                      : "Escolha o profissional para este atendimento."}
+                    {" "}Máximo {shifts.maxPerProfessional} alunos por professor.
+                  </SheetDescription>
+                </SheetHeader>
+                <div className="flex-1 overflow-y-auto px-4 py-3 pb-safe">
+                  <div className="space-y-2">
+                    {availableTeam.length === 0 && (
+                      <p className="py-6 text-center font-dm text-sm text-muted-foreground">
+                        Nenhum professor presente neste turno.
+                      </p>
+                    )}
+                    {availableTeam.map(person => {
+                      const load = slotLoads.get(person.id) || 0;
+                      const current = person.id === assigningStudent?.collaborator_id;
+                      const full = load >= shifts.maxPerProfessional && !current;
+                      return (
+                        <button
+                          key={person.id}
+                          type="button"
+                          disabled={busy || current || full}
+                          onClick={() => { if (assigningStudent) manualAssign(assigningStudent.booking_id, person.id); }}
+                          className={`flex w-full items-center justify-between rounded-xl border px-4 py-3.5 text-left font-dm text-sm font-semibold transition-colors ${
+                            current
+                              ? "border-primary bg-primary/10 text-primary"
+                              : full
+                              ? "cursor-not-allowed border-border bg-muted/30 text-muted-foreground"
+                              : "border-border bg-card hover:border-primary/60 hover:bg-primary/5"
+                          }`}
+                        >
+                          <span className="flex min-w-0 flex-1 items-center gap-2">
+                            <span className={`h-2 w-2 shrink-0 rounded-full ${absentIds.has(person.id) ? "bg-destructive" : "bg-success"}`} />
+                            <span className="min-w-0 truncate">{person.full_name}</span>
+                          </span>
+                          <span className={`ml-2 shrink-0 font-barlow text-sm font-bold ${current ? "text-primary" : full ? "text-muted-foreground" : "text-foreground"}`}>
+                            {load}/{shifts.maxPerProfessional}
+                            {current && <span className="ml-1.5 align-middle text-[10px] font-medium uppercase tracking-wide">atual</span>}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {assigningStudent && (
+                    <div className="mt-4 rounded-xl border border-border bg-muted/40 p-3">
+                      <p className="font-dm text-[11px] font-semibold text-muted-foreground">Aluno</p>
+                      <p className="font-barlow text-sm font-bold uppercase">{assigningStudent.student_name}</p>
+                      <p className="mt-1 font-dm text-[11px] text-muted-foreground">
+                        Professor atual:{" "}
+                        {assigningStudent.professor_name
+                          ? <span className="font-semibold text-foreground">{assigningStudent.professor_name}</span>
+                          : <span className="font-semibold text-destructive">SEM PROFESSOR</span>}
+                      </p>
+                    </div>
+                  )}
+
+                  <Button
+                    variant="ghost"
+                    disabled={busy}
+                    onClick={() => { if (assigningStudent) toggleTrial(assigningStudent); }}
+                    className="mt-4 h-11 w-full rounded-xl font-dm text-xs font-semibold text-muted-foreground hover:text-foreground"
+                  >
+                    <FlaskConical size={14} className="mr-2" />
+                    {assigningStudent?.is_trial ? "Remover marcação experimental" : "Marcar experimental"}
+                  </Button>
+                </div>
+              </SheetContent>
+            </Sheet>
           )}
 
           {/* atendimentos do dia */}
