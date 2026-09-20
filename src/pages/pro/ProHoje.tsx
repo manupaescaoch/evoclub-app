@@ -160,6 +160,11 @@ export default function ProHoje() {
     return map;
   }, [slotStudents]);
 
+  const assigningStudent = useMemo(
+    () => slotStudents.find(s => s.booking_id === assigningId) || null,
+    [slotStudents, assigningId],
+  );
+
   /** equipe do turno, sem quem está ausente */
   const presenceMap = useMemo(
     () => new Map(shifts.presence.map(row => [`${row.shift}:${row.collaborator_id}`, row])),
