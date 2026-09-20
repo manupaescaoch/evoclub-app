@@ -509,7 +509,7 @@ export default function ProHoje() {
             ))}
           </div>
 
-          {slot && (
+          {slot && (<>
             <section className="overflow-hidden rounded-2xl border border-border bg-card">
               <div className="flex items-center gap-3 border-b border-border px-4 py-3">
                 <span className="font-barlow text-2xl font-black leading-none">{slot.start_time.slice(0, 5)}</span>
