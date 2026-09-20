@@ -203,11 +203,11 @@ export default function ImportarAvaliacaoDialog({
   const set = (k: string, v: string) => setValues(s => ({ ...s, [k]: v }));
 
   const bioPayload = useMemo(() => {
-    const p: Record<string, string> = {};
+    const p: Record<string, any> = {};
     NUM_KEYS.forEach(k => { if ((values[k] || "").trim() !== "") p[k] = values[k].replace(",", "."); });
     ["sex", "device_model", "device_client_id"].forEach(k => { if ((values[k] || "").trim()) p[k] = values[k].trim(); });
-    p.reference_ranges = values.__reference_ranges || "{}";
-    p.segmental_meta = values.__segmental_meta || "{}";
+    try { p.reference_ranges = JSON.parse(values.__reference_ranges || "{}"); } catch { p.reference_ranges = {}; }
+    try { p.segmental_meta = JSON.parse(values.__segmental_meta || "{}"); } catch { p.segmental_meta = {}; }
     return p;
   }, [values]);
 
@@ -235,6 +235,10 @@ export default function ImportarAvaliacaoDialog({
         setSaving(false);
         return;
       }
+      await supabase.from("assessment_bioimpedance").update({
+        reference_ranges: bioPayload.reference_ranges,
+        segmental_meta: bioPayload.segmental_meta,
+      }).eq("assessment_id", res.id);
       await logAudit({
         action: "create", entity: "physical_assessments", entity_id: res.id,
         module: "avaliacao",
