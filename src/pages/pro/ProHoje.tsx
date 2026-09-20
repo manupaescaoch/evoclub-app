@@ -6,7 +6,6 @@ import {
   Sparkles, Shuffle, Check, CheckCheck, Copy, Send, RotateCcw, Search, Plus, Crown, History,
   UserPlus, FlaskConical, Trash2, X,
 } from "lucide-react";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { useAccess } from "@/contexts/AccessContext";
 import { useUnit } from "@/contexts/UnitContext";
 import {
