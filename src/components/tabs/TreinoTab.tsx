@@ -1200,6 +1200,39 @@ const TreinoTab = () => {
           </div>
         )}
 
+        {confirmCompleteExercise && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center px-6" onClick={() => setConfirmCompleteExercise(null)}>
+            <div className="absolute inset-0 bg-black/45" />
+            <div className="relative w-full max-w-[340px] bg-card rounded-3xl p-5" onClick={(e) => e.stopPropagation()}>
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 rounded-full bg-amber-500/15 flex items-center justify-center shrink-0">
+                  <AlertTriangle size={20} className="text-amber-600" />
+                </div>
+                <div>
+                  <h3 className="font-barlow font-bold text-lg text-foreground leading-tight">CONCLUIR EXERCÍCIO?</h3>
+                  <p className="text-[11px] font-dm text-muted">Ainda faltam séries</p>
+                </div>
+              </div>
+              <p className="text-[13px] font-dm text-foreground mb-4">
+                Faltam <span className="font-barlow font-bold text-primary">{confirmCompleteExercise.pendingSets} série(s)</span> neste exercício. Deseja marcá-lo como concluído mesmo assim?
+              </p>
+              <button
+                onClick={confirmCompleteExerciseAction}
+                className="w-full py-3.5 rounded-2xl font-barlow font-bold text-base text-white active:scale-[0.98] transition-transform mb-2"
+                style={{ background: "linear-gradient(135deg, #0057FF 0%, #0043C4 100%)", boxShadow: "0 3px 14px #0057FF55" }}
+              >
+                Sim, concluir exercício
+              </button>
+              <button
+                onClick={() => setConfirmCompleteExercise(null)}
+                className="w-full py-3 rounded-2xl bg-secondary font-dm font-semibold text-sm text-foreground"
+              >
+                Continuar marcando séries
+              </button>
+            </div>
+          </div>
+        )}
+
         {videoTarget && <VideoModal url={videoTarget.url} name={videoTarget.name} onClose={() => setVideoTarget(null)} />}
         {showPostWorkout && <PostWorkoutModal saving={saving} onSubmit={(a) => finishWorkout(false, a)} />}
         {showXpModal && (
