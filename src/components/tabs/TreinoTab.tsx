@@ -1,27 +1,30 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import VolumeSemanalCard from "@/components/tabs/VolumeSemanalCard";
 import {
-  ArrowLeft, Check, Play, Clock, X, Pause, RotateCcw, Pencil, Zap, Trophy,
-  ChevronRight, AlertTriangle, CalendarDays, Info, Sparkles, Archive, History,
+  ArrowLeft, Check, Play, Clock, X, Pause, Pencil, Zap, Trophy,
+  ChevronRight, ChevronDown, AlertTriangle, CalendarDays, Info, Sparkles, Archive, History,
+  Plus, SkipForward, CloudOff,
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useStudentName } from "@/hooks/useStudentName";
 import { useTrainingPlan, brazilToday, daysToSwap, swapStatus } from "@/hooks/useTrainingPlan";
+import { useWorkoutTimer, formatDuration } from "@/hooks/useWorkoutTimer";
+import { saveSet, flushQueue, pendingCount, SetPayload } from "@/lib/workoutQueue";
 
-interface Serie {
+/** Uma série individual do treino (Série 1, Série 2, ...). */
+interface SetRow {
+  groupIdx: number;
+  setIndex: number;
   setId: string | null;
   setType: string | null;
-  label: string;
   rest: number;
   methodName: string | null;
   notes: string | null;
-  prescribedSets: number | null;
   prescribedReps: string | null;
   prescribedLoad: string | null;
   prescribedTime: number | null;
   prescribedIncline: string | null;
-  performedSets: number | null;
   performedReps: string | null;
   performedLoad: string | null;
   performedTime: number | null;
@@ -31,6 +34,9 @@ interface Serie {
   performedCalories: string | null;
   cardio: boolean;
   completed: boolean;
+  completedAt: string | null;
+  sideMode: string | null;
+  lastLoad: string | null;
   lastExecution: string | null;
 }
 
@@ -39,7 +45,7 @@ interface Exercise {
   name: string;
   notes: string | null;
   videoUrl: string | null;
-  series: Serie[];
+  sets: SetRow[];
 }
 
 const formatTime = (seconds: number) => {
@@ -51,54 +57,64 @@ const formatTime = (seconds: number) => {
 const fmtDate = (d: string | null) =>
   d ? new Date(`${d}T00:00:00`).toLocaleDateString("pt-BR", { day: "2-digit", month: "short" }) : "—";
 
-const isCardioType = (t: string | null) =>
-  !!t && /cardio|corrida|inclina|tempo/i.test(t);
+const isCardioType = (t: string | null) => !!t && /cardio|corrida|inclina|tempo/i.test(t);
 
-/** Existe algum dado registrado pelo aluno nessa série? */
-const hasPerformedData = (s: {
-  performedSets: number | null; performedReps: string | null; performedLoad: string | null;
-  performedTime: number | null; performedDistance: string | null; performedSpeed: string | null;
-  performedIncline: string | null; performedCalories: string | null;
-}) =>
-  [s.performedSets, s.performedReps, s.performedLoad, s.performedTime,
-   s.performedDistance, s.performedSpeed, s.performedIncline, s.performedCalories]
+const hasPerformedData = (s: SetRow) =>
+  [s.performedReps, s.performedLoad, s.performedTime, s.performedDistance,
+   s.performedSpeed, s.performedIncline, s.performedCalories]
     .some((v) => v !== null && v !== undefined && String(v).trim() !== "");
+
+const maxLoad = (sets: SetRow[]) => {
+  const vals = sets
+    .map((s) => parseFloat((s.performedLoad || "").replace(",", ".")))
+    .filter((n) => !isNaN(n) && n > 0);
+  return vals.length ? Math.max(...vals) : null;
+};
 
 const XP_LOAD = 5;
 const XP_START = 10;
 const XP_COMPLETE = 25;
 const AUTO_FINISH_MS = 2 * 60 * 60 * 1000;
 
+/** Vibração + bipe curto ao terminar o intervalo (quando o aparelho permitir). */
+const alertRestEnd = () => {
+  try {
+    navigator.vibrate?.([200, 100, 200]);
+  } catch {
+    /* sem vibração */
+  }
+  try {
+    const Ctx = window.AudioContext || (window as any).webkitAudioContext;
+    if (!Ctx) return;
+    const ctx = new Ctx();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.frequency.value = 880;
+    gain.gain.value = 0.12;
+    osc.connect(gain).connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.35);
+    setTimeout(() => ctx.close().catch(() => {}), 700);
+  } catch {
+    /* sem áudio */
+  }
+};
+
 /* ---------------- Modais ---------------- */
 
-const LoadModal = ({
+/** Registro de cardio (tempo, distância, velocidade, inclinação, calorias). */
+const CardioModal = ({
   serie, onSave, onClose,
 }: {
-  serie: Serie;
-  onSave: (v: {
-    load: string; sets: string; reps: string;
-    time?: string; distance?: string; speed?: string; incline?: string; calories?: string;
-  }) => void;
+  serie: SetRow;
+  onSave: (v: { time: string; distance: string; speed: string; incline: string; calories: string }) => void;
   onClose: () => void;
 }) => {
-  const [input, setInput] = useState(serie.performedLoad ?? serie.prescribedLoad ?? "");
-  const [setsInput, setSetsInput] = useState(String(serie.performedSets ?? serie.prescribedSets ?? ""));
-  const [repsInput, setRepsInput] = useState(serie.performedReps ?? serie.prescribedReps ?? "");
-  const [timeInput, setTimeInput] = useState(
-    String(serie.performedTime ?? serie.prescribedTime ?? "")
-  );
+  const [timeInput, setTimeInput] = useState(String(serie.performedTime ?? serie.prescribedTime ?? ""));
   const [distanceInput, setDistanceInput] = useState(serie.performedDistance ?? "");
   const [speedInput, setSpeedInput] = useState(serie.performedSpeed ?? "");
   const [inclineInput, setInclineInput] = useState(serie.performedIncline ?? serie.prescribedIncline ?? "");
   const [caloriesInput, setCaloriesInput] = useState(serie.performedCalories ?? "");
-  const numVal = parseFloat(input) || 0;
-
-  const save = () =>
-    onSave({
-      load: input, sets: setsInput, reps: repsInput,
-      time: timeInput, distance: distanceInput, speed: speedInput,
-      incline: inclineInput, calories: caloriesInput,
-    });
 
   const field = (label: string, value: string, set: (v: string) => void, numeric = true) => (
     <div className="flex-1">
@@ -111,152 +127,41 @@ const LoadModal = ({
     </div>
   );
 
-  if (serie.cardio) {
-    return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center px-6" onClick={onClose}>
-        <div className="absolute inset-0 bg-black/40" />
-        <div className="relative w-full max-w-[340px] bg-card rounded-3xl p-5" onClick={(e) => e.stopPropagation()}>
-          <div className="flex items-center justify-between mb-3">
-            <p className="font-dm font-semibold text-sm text-foreground">Registro do cardio</p>
-            <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full bg-secondary">
-              <X size={16} className="text-muted" />
-            </button>
-          </div>
-          <p className="text-[11px] font-dm text-muted mb-1">
-            Prescrito: {serie.prescribedTime ? `${Math.round(serie.prescribedTime / 60)} min` : serie.prescribedReps || "-"}
-            {serie.prescribedIncline ? ` · inclinação ${serie.prescribedIncline}` : ""}
-          </p>
-          {serie.lastExecution && (
-            <p className="text-[11px] font-dm text-primary mb-3">Última vez: {serie.lastExecution}</p>
-          )}
-          <div className="flex gap-2 mb-3">
-            {field("Tempo (s)", timeInput, setTimeInput)}
-            {field("Distância (km)", distanceInput, setDistanceInput)}
-          </div>
-          <div className="flex gap-2 mb-3">
-            {field("Velocidade", speedInput, setSpeedInput)}
-            {field("Inclinação", inclineInput, setInclineInput, false)}
-          </div>
-          <div className="flex gap-2 mb-4">
-            {field("Calorias", caloriesInput, setCaloriesInput)}
-          </div>
-          <button
-            onClick={() => { save(); onClose(); }}
-            className="w-full py-3.5 rounded-2xl bg-primary text-primary-foreground font-barlow font-bold text-base active:scale-[0.98] transition-transform"
-            style={{ boxShadow: "0 3px 10px #0057FF44" }}
-          >
-            Salvar
-          </button>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center px-6" onClick={onClose}>
       <div className="absolute inset-0 bg-black/40" />
       <div className="relative w-full max-w-[340px] bg-card rounded-3xl p-5" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-3">
-          <p className="font-dm font-semibold text-sm text-foreground">O que você executou</p>
+          <p className="font-dm font-semibold text-sm text-foreground">Registro do cardio</p>
           <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full bg-secondary">
             <X size={16} className="text-muted" />
           </button>
         </div>
         <p className="text-[11px] font-dm text-muted mb-1">
-          Prescrito: {serie.prescribedSets ?? "-"}x{serie.prescribedReps || "-"}
-          {serie.prescribedLoad ? ` · ${serie.prescribedLoad}kg` : ""}
+          Prescrito: {serie.prescribedTime ? `${Math.round(serie.prescribedTime / 60)} min` : serie.prescribedReps || "-"}
+          {serie.prescribedIncline ? ` · inclinação ${serie.prescribedIncline}` : ""}
         </p>
         {serie.lastExecution && (
           <p className="text-[11px] font-dm text-primary mb-3">Última vez: {serie.lastExecution}</p>
         )}
-        <p className="text-[10px] font-barlow tracking-[1px] uppercase text-muted mb-1">Carga (kg)</p>
-        <input
-          type="number" inputMode="decimal" value={input} autoFocus
-          onChange={(e) => setInput(e.target.value)}
-          className="w-full h-14 rounded-2xl bg-secondary text-center text-2xl font-barlow font-[800] text-foreground border border-muted/20 outline-none focus:ring-2 focus:ring-primary/30 mb-3"
-        />
-        <div className="flex gap-2 mb-4">
-          {[2.5, 5, 10].map((inc) => (
-            <button key={inc} onClick={() => setInput(String(numVal + inc))}
-              className="flex-1 py-2.5 rounded-xl bg-secondary text-foreground font-dm font-semibold text-sm active:scale-95 transition-transform">
-              +{inc}kg
-            </button>
-          ))}
+        <div className="flex gap-2 mb-3">
+          {field("Tempo (s)", timeInput, setTimeInput)}
+          {field("Distância (km)", distanceInput, setDistanceInput)}
         </div>
-        <div className="flex gap-2 mb-4">
-          <div className="flex-1">
-            <p className="text-[10px] font-barlow tracking-[1px] uppercase text-muted mb-1">Séries feitas</p>
-            <input type="number" inputMode="numeric" value={setsInput} onChange={(e) => setSetsInput(e.target.value)}
-              className="w-full h-12 rounded-2xl bg-secondary text-center text-lg font-barlow font-[800] text-foreground border border-muted/20 outline-none focus:ring-2 focus:ring-primary/30" />
-          </div>
-          <div className="flex-1">
-            <p className="text-[10px] font-barlow tracking-[1px] uppercase text-muted mb-1">Reps feitas</p>
-            <input value={repsInput} onChange={(e) => setRepsInput(e.target.value)}
-              className="w-full h-12 rounded-2xl bg-secondary text-center text-lg font-barlow font-[800] text-foreground border border-muted/20 outline-none focus:ring-2 focus:ring-primary/30" />
-          </div>
+        <div className="flex gap-2 mb-3">
+          {field("Velocidade", speedInput, setSpeedInput)}
+          {field("Inclinação", inclineInput, setInclineInput, false)}
         </div>
+        <div className="flex gap-2 mb-4">{field("Calorias", caloriesInput, setCaloriesInput)}</div>
         <button
-          onClick={() => { save(); onClose(); }}
+          onClick={() => {
+            onSave({ time: timeInput, distance: distanceInput, speed: speedInput, incline: inclineInput, calories: caloriesInput });
+            onClose();
+          }}
           className="w-full py-3.5 rounded-2xl bg-primary text-primary-foreground font-barlow font-bold text-base active:scale-[0.98] transition-transform"
           style={{ boxShadow: "0 3px 10px #0057FF44" }}
         >
           Salvar
-        </button>
-      </div>
-    </div>
-  );
-};
-
-const RestTimer = ({ seconds, onClose }: { seconds: number; onClose: () => void }) => {
-  const [timeLeft, setTimeLeft] = useState(seconds);
-  const [running, setRunning] = useState(true);
-
-  useEffect(() => {
-    if (!running || timeLeft <= 0) return;
-    const id = setInterval(() => setTimeLeft((t) => t - 1), 1000);
-    return () => clearInterval(id);
-  }, [running, timeLeft]);
-
-  const progress = 1 - timeLeft / seconds;
-  const radius = 90;
-  const circumference = 2 * Math.PI * radius;
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center px-6" onClick={onClose}>
-      <div className="absolute inset-0 bg-black/40" />
-      <div className="relative w-full max-w-[320px] bg-card rounded-3xl p-5" onClick={(e) => e.stopPropagation()}>
-        <div className="flex items-center justify-between mb-3">
-          <h3 className="font-dm font-semibold text-sm text-foreground">Descanso</h3>
-          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full bg-secondary">
-            <X size={16} className="text-muted" />
-          </button>
-        </div>
-        <div className="flex items-center justify-center my-4">
-          <div className="relative w-44 h-44">
-            <svg className="w-full h-full -rotate-90" viewBox="0 0 200 200">
-              <circle cx="100" cy="100" r={radius} fill="none" stroke="hsl(var(--secondary))" strokeWidth="8" />
-              <circle cx="100" cy="100" r={radius} fill="none" stroke="hsl(var(--primary))" strokeWidth="8"
-                strokeLinecap="round" strokeDasharray={circumference}
-                strokeDashoffset={circumference * (1 - progress)} className="transition-all duration-1000" />
-            </svg>
-            <div className="absolute inset-0 flex items-center justify-center">
-              <span className="font-barlow font-[800] text-3xl text-foreground">{formatTime(Math.max(timeLeft, 0))}</span>
-            </div>
-          </div>
-        </div>
-        <div className="flex items-center justify-center gap-4 mb-3">
-          <button onClick={() => setRunning(!running)}
-            className="w-12 h-12 rounded-full bg-primary flex items-center justify-center active:scale-95 transition-transform"
-            style={{ boxShadow: "0 3px 10px #0057FF44" }}>
-            {running ? <Pause size={20} className="text-primary-foreground" /> : <Play size={20} className="text-primary-foreground fill-primary-foreground" />}
-          </button>
-          <button onClick={() => { setTimeLeft(seconds); setRunning(true); }}
-            className="w-12 h-12 rounded-full bg-secondary flex items-center justify-center active:scale-95 transition-transform">
-            <RotateCcw size={18} className="text-muted" />
-          </button>
-        </div>
-        <button onClick={onClose} className="w-full py-3 rounded-2xl bg-secondary font-dm font-semibold text-sm text-foreground">
-          Pular descanso
         </button>
       </div>
     </div>
@@ -381,10 +286,12 @@ const PostWorkoutModal = ({
 };
 
 const XpCompletionModal = ({
-  xpBreakdown, onClose,
+  xpBreakdown, summary, onClose, onEdit,
 }: {
   xpBreakdown: { loads: number; start: boolean; complete: boolean };
+  summary: { duration: string; exercisesDone: number; exercisesTotal: number; setsDone: number };
   onClose: () => void;
+  onEdit: () => void;
 }) => {
   const loadXp = xpBreakdown.loads * XP_LOAD;
   const startXp = xpBreakdown.start ? XP_START : 0;
@@ -392,14 +299,30 @@ const XpCompletionModal = ({
   const total = loadXp + startXp + completeXp;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center px-6" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center px-6">
       <div className="absolute inset-0 bg-black/50" />
-      <div className="relative w-full max-w-[340px] bg-card rounded-3xl p-6 text-center" onClick={(e) => e.stopPropagation()}>
+      <div className="relative w-full max-w-[340px] max-h-[88vh] overflow-y-auto bg-card rounded-3xl p-6 text-center">
         <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
           <Trophy size={32} className="text-primary" />
         </div>
         <h2 className="font-barlow font-bold text-xl text-foreground mb-1">TREINO CONCLUÍDO! 🎉</h2>
-        <p className="text-sm font-dm text-muted mb-5">Parabéns pela dedicação!</p>
+        <p className="text-sm font-dm text-muted mb-4">Parabéns pela dedicação!</p>
+
+        <div className="grid grid-cols-3 gap-2 mb-4">
+          <div className="rounded-xl bg-secondary p-2.5">
+            <p className="text-[9px] font-barlow tracking-[1px] uppercase text-muted">Duração</p>
+            <p className="font-barlow font-bold text-[13px] text-foreground">{summary.duration}</p>
+          </div>
+          <div className="rounded-xl bg-secondary p-2.5">
+            <p className="text-[9px] font-barlow tracking-[1px] uppercase text-muted">Exercícios</p>
+            <p className="font-barlow font-bold text-[13px] text-foreground">{summary.exercisesDone}/{summary.exercisesTotal}</p>
+          </div>
+          <div className="rounded-xl bg-secondary p-2.5">
+            <p className="text-[9px] font-barlow tracking-[1px] uppercase text-muted">Séries</p>
+            <p className="font-barlow font-bold text-[13px] text-foreground">{summary.setsDone}</p>
+          </div>
+        </div>
+
         <div className="space-y-2 mb-5">
           {xpBreakdown.start && (
             <div className="flex items-center justify-between bg-secondary rounded-xl px-4 py-2.5">
@@ -420,15 +343,82 @@ const XpCompletionModal = ({
             </div>
           )}
         </div>
-        <div className="rounded-2xl p-4 mb-5" style={{ background: "linear-gradient(135deg, #0057FF 0%, #0043C4 100%)" }}>
+        <div className="rounded-2xl p-4 mb-4" style={{ background: "linear-gradient(135deg, #0057FF 0%, #0043C4 100%)" }}>
           <p className="text-white/70 text-[10px] font-barlow tracking-[2px] uppercase">SCORE TOTAL GANHO</p>
           <p className="font-barlow font-[800] text-4xl text-white">+{total}</p>
         </div>
         <button onClick={onClose}
-          className="w-full py-3.5 rounded-2xl bg-primary text-primary-foreground font-barlow font-bold text-base active:scale-[0.98] transition-transform"
+          className="w-full py-3.5 rounded-2xl bg-primary text-primary-foreground font-barlow font-bold text-base active:scale-[0.98] transition-transform mb-2"
           style={{ boxShadow: "0 3px 10px #0057FF44" }}>
           FECHAR
         </button>
+        <button onClick={onEdit} className="w-full py-3 rounded-2xl bg-secondary font-dm font-semibold text-sm text-foreground">
+          Editar registro
+        </button>
+      </div>
+    </div>
+  );
+};
+
+/** Barra fixa do intervalo, acima do menu inferior. */
+const RestBar = ({
+  seconds, onClose,
+}: {
+  seconds: number;
+  onClose: () => void;
+}) => {
+  const [total, setTotal] = useState(seconds);
+  const [left, setLeft] = useState(seconds);
+  const [running, setRunning] = useState(true);
+  const donePlayed = useRef(false);
+
+  useEffect(() => { setTotal(seconds); setLeft(seconds); setRunning(true); donePlayed.current = false; }, [seconds]);
+
+  useEffect(() => {
+    if (!running) return;
+    const id = setInterval(() => setLeft((t) => (t > 0 ? t - 1 : 0)), 1000);
+    return () => clearInterval(id);
+  }, [running]);
+
+  useEffect(() => {
+    if (left > 0 || donePlayed.current) return;
+    donePlayed.current = true;
+    alertRestEnd();
+    const id = setTimeout(onClose, 4000);
+    return () => clearTimeout(id);
+  }, [left, onClose]);
+
+  const pct = total > 0 ? Math.min(100, ((total - left) / total) * 100) : 100;
+
+  return (
+    <div className="fixed left-0 right-0 z-40 px-4" style={{ bottom: "calc(72px + env(safe-area-inset-bottom))" }}>
+      <div className="rounded-2xl bg-card card-shadow border border-primary/20 overflow-hidden">
+        <div className="h-1 bg-secondary">
+          <div className="h-full transition-all" style={{ width: `${pct}%`, background: "linear-gradient(90deg,#0057FF,#0043C4)" }} />
+        </div>
+        <div className="flex items-center gap-2 px-3 py-2.5">
+          <Clock size={16} className="text-primary shrink-0" />
+          <div className="min-w-0">
+            <p className="text-[9px] font-barlow tracking-[1px] uppercase text-muted leading-none">Intervalo</p>
+            <p className="font-barlow font-[800] text-lg text-foreground leading-tight">
+              {left > 0 ? formatTime(left) : "Vamos lá!"}
+            </p>
+          </div>
+          <div className="flex-1" />
+          <button onClick={() => setRunning((r) => !r)} aria-label={running ? "Pausar intervalo" : "Continuar intervalo"}
+            className="w-9 h-9 rounded-full bg-secondary flex items-center justify-center active:scale-95 transition-transform">
+            {running ? <Pause size={15} className="text-foreground" /> : <Play size={15} className="text-foreground fill-foreground" />}
+          </button>
+          <button onClick={() => { setTotal((t) => t + 15); setLeft((t) => t + 15); donePlayed.current = false; }}
+            className="h-9 px-2.5 rounded-full bg-secondary flex items-center gap-0.5 active:scale-95 transition-transform">
+            <Plus size={13} className="text-foreground" />
+            <span className="text-[11px] font-dm font-semibold text-foreground">15s</span>
+          </button>
+          <button onClick={onClose} aria-label="Pular intervalo"
+            className="w-9 h-9 rounded-full bg-primary flex items-center justify-center active:scale-95 transition-transform">
+            <SkipForward size={15} className="text-primary-foreground" />
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -445,20 +435,28 @@ const TreinoTab = () => {
   const [exercises, setExercises] = useState<Exercise[]>([]);
   const [loadingSession, setLoadingSession] = useState(false);
   const [started, setStarted] = useState(false);
+  const [resumed, setResumed] = useState(false);
   const [logId, setLogId] = useState<string | null>(null);
   const [startedAt, setStartedAt] = useState<number | null>(null);
+  const [initialPausedMs, setInitialPausedMs] = useState(0);
   const [loadAnnotations, setLoadAnnotations] = useState(0);
-  const [editTarget, setEditTarget] = useState<{ ex: number; s: number } | null>(null);
+  const [cardioTarget, setCardioTarget] = useState<{ ex: number; s: number } | null>(null);
   const [restSeconds, setRestSeconds] = useState<number | null>(null);
+  const [restKey, setRestKey] = useState(0);
   const [videoTarget, setVideoTarget] = useState<{ url: string; name: string } | null>(null);
   const [openNotes, setOpenNotes] = useState<Record<string, boolean>>({});
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [showXpModal, setShowXpModal] = useState(false);
   const [showPostWorkout, setShowPostWorkout] = useState(false);
+  const [confirmFinish, setConfirmFinish] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [pending, setPending] = useState(0);
+  const [finalDuration, setFinalDuration] = useState("00:00:00");
   const finishRef = useRef<(auto?: boolean) => void>(() => {});
   const logPromiseRef = useRef<Promise<string | null> | null>(null);
 
-  /** Garante o id do registro mesmo que o INSERT do log ainda esteja em voo. */
+  const timer = useWorkoutTimer(logId, started ? startedAt : null, initialPausedMs);
+
   const ensureLogId = useCallback(async () => {
     if (logId) return logId;
     if (logPromiseRef.current) return await logPromiseRef.current;
@@ -468,16 +466,31 @@ const TreinoTab = () => {
   const swap = swapStatus(plan?.expiresAt ?? null);
   const remaining = daysToSwap(plan?.expiresAt ?? null);
 
+  // sincroniza séries pendentes quando a conexão volta
+  useEffect(() => {
+    const sync = async () => {
+      if (!logId) return;
+      const left = await flushQueue(logId);
+      setPending(left);
+    };
+    window.addEventListener("online", sync);
+    const id = setInterval(sync, 20000);
+    return () => { window.removeEventListener("online", sync); clearInterval(id); };
+  }, [logId]);
+
   const openSession = async (id: string, name: string) => {
     setSessionId(id);
     setSessionName(name);
     setScreen("session");
     setExercises([]);
     setStarted(false);
+    setResumed(false);
     setLogId(null);
     setStartedAt(null);
+    setInitialPausedMs(0);
     setLoadAnnotations(0);
     setShowXpModal(false);
+    setExpanded({});
     setLoadingSession(true);
 
     const { data: exs } = await supabase
@@ -507,8 +520,9 @@ const TreinoTab = () => {
       : { data: [] as { id: string; video_url: string | null }[] };
     const videoById = new Map((lib || []).map((l) => [l.id, l.video_url]));
 
-    // Última execução registrada (referência)
+    // Referência do treino anterior: resumo e última carga por série prescrita
     const lastBySet = new Map<string, string>();
+    const lastLoadBySet = new Map<string, string>();
     if (clientId) {
       const { data: prev } = await supabase
         .from("workout_logs")
@@ -531,32 +545,31 @@ const TreinoTab = () => {
             r.performed_load ? `${r.performed_load}kg` : "",
           ].filter(Boolean);
           if (parts.length) lastBySet.set(r.prescribed_set_id, parts.join(" · "));
+          if (r.performed_load) lastLoadBySet.set(r.prescribed_set_id, r.performed_load);
         });
       }
     }
 
-    let mapped: Exercise[] = (exs || []).map((e) => ({
-      sessionExerciseId: e.id,
-      name: e.exercise_name,
-      notes: e.notes ?? null,
-      videoUrl: e.exercise_id ? videoById.get(e.exercise_id) ?? null : null,
-      series: (sets || [])
-        .filter((s) => s.session_exercise_id === e.id)
-        .map((s) => {
-          const reps = s.reps || (s.time_seconds ? `${s.time_seconds}s` : "-");
-          return {
+    let mapped: Exercise[] = (exs || []).map((e) => {
+      const groups = (sets || []).filter((s) => s.session_exercise_id === e.id);
+      const rows: SetRow[] = [];
+      groups.forEach((s, groupIdx) => {
+        const reps = s.reps || (s.time_seconds ? `${s.time_seconds}s` : "-");
+        const cardio = isCardioType(s.set_type ?? null) || !!s.incline;
+        const count = cardio ? 1 : Math.max(1, s.sets ?? 1);
+        for (let k = 0; k < count; k++) {
+          rows.push({
+            groupIdx,
+            setIndex: k,
             setId: s.id,
             setType: s.set_type ?? null,
-            label: `${s.sets || 1}x${reps}`,
             rest: s.rest_seconds ?? 60,
             methodName: s.method_id ? methodName.get(s.method_id) ?? null : null,
             notes: s.notes ?? null,
-            prescribedSets: s.sets ?? null,
             prescribedReps: reps,
             prescribedLoad: s.load ?? null,
             prescribedTime: s.time_seconds ?? null,
             prescribedIncline: s.incline ?? null,
-            performedSets: null,
             performedReps: null,
             performedLoad: null,
             performedTime: null,
@@ -564,18 +577,29 @@ const TreinoTab = () => {
             performedSpeed: null,
             performedIncline: null,
             performedCalories: null,
-            cardio: isCardioType(s.set_type ?? null) || !!s.incline,
+            cardio,
             completed: false,
+            completedAt: null,
+            sideMode: null,
+            lastLoad: s.id ? lastLoadBySet.get(s.id) ?? null : null,
             lastExecution: s.id ? lastBySet.get(s.id) ?? null : null,
-          } as Serie;
-        }),
-    }));
+          });
+        }
+      });
+      return {
+        sessionExerciseId: e.id,
+        name: e.exercise_name,
+        notes: e.notes ?? null,
+        videoUrl: e.exercise_id ? videoById.get(e.exercise_id) ?? null : null,
+        sets: rows,
+      };
+    });
 
     // Retoma registro em andamento (ou auto-finaliza após 2h)
     if (clientId) {
       const { data: logs } = await supabase
         .from("workout_logs")
-        .select("id, started_at")
+        .select("id, started_at, paused_ms")
         .eq("client_id", clientId)
         .eq("training_session_id", id)
         .eq("workout_date", brazilToday())
@@ -593,21 +617,25 @@ const TreinoTab = () => {
           toast("Treino anterior finalizado automaticamente após 2h.");
         } else {
           setLogId(log.id);
-          setStarted(true);
+          setResumed(true);
           setStartedAt(start);
+          setInitialPausedMs(log.paused_ms ?? 0);
+          setPending(pendingCount(log.id));
           const { data: logSets } = await supabase
             .from("workout_log_sets")
-            .select("session_exercise_id, prescribed_set_id, performed_sets, performed_reps, performed_load, performed_time_seconds, performed_distance_km, performed_speed, performed_incline, performed_calories, completed")
+            .select("session_exercise_id, prescribed_set_id, order_index, set_index, performed_reps, performed_load, performed_time_seconds, performed_distance_km, performed_speed, performed_incline, performed_calories, completed, completed_at, side_mode")
             .eq("workout_log_id", log.id);
           if (logSets?.length) {
             mapped = mapped.map((ex) => ({
               ...ex,
-              series: ex.series.map((s) => {
-                const row = logSets.find((r) => r.prescribed_set_id === s.setId);
+              sets: ex.sets.map((s) => {
+                const row = logSets.find(
+                  (r) => r.session_exercise_id === ex.sessionExerciseId &&
+                    r.order_index === s.groupIdx && (r.set_index ?? 0) === s.setIndex
+                );
                 if (!row) return s;
                 return {
                   ...s,
-                  performedSets: row.performed_sets ?? null,
                   performedReps: row.performed_reps ?? null,
                   performedLoad: row.performed_load ?? null,
                   performedTime: row.performed_time_seconds ?? null,
@@ -616,6 +644,8 @@ const TreinoTab = () => {
                   performedIncline: row.performed_incline ?? null,
                   performedCalories: row.performed_calories != null ? String(row.performed_calories) : null,
                   completed: !!row.completed,
+                  completedAt: row.completed_at ?? null,
+                  sideMode: row.side_mode ?? null,
                 };
               }),
             }));
@@ -628,46 +658,68 @@ const TreinoTab = () => {
     setLoadingSession(false);
   };
 
-  const persistSerie = useCallback(
-    async (log: string, ex: Exercise, exIdx: number, serie: Serie, sIdx: number) => {
-      const keep = serie.completed || hasPerformedData(serie);
-      const { error: delError } = await supabase
-        .from("workout_log_sets")
-        .delete()
-        .eq("workout_log_id", log)
-        .eq("session_exercise_id", ex.sessionExerciseId)
-        .eq("order_index", sIdx);
-      if (delError) throw delError;
-      // Sem check e sem dado registrado: nada a guardar.
-      if (!keep) return;
-      const { error } = await supabase.from("workout_log_sets").insert({
-        workout_log_id: log,
-        session_exercise_id: ex.sessionExerciseId,
-        prescribed_set_id: serie.setId,
-        exercise_name: ex.name,
-        set_type: serie.setType,
-        prescribed_sets: serie.prescribedSets,
-        prescribed_reps: serie.prescribedReps,
-        prescribed_load: serie.prescribedLoad,
-        performed_sets: serie.performedSets ?? serie.prescribedSets,
-        performed_reps: serie.performedReps ?? serie.prescribedReps,
-        performed_load: serie.performedLoad ?? serie.prescribedLoad,
-        performed_time_seconds: serie.performedTime ?? serie.prescribedTime,
-        performed_distance_km: serie.performedDistance ? Number(serie.performedDistance) : null,
-        performed_speed: serie.performedSpeed ? Number(serie.performedSpeed) : null,
-        performed_incline: serie.performedIncline ?? serie.prescribedIncline,
-        performed_calories: serie.performedCalories ? parseInt(serie.performedCalories) : null,
-        completed: serie.completed,
-        exercise_order: exIdx,
-        order_index: sIdx,
-      });
-      if (error) throw error;
-    },
+  const buildPayload = useCallback(
+    (log: string, ex: Exercise, exIdx: number, row: SetRow): SetPayload => ({
+      workout_log_id: log,
+      session_exercise_id: ex.sessionExerciseId,
+      prescribed_set_id: row.setId,
+      exercise_name: ex.name,
+      set_type: row.setType,
+      prescribed_sets: 1,
+      prescribed_reps: row.prescribedReps,
+      prescribed_load: row.prescribedLoad,
+      performed_sets: 1,
+      performed_reps: row.performedReps ?? row.prescribedReps,
+      performed_load: row.performedLoad ?? row.prescribedLoad,
+      performed_time_seconds: row.performedTime ?? row.prescribedTime,
+      performed_distance_km: row.performedDistance ? Number(row.performedDistance) : null,
+      performed_speed: row.performedSpeed ? Number(row.performedSpeed) : null,
+      performed_incline: row.performedIncline ?? row.prescribedIncline,
+      performed_calories: row.performedCalories ? parseInt(row.performedCalories) : null,
+      completed: row.completed,
+      completed_at: row.completedAt,
+      rest_seconds: row.rest,
+      side_mode: row.sideMode,
+      exercise_order: exIdx,
+      order_index: row.groupIdx,
+      set_index: row.setIndex,
+      keep: row.completed || hasPerformedData(row),
+    }),
     []
   );
 
+  const persistRow = useCallback(
+    async (ex: Exercise, exIdx: number, row: SetRow) => {
+      const log = await ensureLogId();
+      if (!log) return;
+      const ok = await saveSet(buildPayload(log, ex, exIdx, row));
+      setPending(pendingCount(log));
+      if (!ok) toast("Sem conexão: guardamos no aparelho e enviaremos depois.", { icon: <CloudOff size={15} /> });
+    },
+    [buildPayload, ensureLogId]
+  );
+
+  const updateRow = (exIdx: number, rowIdx: number, patch: Partial<SetRow>, persist = true) => {
+    let updatedEx: Exercise | null = null;
+    let updatedRow: SetRow | null = null;
+    setExercises((prev) =>
+      prev.map((e, i) => {
+        if (i !== exIdx) return e;
+        const sets = e.sets.map((s, j) => {
+          if (j !== rowIdx) return s;
+          updatedRow = { ...s, ...patch };
+          return updatedRow;
+        });
+        updatedEx = { ...e, sets };
+        return updatedEx;
+      })
+    );
+    if (persist && updatedEx && updatedRow) void persistRow(updatedEx, exIdx, updatedRow);
+  };
+
   const startWorkout = async () => {
     setStarted(true);
+    if (resumed) { toast("Treino retomado."); return; }
     setStartedAt(Date.now());
     if (clientId && !logId) {
       const promise = (async () => {
@@ -697,66 +749,47 @@ const TreinoTab = () => {
     toast(`+${XP_START} Score — Treino iniciado!`, { icon: <Zap size={16} className="text-primary" /> });
   };
 
-  const toggleSerie = async (exIdx: number, sIdx: number) => {
-    const ex = exercises[exIdx];
-    const serie = ex.series[sIdx];
-    const next = !serie.completed;
-    const updatedSerie = { ...serie, completed: next };
-    setExercises((prev) =>
-      prev.map((e, i) =>
-        i !== exIdx ? e : { ...e, series: e.series.map((s, j) => (j !== sIdx ? s : updatedSerie)) }
-      )
-    );
-    const log = await ensureLogId();
-    if (log) {
-      try {
-        await persistSerie(log, ex, exIdx, updatedSerie, sIdx);
-      } catch {
-        toast.error("Não conseguimos salvar essa série. Tentaremos de novo ao finalizar.");
-      }
-    }
-    if (next) setRestSeconds(serie.rest);
+  const toggleSet = (exIdx: number, rowIdx: number) => {
+    const row = exercises[exIdx].sets[rowIdx];
+    const next = !row.completed;
+    updateRow(exIdx, rowIdx, { completed: next, completedAt: next ? new Date().toISOString() : null });
+    if (next && row.rest > 0) { setRestSeconds(row.rest); setRestKey((k) => k + 1); }
   };
 
-  const saveSerieData = async (
-    exIdx: number,
-    sIdx: number,
-    v: {
-      load: string; sets: string; reps: string;
-      time?: string; distance?: string; speed?: string; incline?: string; calories?: string;
-    }
-  ) => {
-    const ex = exercises[exIdx];
-    const serie = ex.series[sIdx];
-    const updated: Serie = {
-      ...serie,
-      performedLoad: v.load || serie.performedLoad,
-      performedSets: v.sets ? parseInt(v.sets) : serie.performedSets,
-      performedReps: v.reps || serie.performedReps,
-      performedTime: v.time ? parseInt(v.time) : serie.performedTime,
-      performedDistance: v.distance || serie.performedDistance,
-      performedSpeed: v.speed || serie.performedSpeed,
-      performedIncline: v.incline || serie.performedIncline,
-      performedCalories: v.calories || serie.performedCalories,
-    };
-    setExercises((prev) =>
-      prev.map((e, i) =>
-        i !== exIdx ? e : { ...e, series: e.series.map((s, j) => (j !== sIdx ? s : updated)) }
-      )
-    );
-    const log = await ensureLogId();
-    if (log) {
-      try {
-        await persistSerie(log, ex, exIdx, updated, sIdx);
-      } catch {
-        toast.error("Não conseguimos salvar esse registro. Tentaremos de novo ao finalizar.");
-      }
-    }
-    if (v.load && v.load !== "0" && !serie.performedLoad) {
+  const setLoad = (exIdx: number, rowIdx: number, value: string) => {
+    const row = exercises[exIdx].sets[rowIdx];
+    const clean = value.replace(",", ".");
+    updateRow(exIdx, rowIdx, { performedLoad: clean });
+    if (clean && clean !== "0" && !row.performedLoad) {
       setLoadAnnotations((n) => n + 1);
       toast(`+${XP_LOAD} Score — Carga anotada!`, { icon: <Zap size={16} className="text-primary" /> });
     }
   };
+
+  const toggleSide = (exIdx: number) => {
+    const cur = exercises[exIdx].sets[0]?.sideMode;
+    const next = cur === "cada lado" ? "total" : "cada lado";
+    exercises[exIdx].sets.forEach((_, j) => updateRow(exIdx, j, { sideMode: next }));
+  };
+
+  const completeExercise = (exIdx: number, force = false) => {
+    const ex = exercises[exIdx];
+    const pendingSets = ex.sets.filter((s) => !s.completed).length;
+    if (pendingSets > 0 && !force) {
+      if (!window.confirm(`Ainda faltam ${pendingSets} série(s). Marcar o exercício como concluído?`)) return;
+    }
+    ex.sets.forEach((s, j) => {
+      if (!s.completed) updateRow(exIdx, j, { completed: true, completedAt: new Date().toISOString() });
+    });
+  };
+
+  const progress = useMemo(() => {
+    const total = exercises.length;
+    const done = exercises.filter((e) => e.sets.length > 0 && e.sets.every((s) => s.completed)).length;
+    const setsDone = exercises.flatMap((e) => e.sets).filter((s) => s.completed).length;
+    const setsTotal = exercises.flatMap((e) => e.sets).length;
+    return { total, done, pct: total ? Math.round((done / total) * 100) : 0, setsDone, setsTotal };
+  }, [exercises]);
 
   const finishWorkout = useCallback(
     async (auto = false, answers?: PostWorkoutAnswers) => {
@@ -766,26 +799,27 @@ const TreinoTab = () => {
       setSaving(true);
       let failed = 0;
       for (let i = 0; i < exercises.length; i++) {
-        for (let j = 0; j < exercises[i].series.length; j++) {
-          try {
-            await persistSerie(log, exercises[i], i, exercises[i].series[j], j);
-          } catch {
-            failed++;
-          }
+        for (const row of exercises[i].sets) {
+          const ok = await saveSet(buildPayload(log, exercises[i], i, row));
+          if (!ok) failed++;
         }
       }
       if (failed > 0) {
         setSaving(false);
+        setPending(pendingCount(log));
         toast.error(
-          `Não conseguimos salvar ${failed} série${failed > 1 ? "s" : ""}. Seu treino segue em andamento — verifique a conexão e finalize de novo.`
+          `Não conseguimos enviar ${failed} série${failed > 1 ? "s" : ""}. Seu treino segue em andamento — verifique a conexão e finalize de novo.`
         );
         return;
       }
+      const duration = timer.elapsedSeconds;
       const { error: logError } = await supabase
         .from("workout_logs")
         .update({
           status: "completed",
           finished_at: new Date().toISOString(),
+          duration_seconds: duration,
+          paused_ms: timer.pausedMs,
           ...(answers
             ? {
                 rpe: answers.rpe,
@@ -810,9 +844,13 @@ const TreinoTab = () => {
           status: "novo",
         });
       }
+      setFinalDuration(formatDuration(duration));
       setSaving(false);
       setShowPostWorkout(false);
+      setConfirmFinish(false);
       setStarted(false);
+      setRestSeconds(null);
+      timer.clear();
       reload();
       if (auto) {
         toast("Treino finalizado automaticamente após 2h. Salvamos o que foi registrado.");
@@ -821,12 +859,11 @@ const TreinoTab = () => {
         setShowXpModal(true);
       }
     },
-    [ensureLogId, exercises, persistSerie, reload, clientId]
+    [ensureLogId, exercises, buildPayload, reload, clientId, timer]
   );
 
   finishRef.current = (auto?: boolean) => { void finishWorkout(auto ?? false); };
 
-  // Auto-finalização em 2h
   useEffect(() => {
     if (!started || !startedAt) return;
     const remainingMs = AUTO_FINISH_MS - (Date.now() - startedAt);
@@ -835,29 +872,66 @@ const TreinoTab = () => {
     return () => clearTimeout(id);
   }, [started, startedAt]);
 
+  const reopenWorkout = async () => {
+    const log = logId;
+    if (!log) return;
+    await supabase.from("workout_logs").update({ status: "in_progress", finished_at: null }).eq("id", log);
+    setShowXpModal(false);
+    setStarted(true);
+    toast("Registro reaberto para edição.");
+  };
+
   /* ---------- Tela de execução ---------- */
   if (screen === "session") {
-    const allSeries = exercises.flatMap((e) => e.series);
-    const doneSeries = allSeries.filter((s) => s.completed).length;
-
     return (
       <div className="flex flex-col h-full">
         <div className="sticky top-0 z-10 bg-background px-4 pt-4 pb-3">
-          <button onClick={() => { setScreen("plan"); reload(); }}
+          <button onClick={() => { setScreen("plan"); setRestSeconds(null); reload(); }}
             className="flex items-center gap-1 text-primary text-sm font-dm font-semibold mb-3 min-h-[44px]">
             <ArrowLeft size={18} /> Voltar
           </button>
-          <h1 className="font-barlow font-bold text-lg text-foreground mb-1 leading-tight">{sessionName.toUpperCase()}</h1>
-          <div className="flex items-center gap-2">
-            <div className="flex-1 h-2 rounded-full bg-secondary overflow-hidden">
-              <div className="h-full rounded-full transition-all"
-                style={{ width: allSeries.length ? `${(doneSeries / allSeries.length) * 100}%` : "0%", background: "linear-gradient(90deg, #0057FF, #0043C4)" }} />
-            </div>
-            <span className="text-xs font-dm text-muted">{doneSeries}/{allSeries.length} séries</span>
-          </div>
+          <h1 className="font-barlow font-bold text-lg text-foreground mb-2 leading-tight">{sessionName.toUpperCase()}</h1>
+
+          {started && (
+            <>
+              <div className="rounded-2xl p-3 mb-2 flex items-center gap-2.5"
+                style={{ background: "linear-gradient(135deg, #0057FF 0%, #0043C4 100%)", boxShadow: "0 3px 14px #0057FF44" }}>
+                <Clock size={18} className="text-white shrink-0" />
+                <div className="min-w-0">
+                  <p className="text-white/70 text-[9px] font-barlow tracking-[1px] uppercase leading-none">
+                    {timer.paused ? "Pausado" : "Em andamento"}
+                  </p>
+                  <p className="font-barlow font-[800] text-xl text-white leading-tight tabular-nums">{timer.label}</p>
+                </div>
+                <div className="flex-1" />
+                <button onClick={() => (timer.paused ? timer.resume() : timer.pause())}
+                  aria-label={timer.paused ? "Continuar treino" : "Pausar treino"}
+                  className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center active:scale-95 transition-transform">
+                  {timer.paused ? <Play size={16} className="text-white fill-white" /> : <Pause size={16} className="text-white" />}
+                </button>
+                <button onClick={() => setConfirmFinish(true)} disabled={saving}
+                  className="h-9 px-3 rounded-full bg-white font-barlow font-bold text-[12px] text-primary active:scale-95 transition-transform disabled:opacity-60">
+                  FINALIZAR
+                </button>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="flex-1 h-2 rounded-full bg-secondary overflow-hidden">
+                  <div className="h-full rounded-full transition-all"
+                    style={{ width: `${progress.pct}%`, background: "linear-gradient(90deg, #0057FF, #0043C4)" }} />
+                </div>
+                <span className="text-[11px] font-dm text-muted shrink-0">
+                  {progress.done} de {progress.total} • {progress.pct}%
+                </span>
+              </div>
+              <p className="text-[11px] font-dm text-muted mt-1">
+                {progress.done} de {progress.total} exercícios concluídos
+                {pending > 0 ? ` · ${pending} série(s) aguardando conexão` : ""}
+              </p>
+            </>
+          )}
         </div>
 
-        <div className="flex-1 overflow-y-auto px-4 pb-24">
+        <div className="flex-1 overflow-y-auto px-4 pb-40">
           {loadingSession && <p className="text-xs font-dm text-muted py-4">Carregando treino...</p>}
           {!loadingSession && exercises.length === 0 && (
             <p className="text-xs font-dm text-muted py-4 text-center">Nenhum exercício cadastrado neste dia.</p>
@@ -866,30 +940,48 @@ const TreinoTab = () => {
           {!started && exercises.length > 0 && (
             <div className="mb-4">
               <button onClick={startWorkout}
-                className="w-full py-3 rounded-2xl bg-primary text-primary-foreground font-barlow font-bold text-base tracking-wide active:scale-[0.98] transition-transform"
+                className="w-full py-3.5 rounded-2xl bg-primary text-primary-foreground font-barlow font-bold text-base tracking-wide active:scale-[0.98] transition-transform"
                 style={{ boxShadow: "0 3px 10px #0057FF44" }}>
-                INICIAR TREINO
+                {resumed ? "CONTINUAR TREINO" : "INICIAR TREINO"}
               </button>
-              <p className="text-center text-[11px] text-muted font-dm mt-2">Modo visualização. Aperte INICIAR para registrar.</p>
-            </div>
-          )}
-
-          {started && !showXpModal && (
-            <div className="mb-4">
-              <button onClick={() => finishWorkout(false)} disabled={saving}
-                className="w-full py-3.5 rounded-2xl font-barlow font-bold text-base tracking-wide text-white active:scale-[0.98] transition-transform disabled:opacity-60"
-                style={{ background: "linear-gradient(135deg, #0057FF 0%, #0043C4 100%)", boxShadow: "0 3px 14px #0057FF55" }}>
-                {saving ? "SALVANDO..." : "🏆 FINALIZAR TREINO"}
-              </button>
+              <p className="text-center text-[11px] text-muted font-dm mt-2">
+                {resumed
+                  ? "Você tem um treino em andamento hoje."
+                  : "Modo visualização. Aperte INICIAR para registrar e começar o cronômetro."}
+              </p>
             </div>
           )}
 
           <div className="space-y-2.5">
             {exercises.map((ex, i) => {
-              const exDone = ex.series.length > 0 && ex.series.every((s) => s.completed);
+              const exDone = ex.sets.length > 0 && ex.sets.every((s) => s.completed);
+              const isOpen = expanded[ex.sessionExerciseId] ?? !exDone;
               const notesOpen = !!openNotes[ex.sessionExerciseId];
+              const top = maxLoad(ex.sets);
+              const doneCount = ex.sets.filter((s) => s.completed).length;
+
+              if (exDone && !isOpen) {
+                return (
+                  <button key={ex.sessionExerciseId}
+                    onClick={() => setExpanded((p) => ({ ...p, [ex.sessionExerciseId]: true }))}
+                    className="w-full rounded-2xl bg-card card-shadow p-3 flex items-center gap-2.5 text-left">
+                    <span className="w-7 h-7 rounded-full bg-emerald-500 flex items-center justify-center shrink-0">
+                      <Check size={15} className="text-white" />
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-dm font-semibold text-[13px] text-foreground truncate">{ex.name}</p>
+                      <p className="text-[11px] font-dm text-muted">
+                        {doneCount} série{doneCount === 1 ? "" : "s"} concluída{doneCount === 1 ? "" : "s"}
+                        {top ? ` · ${top}kg` : ""}
+                      </p>
+                    </div>
+                    <ChevronRight size={18} className="text-muted shrink-0" />
+                  </button>
+                );
+              }
+
               return (
-                <div key={ex.sessionExerciseId} className={`rounded-2xl bg-card card-shadow overflow-hidden ${exDone ? "opacity-60" : ""}`}>
+                <div key={ex.sessionExerciseId} className="rounded-2xl bg-card card-shadow overflow-hidden">
                   <div className="p-3">
                     <div className="flex items-start gap-2.5">
                       <div className="flex-1 min-w-0">
@@ -905,6 +997,12 @@ const TreinoTab = () => {
                           <p className="mt-1 text-[11px] font-dm text-muted bg-secondary rounded-xl p-2">{ex.notes}</p>
                         )}
                       </div>
+                      {exDone && (
+                        <button onClick={() => setExpanded((p) => ({ ...p, [ex.sessionExerciseId]: false }))}
+                          className="w-9 h-9 rounded-xl bg-secondary flex items-center justify-center shrink-0" aria-label="Recolher">
+                          <ChevronDown size={16} className="text-muted" />
+                        </button>
+                      )}
                       {ex.videoUrl && (
                         <button onClick={() => setVideoTarget({ url: ex.videoUrl!, name: ex.name })}
                           className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
@@ -914,46 +1012,95 @@ const TreinoTab = () => {
                     </div>
 
                     <div className="mt-2">
-                      {ex.series.map((s, si) => (
-                        <div key={si} className={`flex items-center gap-1.5 py-2 ${si > 0 ? "border-t border-muted/10" : ""}`}>
-                          <button onClick={() => toggleSerie(i, si)} disabled={!started}
-                            className="w-9 h-9 flex items-center justify-center shrink-0 disabled:opacity-40">
-                            <span className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${s.completed ? "bg-primary border-primary" : "border-muted/30"}`}>
-                              {s.completed && <Check size={12} className="text-primary-foreground" />}
-                            </span>
-                          </button>
-                          <div className="min-w-0 flex-1">
-                            <div className="flex items-center gap-1.5 flex-wrap">
-                              <span className="text-[11px] font-dm font-semibold text-foreground">{s.label}</span>
+                      {ex.sets.map((s, si) => {
+                        const num = ex.sets.filter((o, k) => k < si && o.groupIdx === s.groupIdx).length + 1;
+                        const cardioValue = `${Math.round((s.performedTime ?? s.prescribedTime ?? 0) / 60)} min`;
+                        return (
+                          <div key={`${s.groupIdx}-${s.setIndex}`}
+                            className={`rounded-xl px-2 py-2 ${si > 0 ? "mt-1.5" : ""} ${s.completed ? "bg-emerald-500/10 border border-emerald-500/30" : "bg-secondary/60"}`}>
+                            <div className="flex items-center gap-1.5">
+                              <button onClick={() => toggleSet(i, si)} disabled={!started}
+                                aria-label={s.completed ? "Desfazer série" : "Concluir série"}
+                                className="w-9 h-9 flex items-center justify-center shrink-0 disabled:opacity-40">
+                                <span className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${s.completed ? "bg-emerald-500 border-emerald-500" : "border-muted/30"}`}>
+                                  {s.completed && <Check size={12} className="text-white" />}
+                                </span>
+                              </button>
+                              <div className="min-w-0 w-[74px]">
+                                <p className="text-[10px] font-barlow tracking-[1px] uppercase text-muted leading-none">
+                                  Série {num}
+                                </p>
+                                <p className="text-[12px] font-dm font-semibold text-foreground leading-tight truncate">
+                                  {s.prescribedReps || "-"}
+                                </p>
+                              </div>
+
+                              {s.cardio ? (
+                                <button onClick={() => setCardioTarget({ ex: i, s: si })}
+                                  className="flex-1 flex items-center justify-end gap-1 text-primary min-h-[40px]">
+                                  <span className="text-[12px] font-dm font-semibold">{cardioValue}</span>
+                                  <Pencil size={11} />
+                                </button>
+                              ) : (
+                                <>
+                                  <div className="flex-1 flex items-center gap-1">
+                                    <input
+                                      type="number" inputMode="decimal" step="0.5" placeholder={s.lastLoad ?? s.prescribedLoad ?? "0"}
+                                      defaultValue={s.performedLoad ?? ""}
+                                      onBlur={(e) => { if (e.target.value !== (s.performedLoad ?? "")) setLoad(i, si, e.target.value); }}
+                                      onKeyDown={(e) => { if (e.key === "Enter") (e.target as HTMLInputElement).blur(); }}
+                                      disabled={!started}
+                                      className="w-full h-10 rounded-xl bg-card text-center text-[15px] font-barlow font-[800] text-foreground border border-muted/20 outline-none focus:ring-2 focus:ring-primary/30 disabled:opacity-50"
+                                    />
+                                    <span className="text-[11px] font-dm text-muted shrink-0">kg</span>
+                                  </div>
+                                  <input
+                                    inputMode="numeric" placeholder="reps" defaultValue={s.performedReps ?? ""}
+                                    onBlur={(e) => { if (e.target.value !== (s.performedReps ?? "")) updateRow(i, si, { performedReps: e.target.value || null }); }}
+                                    onKeyDown={(e) => { if (e.key === "Enter") (e.target as HTMLInputElement).blur(); }}
+                                    disabled={!started}
+                                    className="w-[52px] h-10 rounded-xl bg-card text-center text-[13px] font-dm font-semibold text-foreground border border-muted/20 outline-none focus:ring-2 focus:ring-primary/30 disabled:opacity-50"
+                                  />
+                                </>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-2 flex-wrap mt-1 pl-10">
                               {s.methodName && (
                                 <span className="text-[9px] font-barlow tracking-[1px] uppercase bg-primary/10 text-primary px-1.5 py-0.5 rounded-full">
                                   {s.methodName}
                                 </span>
                               )}
+                              {s.lastLoad && (
+                                <span className="text-[10px] font-dm text-muted">Última carga: {s.lastLoad} kg</span>
+                              )}
+                              {!s.lastLoad && s.lastExecution && (
+                                <span className="flex items-center gap-1 text-[10px] font-dm text-muted">
+                                  <History size={9} /> {s.lastExecution}
+                                </span>
+                              )}
+                              <button onClick={() => { setRestSeconds(s.rest); setRestKey((k) => k + 1); }}
+                                className="flex items-center gap-1 text-muted">
+                                <Clock size={10} />
+                                <span className="text-[10px] font-dm">{s.rest}s</span>
+                              </button>
                             </div>
-                            {s.lastExecution && (
-                              <span className="flex items-center gap-1 text-[10px] font-dm text-muted">
-                                <History size={9} /> {s.lastExecution}
-                              </span>
-                            )}
                           </div>
-                          <button onClick={() => setEditTarget({ ex: i, s: si })}
-                            className="flex items-center gap-1 text-primary min-h-[32px] px-1">
-                            <span className="text-[11px] font-dm font-semibold">
-                              {s.cardio
-                                ? `${Math.round((s.performedTime ?? s.prescribedTime ?? 0) / 60)} min`
-                                : `${s.performedLoad || s.prescribedLoad || "0"}kg`}
-                            </span>
-                            <Pencil size={10} />
-                          </button>
-                          <button onClick={() => setRestSeconds(s.rest)}
-                            className="flex items-center gap-1 text-muted min-h-[32px] px-1">
-                            <Clock size={11} />
-                            <span className="text-[11px] font-dm">{s.rest}s</span>
-                          </button>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
+
+                    {started && (
+                      <div className="flex items-center gap-2 mt-2.5">
+                        <button onClick={() => toggleSide(i)}
+                          className="h-9 px-3 rounded-xl bg-secondary text-[11px] font-dm font-semibold text-foreground">
+                          {ex.sets[0]?.sideMode === "cada lado" ? "kg por lado" : "kg total"}
+                        </button>
+                        <button onClick={() => completeExercise(i)} disabled={exDone}
+                          className="flex-1 h-9 rounded-xl bg-primary/10 text-primary font-dm font-semibold text-[12px] disabled:opacity-50">
+                          {exDone ? "Exercício concluído" : "Concluir exercício"}
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
               );
@@ -961,21 +1108,79 @@ const TreinoTab = () => {
           </div>
         </div>
 
-        {editTarget && (
-          <LoadModal
-            serie={exercises[editTarget.ex].series[editTarget.s]}
-            onSave={(v) => saveSerieData(editTarget.ex, editTarget.s, v)}
-            onClose={() => setEditTarget(null)}
+        {restSeconds !== null && (
+          <RestBar key={restKey} seconds={restSeconds} onClose={() => setRestSeconds(null)} />
+        )}
+
+        {cardioTarget && (
+          <CardioModal
+            serie={exercises[cardioTarget.ex].sets[cardioTarget.s]}
+            onSave={(v) =>
+              updateRow(cardioTarget.ex, cardioTarget.s, {
+                performedTime: v.time ? parseInt(v.time) : null,
+                performedDistance: v.distance || null,
+                performedSpeed: v.speed || null,
+                performedIncline: v.incline || null,
+                performedCalories: v.calories || null,
+              })
+            }
+            onClose={() => setCardioTarget(null)}
           />
         )}
-        {restSeconds !== null && <RestTimer seconds={restSeconds} onClose={() => setRestSeconds(null)} />}
-        {videoTarget && <VideoModal url={videoTarget.url} name={videoTarget.name} onClose={() => setVideoTarget(null)} />}
-        {showPostWorkout && (
-          <PostWorkoutModal saving={saving} onSubmit={(a) => finishWorkout(false, a)} />
+
+        {confirmFinish && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center px-6" onClick={() => setConfirmFinish(false)}>
+            <div className="absolute inset-0 bg-black/45" />
+            <div className="relative w-full max-w-[340px] bg-card rounded-3xl p-5" onClick={(e) => e.stopPropagation()}>
+              <h3 className="font-barlow font-bold text-lg text-foreground mb-1">FINALIZAR TREINO?</h3>
+              <p className="text-[12px] font-dm text-muted mb-3">Confira o resumo antes de confirmar.</p>
+              <div className="space-y-2 mb-3">
+                <div className="flex items-center justify-between bg-secondary rounded-xl px-3 py-2.5">
+                  <span className="text-[13px] font-dm text-foreground">Duração total</span>
+                  <span className="font-barlow font-bold text-foreground tabular-nums">{timer.label}</span>
+                </div>
+                <div className="flex items-center justify-between bg-secondary rounded-xl px-3 py-2.5">
+                  <span className="text-[13px] font-dm text-foreground">Exercícios concluídos</span>
+                  <span className="font-barlow font-bold text-foreground">{progress.done}/{progress.total}</span>
+                </div>
+                <div className="flex items-center justify-between bg-secondary rounded-xl px-3 py-2.5">
+                  <span className="text-[13px] font-dm text-foreground">Séries realizadas</span>
+                  <span className="font-barlow font-bold text-foreground">{progress.setsDone}/{progress.setsTotal}</span>
+                </div>
+              </div>
+              {progress.done < progress.total && (
+                <div className="rounded-xl bg-amber-500/10 border border-amber-500/30 p-3 mb-3 flex items-start gap-2">
+                  <AlertTriangle size={15} className="text-amber-600 mt-0.5 shrink-0" />
+                  <p className="text-[12px] font-dm text-foreground">
+                    {progress.total - progress.done} exercício(s) pendente(s). Você pode finalizar de qualquer forma.
+                  </p>
+                </div>
+              )}
+              <button onClick={() => { setConfirmFinish(false); void finishWorkout(false); }} disabled={saving}
+                className="w-full py-3.5 rounded-2xl font-barlow font-bold text-base text-white active:scale-[0.98] transition-transform disabled:opacity-60 mb-2"
+                style={{ background: "linear-gradient(135deg, #0057FF 0%, #0043C4 100%)", boxShadow: "0 3px 14px #0057FF55" }}>
+                {saving ? "SALVANDO..." : "🏆 CONFIRMAR E FINALIZAR"}
+              </button>
+              <button onClick={() => setConfirmFinish(false)}
+                className="w-full py-3 rounded-2xl bg-secondary font-dm font-semibold text-sm text-foreground">
+                Continuar treinando
+              </button>
+            </div>
+          </div>
         )}
+
+        {videoTarget && <VideoModal url={videoTarget.url} name={videoTarget.name} onClose={() => setVideoTarget(null)} />}
+        {showPostWorkout && <PostWorkoutModal saving={saving} onSubmit={(a) => finishWorkout(false, a)} />}
         {showXpModal && (
           <XpCompletionModal
             xpBreakdown={{ loads: loadAnnotations, start: true, complete: true }}
+            summary={{
+              duration: finalDuration,
+              exercisesDone: progress.done,
+              exercisesTotal: progress.total,
+              setsDone: progress.setsDone,
+            }}
+            onEdit={reopenWorkout}
             onClose={() => { setShowXpModal(false); setScreen("plan"); }}
           />
         )}
