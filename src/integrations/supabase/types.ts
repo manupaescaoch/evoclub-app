@@ -356,6 +356,8 @@ export type Database = {
           obesity_degree: number | null
           origin: string
           protein: number | null
+          reference_ranges: Json
+          segmental_meta: Json
           sex: string | null
           skeletal_muscle_mass: number | null
           total_body_water: number | null
@@ -399,6 +401,8 @@ export type Database = {
           obesity_degree?: number | null
           origin?: string
           protein?: number | null
+          reference_ranges?: Json
+          segmental_meta?: Json
           sex?: string | null
           skeletal_muscle_mass?: number | null
           total_body_water?: number | null
@@ -442,6 +446,8 @@ export type Database = {
           obesity_degree?: number | null
           origin?: string
           protein?: number | null
+          reference_ranges?: Json
+          segmental_meta?: Json
           sex?: string | null
           skeletal_muscle_mass?: number | null
           total_body_water?: number | null
@@ -4801,6 +4807,10 @@ export type Database = {
           cancelled_by: string | null
           client_id: number
           created_at: string
+          evo_pdf_generated_at: string | null
+          evo_pdf_name: string | null
+          evo_pdf_path: string | null
+          evo_pdf_version: number
           file_mime: string | null
           file_name: string | null
           file_path: string | null
@@ -4832,6 +4842,10 @@ export type Database = {
           cancelled_by?: string | null
           client_id: number
           created_at?: string
+          evo_pdf_generated_at?: string | null
+          evo_pdf_name?: string | null
+          evo_pdf_path?: string | null
+          evo_pdf_version?: number
           file_mime?: string | null
           file_name?: string | null
           file_path?: string | null
@@ -4863,6 +4877,10 @@ export type Database = {
           cancelled_by?: string | null
           client_id?: number
           created_at?: string
+          evo_pdf_generated_at?: string | null
+          evo_pdf_name?: string | null
+          evo_pdf_path?: string | null
+          evo_pdf_version?: number
           file_mime?: string | null
           file_name?: string | null
           file_path?: string | null
@@ -7700,6 +7718,7 @@ export type Database = {
         Args: { _from?: string; _to?: string; _unit_id?: string }
         Returns: Json
       }
+      assessment_delete: { Args: { _id: string }; Returns: Json }
       assessment_import_save: {
         Args: {
           _bio: Json
