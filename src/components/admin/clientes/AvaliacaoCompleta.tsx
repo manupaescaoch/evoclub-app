@@ -171,6 +171,24 @@ export default function AvaliacaoCompleta({
               )}
             </div>
 
+            {row.file_path && (
+              <div className="rounded-xl border border-border p-3">
+                <p className="text-[11px] uppercase tracking-wider font-dm text-muted-foreground mb-1">Arquivo original</p>
+                <div className="flex items-center justify-between gap-2">
+                  <p className="text-xs font-dm text-foreground truncate">{row.file_name || "laudo"}</p>
+                  <Button size="sm" variant="outline" className="font-dm shrink-0" onClick={openFile}>
+                    <Download size={14} className="mr-1.5" /> ABRIR
+                  </Button>
+                </div>
+                {row.imported_at && (
+                  <p className="text-[11px] font-dm text-muted-foreground mt-2">
+                    Importado em {new Date(row.imported_at).toLocaleString("pt-BR")}
+                    {row.professional_name ? ` por ${row.professional_name}` : ""}
+                  </p>
+                )}
+              </div>
+            )}
+
             {row.notes && (
               <div className="rounded-xl border border-border p-3">
                 <p className="text-[11px] uppercase tracking-wider font-dm text-muted-foreground mb-1">Observações</p>
